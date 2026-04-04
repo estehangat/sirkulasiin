@@ -1,0 +1,611 @@
+.pageShell {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 10% -20%,
+      rgba(39, 174, 96, 0.12) 0%,
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(130, 158, 96, 0.16) 0%,
+      transparent 34%
+    ),
+    #f4f4f0;
+  color: var(--color-black);
+  padding: 24px 24px 70px;
+}
+
+.topbar {
+  position: sticky;
+  top: 16px;
+  z-index: 40;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.brandWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brandMark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.35);
+}
+
+.brandName {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.mainNav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.navLink {
+  color: var(--color-gray-600);
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.navLink:hover {
+  color: var(--color-primary-dark);
+  background: rgba(39, 174, 96, 0.12);
+}
+
+.authCta {
+  display: flex;
+  gap: 8px;
+}
+
+.loginBtn,
+.signupBtn {
+  text-decoration: none;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 16px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.loginBtn {
+  color: var(--color-primary-dark);
+  background: rgba(39, 174, 96, 0.12);
+}
+
+.signupBtn {
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-dark)
+  );
+  box-shadow: 0 8px 18px rgba(39, 174, 96, 0.35);
+}
+
+.loginBtn:hover,
+.signupBtn:hover {
+  transform: translateY(-1px);
+}
+
+.hero {
+  max-width: 1180px;
+  margin: 28px auto 0;
+  display: grid;
+  grid-template-columns: 1fr 0.9fr;
+  gap: 26px;
+  align-items: stretch;
+}
+
+.heroContent {
+  background: #f7f7f5;
+  border-radius: 36px;
+  padding: 52px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+}
+
+.eyebrow {
+  display: inline-block;
+  background: rgba(39, 174, 96, 0.14);
+  color: var(--color-primary-dark);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.heroTitle {
+  margin-top: 20px;
+  font-size: clamp(34px, 4vw, 56px);
+  letter-spacing: -1.8px;
+  line-height: 1.02;
+}
+
+.heroText {
+  margin-top: 18px;
+  font-size: 16px;
+  color: var(--color-gray-600);
+  line-height: 1.7;
+  max-width: 62ch;
+}
+
+.heroActions {
+  margin-top: 30px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.primaryAction,
+.secondaryAction,
+.ghostAction {
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.primaryAction {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-dark)
+  );
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(39, 174, 96, 0.24);
+}
+
+.secondaryAction {
+  background: #ede9dd;
+  color: var(--color-gray-700);
+}
+
+.ghostAction {
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.primaryAction:hover,
+.secondaryAction:hover,
+.ghostAction:hover {
+  transform: translateY(-1px);
+}
+
+.heroStats {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.statValue {
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: -0.9px;
+}
+
+.statLabel {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--color-gray-500);
+}
+
+.heroVisual {
+  position: relative;
+  border-radius: 36px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1);
+  min-height: 560px;
+}
+
+.visualGlow {
+  position: absolute;
+  inset: auto auto -110px -90px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(39, 174, 96, 0.42),
+    rgba(39, 174, 96, 0)
+  );
+  z-index: 1;
+}
+
+.heroImage {
+  object-fit: cover;
+}
+
+.scanChip {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 20px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 370px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.scanChipBadge {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(39, 174, 96, 0.18);
+  color: var(--color-primary-dark);
+  font-weight: 800;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.scanChipTitle {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.scanChipText {
+  font-size: 12px;
+  color: var(--color-gray-500);
+}
+
+.stepsSection,
+.marketSection,
+.ctaSection {
+  max-width: 1180px;
+  margin: 88px auto 0;
+}
+
+.sectionHeader {
+  text-align: center;
+}
+
+.sectionLabel,
+.sectionLabelLight {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.sectionLabel {
+  color: var(--color-primary-dark);
+}
+
+.sectionTitle {
+  margin-top: 12px;
+  font-size: clamp(28px, 3.3vw, 42px);
+  letter-spacing: -1.1px;
+  line-height: 1.14;
+  max-width: 22ch;
+}
+
+.stepGrid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.stepCard {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 7px 22px rgba(0, 0, 0, 0.06);
+}
+
+.stepNumber {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  background: rgba(39, 174, 96, 0.12);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+.stepTitle {
+  margin-top: 14px;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+}
+
+.stepText {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--color-gray-500);
+  line-height: 1.6;
+}
+
+.impactSection {
+  max-width: 1180px;
+  margin: 88px auto 0;
+  padding: 34px;
+  border-radius: 34px;
+  background: linear-gradient(138deg, #046a34 0%, #0f8b47 52%, #169856 100%);
+  color: #fff;
+  display: grid;
+  grid-template-columns: 1fr 0.95fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.sectionLabelLight {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.impactTitle {
+  margin-top: 12px;
+  font-size: clamp(28px, 3vw, 44px);
+  letter-spacing: -1px;
+  line-height: 1.08;
+}
+
+.impactText {
+  margin-top: 14px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 52ch;
+}
+
+.impactStats {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.impactValue {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.9px;
+}
+
+.impactLabel {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.impactVisual {
+  position: relative;
+  min-height: 340px;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+}
+
+.impactImage {
+  object-fit: cover;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+}
+
+.marketLink {
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-primary-dark);
+}
+
+.marketGrid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.productCard {
+  border-radius: 24px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+.productVisual {
+  height: 172px;
+  position: relative;
+  background:
+    radial-gradient(
+      circle at 16% 22%,
+      rgba(39, 174, 96, 0.35),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 72%,
+      rgba(130, 158, 96, 0.3),
+      transparent 38%
+    ),
+    linear-gradient(135deg, #f2efe7 0%, #d7d1bf 100%);
+}
+
+.productTag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--color-primary-dark);
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.productInfo {
+  padding: 14px;
+}
+
+.productName {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.productCategory {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-gray-500);
+}
+
+.productPrice {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+}
+
+.ctaSection {
+  background: linear-gradient(135deg, #0d7d40 0%, #12814a 40%, #286f43 100%);
+  color: #fff;
+  border-radius: 36px;
+  padding: 56px;
+  text-align: center;
+}
+
+.ctaTitle {
+  font-size: clamp(30px, 3vw, 48px);
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+}
+
+.ctaText {
+  max-width: 68ch;
+  margin: 14px auto 0;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.ctaActions {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1100px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .heroVisual {
+    min-height: 430px;
+  }
+
+  .stepGrid,
+  .marketGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .impactSection {
+    grid-template-columns: 1fr;
+  }
+
+  .impactVisual {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 780px) {
+  .pageShell {
+    padding: 14px 14px 50px;
+  }
+
+  .topbar {
+    position: static;
+    border-radius: 24px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .brandWrap,
+  .authCta,
+  .mainNav {
+    justify-content: center;
+  }
+
+  .heroContent {
+    padding: 34px 24px;
+    border-radius: 28px;
+  }
+
+  .heroStats {
+    grid-template-columns: 1fr;
+  }
+
+  .stepsSection,
+  .marketSection,
+  .ctaSection,
+  .impactSection {
+    margin-top: 62px;
+  }
+
+  .stepGrid,
+  .marketGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeaderRow {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .impactSection,
+  .ctaSection {
+    padding: 28px 20px;
+    border-radius: 26px;
+  }
+}
