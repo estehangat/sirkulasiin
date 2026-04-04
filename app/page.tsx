@@ -83,9 +83,9 @@ export default function HomePage() {
           <a href="#home" className={styles.navLink}>
             Home
           </a>
-          <a href="#marketplace" className={styles.navLink}>
+          <Link href="/marketplace" className={styles.navLink}>
             Marketplace
-          </a>
+          </Link>
           <a href="#scan" className={styles.navLink}>
             Scan
           </a>
