@@ -22,55 +22,55 @@ const IconBrandLogo = () => (
 
 const relatedItems = [
   {
-    name: "Reclaimed Oak Stand",
-    price: "$45.00",
-    co2: "-0.8kg CO2",
+    name: "Rak Kayu Reklamasi",
+    price: "Rp675.000",
+    co2: "-0,8kg CO2",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuAf5Lgv767RWIuGdXQFONzE0eG4qwMoGXXHDL5nLLQafS-3ckvVC8z94bOqcCxre8i9RTgK1cte_aQtc6KKW2w5huBsf619AVRUrlAQ9WsX7gO9LF5bEticzSgTII8ZmHX0K32gYbT0KYgIG5KjFj8Nnz1wQ1X0pMkGFMfjnf578txIxi5Y3P9YKYNIBMop70Ff_MEaCzX1ntuVwChZwJim9UnCgiDucprOyYO6caTo-DWS2t7EQAiOl1husoXem-lFUAbeGzNoPdjP",
-    alt: "minimalist reclaimed wood plant stand",
+    alt: "rak tanaman kayu reklamasi minimalis",
   },
   {
-    name: "Olive Organic Throw",
-    price: "$110.00",
-    co2: "-1.2kg CO2",
+    name: "Selimut Katun Organik Zaitun",
+    price: "Rp1.650.000",
+    co2: "-1,2kg CO2",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDObjVz74RVeH8B4wmlVQjSWmPqQStHMyjY7YmsMaAUFC0WaKdtdBKMcQxjbJzX2CS5JcNiEPZDiekLTJOPtTluFGnt1ee1IylME42Hr-5waMICdlQOf9CmxPUdk4vlbF2pePwqcm54jCY0h5ggpJAlufbjVa9VIQwHFlFAYxDqruuH_kSc0qUkt7RvbrcooMCS_8boAYc3lmkBX3zsRlUXqjb61IUGwiuUTYs1Qt-Aa4JRwaPD9GvNHKKBPzIBXQQ0JOMLHftsOoQQ",
-    alt: "organic cotton throw blanket in olive green",
+    alt: "selimut katun organik warna hijau zaitun",
   },
   {
-    name: "Amber Glass Set",
-    price: "$32.00",
-    co2: "-0.4kg CO2",
+    name: "Set Gelas Amber",
+    price: "Rp480.000",
+    co2: "-0,4kg CO2",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuBFB99fclbK_pcG_lgPwIu464uwKmjHD_juRmbqnV3Cmbeyran7Kb69dKbn34-bCUydB0k-0VBsrwl38l2zlmBPpl7lH9hwm97ZGnlWrfi1nYM92-rYmFw41HzrNeDW558r5OPIJeLCOuLPxaTYuhzCP7JtRd-d43Luxde3gpARfqljss9j5_61U1g815ijyEpbZj9bFTwHAY2zOrgH8pIsaUrQylwH1f4IHTOoSERQ-VXkwOkUuCSQdhmswAykbehDkdvSA846wJsO",
-    alt: "recycled glass amber candle holders",
+    alt: "tempat lilin kaca daur ulang warna amber",
   },
   {
-    name: "Woven Jute Rug",
-    price: "$158.00",
-    co2: "-3.1kg CO2",
+    name: "Karpet Anyaman Rami",
+    price: "Rp2.370.000",
+    co2: "-3,1kg CO2",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDIkhACudZs-O3Pb1hfHU2FgocZZeEvdR_fE4gH9U4jU2XFGY5s8ooU8AO577EtzBh3CoWTxkZ6mFXD_rX2dC7i_0nS3H8NJ74UOp_xBpin8wqu7_eNuErU3OrcnXOL_moYLt-ktxPyb3daZxdE6nZvRyWaY5AWuoKk_DwClVeU7yf6zqVxC2AH2wD8pFfSF78U8iEjXxwsF5rSTryuwxF0RfcWjznUPbgBqMo6_b3f-l_6lZfgrtmtgcJRRj0CXLTzhpO8Y8nH0VH6",
-    alt: "natural jute round area rug",
+    alt: "karpet bulat rami alami",
   },
 ];
 
 const galleryThumbs = [
   {
     src: "https://lh3.googleusercontent.com/aida-public/AB6AXuC_A1C9Kj7LxbB2OJDOGEcDkt9QqQxHByWSFXNH6KEpPS-4HyfAnmX4kpKYZ12pftVhFVnYLHhfXV3ngDYNGhcFqFY_9toXxD2_GZ47o2QnkgDtpE4Z95uJsZqzFEYIMt6CdS_5U9uQ-yDqVT4Tzjf5Rnqio5wR0BaJaXebAzzpV0C-HBBPe3TA9y2kJljgkGaE9tVGbHpsxTFjgcn0y0WPK9ZT5g3z5UaDAAXsWHPLGXkhsxa1eh_HmYtSpOFt9Kc1CvrfcXXyEr56",
-    alt: "close-up artisanal pottery texture",
+    alt: "tekstur keramik artisan dari dekat",
   },
   {
     src: "https://lh3.googleusercontent.com/aida-public/AB6AXuAuMo3YwX_9y2m-wh8iO1oA1F0eATuxzL4VCvMK5czTNgogGW56SQ8nCiuihbaxrGDaYW1526q8hfqfne00-H3oKjfb-98mJmQMsPwtXu-fQ9da5uIcbLE8E5yJNY5gKYJxLj0F8eYPbymu3jRNJlgiv_J-con4oNpRyv3uttHFNTYji02HlZLQJM36gDF5Jd296a-oi5FdriMjmljscM1beX1by3ZQ0M-lUikAvOJYFLeGgbrHs18OduOUfJB2OoQplrAWufXCJobu",
-    alt: "ceramic item next to green plant",
+    alt: "barang keramik di samping tanaman hijau",
   },
   {
     src: "https://lh3.googleusercontent.com/aida-public/AB6AXuDrp6aI19rnN7YserqfiOwmBxPGHsisedo-NkddHTFO-qtRyQmrb54s6Hs4niqOg94oq7qiBrALPQIAAVuAAtIRhjRveA8JC4NzKGdHLc89Wf6G-g5DvEMOb_k8bhOWdGcm3Tx6N5jzbaJD7ADwU8vXIE4BPmKK3fGXfPs8jhjOSTvxqfzrKa8PWxXrhT4-Q2qvbpf2LrhxiR-3YC9V1QZThQm0EfZ4zmHZMv3JeQg_pltM94T8bUuL8Zj2-eVyOd94fTn0JeofUuUy",
-    alt: "bottom view of handmade vase",
+    alt: "tampilan bawah vas buatan tangan",
   },
   {
     src: "https://lh3.googleusercontent.com/aida-public/AB6AXuASZk77YRRmdQgdZJHzDXlNcSv8cUe9S2dTiYDW6cpjK7Ugv5wOVORqhCq2QodL3aAo6rwl0jffWujJS90UlpFtO4bVBQJ3q_7UWlCF1qlu78F34JS8c7NW_elRWI-iDZOUufQ0-CElJbg-cuyypUxMyyGb8QFkoeqzI8hWhBMkKpAsRl_XOddas_uDPNi08k12XDgvLmAYyv6EpWMYNnVEKyCPmoeG0miUnB8b19ZE7Wm2bJ1lZ3X5kfLiQiIi9lJFgd8zPlDVb8jr",
-    alt: "product in bright living room setting",
+    alt: "produk di suasana ruang tamu terang",
     hasOverlay: true,
   },
 ];
@@ -89,7 +89,7 @@ export default function ProductDetailPage() {
 
         <nav className={styles.mainNav} aria-label="Navigasi utama">
           <Link href="/" className={styles.navLink}>
-            Home
+            Beranda
           </Link>
           <Link href="/marketplace" className={styles.navLinkActive}>
             Marketplace
@@ -104,10 +104,10 @@ export default function ProductDetailPage() {
 
         <div className={styles.authCta}>
           <Link href="/login" className={styles.loginBtn}>
-            Login
+            Masuk
           </Link>
           <Link href="/signup" className={styles.signupBtn}>
-            Signup
+            Daftar
           </Link>
         </div>
       </header>
@@ -116,9 +116,9 @@ export default function ProductDetailPage() {
       <nav className={styles.breadcrumbs}>
         <Link href="/marketplace">Marketplace</Link>
         <span className={styles.breadcrumbSep}>›</span>
-        <a href="#">Lifestyle</a>
+        <a href="#">Gaya Hidup</a>
         <span className={styles.breadcrumbSep}>›</span>
-        <span className={styles.breadcrumbCurrent}>Sustainable Decor</span>
+        <span className={styles.breadcrumbCurrent}>Dekorasi Berkelanjutan</span>
       </nav>
 
       {/* ── Product Layout ── */}
@@ -128,7 +128,7 @@ export default function ProductDetailPage() {
           <div className={styles.mainImage}>
             <Image
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCz6K9lGwzIXgCpJzhYN68eQ7fm_P_VeTneFXHyHgtVOEodPpWyVTQqcncNaJ7_ewf0TxfjCeagwnv-F7YtgTghXEaGALKEnvv7ztXHivsG14FY5814BB2ySdkvx7rJOUAo7cg4KLZqP0BzI3TrbhuQZu0u1ftZYORZ4DGrtxfkGCwI_dZsxiZOytZzPwUW8N-G8yo6RGDY7N6YguU7WIpjXDqH6rz4OIdpBoDsaNaRY_voamLdrbOaQmgTMMO4RqgcKqe1llPB6LGu"
-              alt="handcrafted ceramic vase with organic texture"
+              alt="vas keramik buatan tangan dengan tekstur organik"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 58vw"
@@ -138,7 +138,7 @@ export default function ProductDetailPage() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              AI VERIFIED
+               TERVERIFIKASI AI
             </div>
           </div>
           <div className={styles.thumbGrid}>
@@ -164,9 +164,9 @@ export default function ProductDetailPage() {
 
         {/* Product Info */}
         <div className={styles.productInfo}>
-          <span className={styles.ecoBadge}>Eco-Curated Selection</span>
-          <h1 className={styles.productTitle}>Hand-Thrown Terracotta Vessel</h1>
-          <p className={styles.productPrice}>$84.00</p>
+          <span className={styles.ecoBadge}>Pilihan Terkurasi Ramah Lingkungan</span>
+          <h1 className={styles.productTitle}>Vas Terakota Buatan Tangan</h1>
+          <p className={styles.productPrice}>Rp1.260.000</p>
 
           {/* Impact Card */}
           <div className={styles.impactCard}>
@@ -175,13 +175,13 @@ export default function ProductDetailPage() {
                 <path d="M12 22c4-4 8-7.5 8-12a8 8 0 10-16 0c0 4.5 4 8 8 12z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              <span>AI-Generated Impact Report</span>
+              <span>Laporan Dampak Buatan AI</span>
             </div>
             <p className={styles.impactText}>
-              By choosing this pre-loved vessel, you prevent{" "}
-              <strong className={styles.impactHighlight}>2.4kg of CO2 emissions</strong> and
-              save <strong className={styles.impactHighlight}>120L of water</strong> compared
-              to new production.
+              Dengan memilih vas preloved ini, Anda mencegah{" "}
+              <strong className={styles.impactHighlight}>2,4kg emisi CO2</strong> dan
+              menghemat <strong className={styles.impactHighlight}>120L air</strong> dibandingkan
+              dengan produksi baru.
             </p>
           </div>
 
@@ -200,7 +200,7 @@ export default function ProductDetailPage() {
               <div>
                 <h4 className={styles.sellerName}>Elena Green</h4>
                 <div className={styles.sellerMeta}>
-                  <span className={styles.sellerBadge}>Green Advocate</span>
+                  <span className={styles.sellerBadge}>Pendukung Hijau</span>
                   <span className={styles.sellerRating}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="#ca8a04">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -215,37 +215,37 @@ export default function ProductDetailPage() {
 
           {/* Description */}
           <div className={styles.description}>
-            <h3 className={styles.descTitle}>About this item</h3>
+            <h3 className={styles.descTitle}>Tentang barang ini</h3>
             <p className={styles.descText}>
-              A stunning centerpiece crafted from locally sourced Mediterranean
-              clay. This vessel features a unique matte glaze and subtle throwing
-              rings that tell the story of its creation. Excellent condition with
-              zero chips or cracks.
+              Hiasan tengah meja yang memukau, dibuat dari tanah liat Mediterania
+              lokal. Vas ini menampilkan glasir matte unik dan lingkaran lempar
+              halus yang menceritakan kisah pembuatannya. Kondisi sangat baik
+              tanpa goresan atau retakan.
             </p>
             <div className={styles.specGrid}>
               <div className={styles.specItem}>
-                <span className={styles.specLabel}>Origin</span>
+                <span className={styles.specLabel}>Asal</span>
                 <span className={styles.specValue}>Barcelona</span>
               </div>
               <div className={styles.specItem}>
                 <span className={styles.specLabel}>Material</span>
-                <span className={styles.specValue}>Terracotta</span>
+                <span className={styles.specValue}>Terakota</span>
               </div>
               <div className={styles.specItem}>
-                <span className={styles.specLabel}>Carbon</span>
-                <span className={styles.specValue}>-2.4kg</span>
+                <span className={styles.specLabel}>Karbon</span>
+                <span className={styles.specValue}>-2,4kg</span>
               </div>
             </div>
           </div>
 
           {/* CTAs */}
           <div className={styles.ctaGroup}>
-            <button className={styles.buyBtn}>Buy Now</button>
+            <button className={styles.buyBtn}>Beli Sekarang</button>
             <button className={styles.chatBtn}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
               </svg>
-              Chat with Seller
+              Chat dengan Penjual
             </button>
           </div>
         </div>
@@ -255,11 +255,11 @@ export default function ProductDetailPage() {
       <section className={styles.relatedSection}>
         <div className={styles.relatedHeader}>
           <div>
-            <span className={styles.relatedLabel}>Curation</span>
-            <h2 className={styles.relatedTitle}>You Might Also Like</h2>
+            <span className={styles.relatedLabel}>Kurasi</span>
+            <h2 className={styles.relatedTitle}>Mungkin Anda Juga Suka</h2>
           </div>
           <Link href="/marketplace" className={styles.relatedLink}>
-            Explore Marketplace →
+            Jelajahi Marketplace →
           </Link>
         </div>
 
@@ -297,13 +297,13 @@ export default function ProductDetailPage() {
         <div className={styles.footerInner}>
           <span className={styles.footerBrand}>SirkulasiIn</span>
           <div className={styles.footerLinks}>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Carbon Methodology</a>
-            <a href="#">Help Center</a>
+            <a href="#">Kebijakan Privasi</a>
+            <a href="#">Syarat Layanan</a>
+            <a href="#">Metodologi Karbon</a>
+            <a href="#">Pusat Bantuan</a>
           </div>
           <p className={styles.footerCopyright}>
-            © 2024 SirkulasiIn. Harvesting a greener future.
+            © 2024 SirkulasiIn. Menuai masa depan yang lebih hijau.
           </p>
         </div>
       </footer>

@@ -22,38 +22,38 @@ const IconBrandLogo = () => (
 
 const marketplaceItems = [
   {
-    name: "Organic Cotton Linens",
-    location: "Palo Alto, CA",
-    time: "2h ago",
-    price: "$45",
+    name: "Linen Katun Organik",
+    location: "Jakarta Selatan",
+    time: "2 jam lalu",
+    price: "Rp675.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuBocev6v5qrmUfYEjA2_sJHut65t8ZZJ6TFidR-TEyVyt_nZcmUq2ID5sV-tUTR8eVKXwmUypGNX9bjUaZpg7tfloyThfNH9x1AbbtdJY3dwQzb05x5OB2colpX6rJWMI4CIjZpUR5iQkspMPvxIOiB3OoRVqIaGOoJVnDL_xHSy7UQKUH4P5b_Exn6uhKCyGuj51f2JAPq1J8Duiy1byTYBOWayDDMIrqSBS8x_Ls5LQhIV2sh5wUynTlOYEp-bSrBLjSfTOKj2fUI",
     verified: true,
   },
   {
-    name: "Vintage Ceramic Vase",
-    location: "Seattle, WA",
-    time: "5h ago",
-    price: "$28",
+    name: "Vas Keramik Vintage",
+    location: "Bandung",
+    time: "5 jam lalu",
+    price: "Rp420.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuA4cvh1uOCo4ltrnmiSjuJQeQHTe9N4ylU2IIyxIFN_f-JvQb8weGSaxc0qQdZSxTNYjM-Fg8l-zKh2UcIPsFoRjVt1CUPHG11r6p7JXWkhcexd70q7SD88notMjL7zEW-vqZjSzd74aMfvER5Uzu9Q4KOdvlHdvC1w8c-Yiyisec3OBZeJFBY55jmZce9_gOfFZCjP_T-UZiTt21_-sgcnZdPN2m33B6otUvQOolBDdb4O14f55rWkUF8pDi9-fTk0F4_vNTMc1sjK",
     verified: true,
   },
   {
-    name: "Refurbished Chef Knives",
-    location: "Brooklyn, NY",
-    time: "Just now",
-    price: "$120",
+    name: "Pisau Chef Rekondisi",
+    location: "Surabaya",
+    time: "Baru saja",
+    price: "Rp1.800.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDLd-lIbGI0QqpjG5_cKCNqWHlj18hqPp2v84Aej4aoZv1vIAK_t6-a3G1WV6gboEmwXtS-iBC52wx4-uMPIyT9W-PCOEdGSNjfnGbhZIuFTiTUfJsHCRphI3RE-4lvGNmKfrsZD632gCOK1Xn3_9eMSSaJOXkhp7TqihfBPvqW8lztWgJcc5UDOU3_6yMJJvln0d4wcYa1sBTpUxQrpFyzIh3Tz6t3ozUtcOGN84Rr1E0ZlJ9XFqovMxY1ZYKu1pY0RzUERUbUylvA",
     verified: false,
-    badge: "MINT",
+    badge: "SEPERTI BARU",
   },
   {
-    name: "Gen 2 Headphones",
-    location: "Austin, TX",
-    time: "1d ago",
-    price: "$85",
+    name: "Headphone Gen 2",
+    location: "Yogyakarta",
+    time: "1 hari lalu",
+    price: "Rp1.275.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuAnOqNekOPcrRC518O-ueGLtsOqY3PIRINVCvEZDwjYrJ_S-0FFzOYuPL1GXV93k3RD0r7SY6_jUCUEKj5yAvmaQ5srGpv9DpoUME0hiLJYIPvPlOs7MBS7kulGifjurbOJFG8-e3w_IhzRrJ3J6K437dIE1_LrQgG5AmAWNENCfNA8Uon07lkUSgZsSWQZmS6xXfFB-cS0WgHZFiYRj24woAiPElbupPI6A7tcY5W9refRULJpFU3GQNygUAWGzL_-eaYJNbUBDm9c",
     verified: true,
@@ -74,7 +74,7 @@ export default function MarketplacePage() {
 
         <nav className={styles.mainNav} aria-label="Navigasi utama">
           <Link href="/" className={styles.navLink}>
-            Home
+            Beranda
           </Link>
           <Link href="/marketplace" className={styles.navLinkActive}>
             Marketplace
@@ -89,10 +89,10 @@ export default function MarketplacePage() {
 
         <div className={styles.authCta}>
           <Link href="/login" className={styles.loginBtn}>
-            Login
+            Masuk
           </Link>
           <Link href="/signup" className={styles.signupBtn}>
-            Signup
+            Daftar
           </Link>
         </div>
       </header>
@@ -102,12 +102,12 @@ export default function MarketplacePage() {
         <div className={styles.heroContent}>
           <div className={styles.heroTextContent}>
             <h1 className={styles.heroTitle}>
-              Give items a{" "}
-              <span className={styles.heroAccent}>second life.</span>
+              Berikan barang{" "}
+              <span className={styles.heroAccent}>kehidupan kedua.</span>
             </h1>
             <p className={styles.heroDescription}>
-              The curated marketplace for premium pre-loved goods. Verified by
-              AI, delivered with love for the planet.
+              Marketplace terkurasi untuk barang preloved berkualitas. Diverifikasi
+              oleh AI, dikirim dengan cinta untuk bumi.
             </p>
           </div>
           <div>
@@ -127,7 +127,7 @@ export default function MarketplacePage() {
                   strokeLinecap="round"
                 />
               </svg>
-              List Your Item
+              Jual Barangmu
             </button>
           </div>
         </div>
@@ -149,26 +149,26 @@ export default function MarketplacePage() {
             </svg>
             <input
               type="text"
-              placeholder="Search by item, material, or brand..."
+              placeholder="Cari berdasarkan barang, bahan, atau merek..."
               className={styles.searchInput}
             />
           </div>
           <select className={styles.filterSelect}>
-            <option>Category</option>
-            <option>Home Decor</option>
-            <option>Kitchenware</option>
-            <option>Electronics</option>
+            <option>Kategori</option>
+            <option>Dekorasi Rumah</option>
+            <option>Peralatan Dapur</option>
+            <option>Elektronik</option>
           </select>
           <select className={styles.filterSelect}>
-            <option>Price Range</option>
-            <option>$0 - $50</option>
-            <option>$50 - $200</option>
-            <option>$200+</option>
+            <option>Rentang Harga</option>
+            <option>Rp0 - Rp500.000</option>
+            <option>Rp500.000 - Rp2.000.000</option>
+            <option>Rp2.000.000+</option>
           </select>
           <select className={styles.filterSelect}>
-            <option>Location</option>
-            <option>Nearby</option>
-            <option>Nationwide</option>
+            <option>Lokasi</option>
+            <option>Terdekat</option>
+            <option>Seluruh Indonesia</option>
           </select>
           <button className={styles.filterButton}>
             <svg
@@ -196,9 +196,9 @@ export default function MarketplacePage() {
       {/* ── Featured Eco-Friendly Picks ── */}
       <section className={styles.featuredSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Eco-Friendly Picks</h2>
+          <h2 className={styles.sectionTitle}>Pilihan Ramah Lingkungan</h2>
           <a href="#" className={styles.viewAllLink}>
-            View collection →
+            Lihat koleksi →
           </a>
         </div>
 
@@ -215,13 +215,13 @@ export default function MarketplacePage() {
             />
             <div className={styles.featuredOverlay} />
             <div className={styles.featuredContent}>
-              <span className={styles.featuredBadge}>Renewed Collection</span>
-              <h3 className={styles.featuredTitle}>Sustainable Living Room</h3>
+              <span className={styles.featuredBadge}>Koleksi Diperbarui</span>
+              <h3 className={styles.featuredTitle}>Ruang Tamu Berkelanjutan</h3>
               <p className={styles.featuredText}>
-                Hand-picked furniture restored with organic finishes and
-                non-toxic materials.
+                Furnitur pilihan yang direstorasi dengan bahan organik dan
+                material non-toksik.
               </p>
-              <button className={styles.exploreBtn}>Explore Now</button>
+              <button className={styles.exploreBtn}>Jelajahi Sekarang</button>
             </div>
           </div>
 
@@ -230,11 +230,11 @@ export default function MarketplacePage() {
             {/* Upcycled Tech Card */}
             <div className={styles.featuredCard}>
               <div className={styles.featuredCardContent}>
-                <h3 className={styles.cardTitle}>Upcycled Tech</h3>
+                <h3 className={styles.cardTitle}>Teknologi Daur Ulang</h3>
                 <p className={styles.cardText}>
-                  Certified pre-owned with 12 month warranty.
+                  Bersertifikat bekas pakai dengan garansi 12 bulan.
                 </p>
-                <span className={styles.cardLink}>Browse Tech →</span>
+                <span className={styles.cardLink}>Telusuri Teknologi →</span>
               </div>
               <div className={styles.cardImageBox}>
                 <Image
@@ -250,11 +250,11 @@ export default function MarketplacePage() {
             {/* Impact Rewards Card */}
             <div className={styles.rewardCard}>
               <div className={styles.featuredCardContent}>
-                <h3 className={styles.cardTitle}>Impact Rewards</h3>
+                <h3 className={styles.cardTitle}>Hadiah Dampak</h3>
                 <p className={styles.cardText}>
-                  Earn double Eco-Points on glass items this week.
+                  Dapatkan Eco-Points ganda untuk barang kaca minggu ini.
                 </p>
-                <span className={styles.rewardBadge}>Learn More</span>
+                <span className={styles.rewardBadge}>Pelajari Lebih Lanjut</span>
               </div>
               <svg
                 className={styles.ecoIcon}
@@ -273,13 +273,13 @@ export default function MarketplacePage() {
       {/* ── Recent Listings ── */}
       <section className={styles.listingsSection}>
         <div className={styles.listingsHeader}>
-          <h2 className={styles.sectionTitle}>Recent Listings</h2>
+          <h2 className={styles.sectionTitle}>Listing Terbaru</h2>
           <div className={styles.tabGroup}>
-            <button className={styles.tab}>Popular</button>
+            <button className={styles.tab}>Populer</button>
             <button className={`${styles.tab} ${styles.tabActive}`}>
-              Newest
+              Terbaru
             </button>
-            <button className={styles.tab}>Ending Soon</button>
+            <button className={styles.tab}>Segera Berakhir</button>
           </div>
         </div>
 
@@ -304,7 +304,7 @@ export default function MarketplacePage() {
                     >
                       <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    AI VERIFIED
+                    TERVERIFIKASI AI
                   </div>
                 )}
                 {item.badge && (
@@ -339,7 +339,7 @@ export default function MarketplacePage() {
         </div>
 
         <div className={styles.loadMoreWrap}>
-          <button className={styles.loadMoreBtn}>Load More Items</button>
+          <button className={styles.loadMoreBtn}>Muat Lebih Banyak</button>
         </div>
       </section>
 
@@ -349,12 +349,12 @@ export default function MarketplacePage() {
           <div>
             <span className={styles.footerBrand}>SirkulasiIn</span>
             <p className={styles.footerCopyright}>
-              © 2024 SirkulasiIn. Harvesting a greener future.
+              © 2024 SirkulasiIn. Menuai masa depan yang lebih hijau.
             </p>
           </div>
           <div className={styles.footerLinks}>
-            <a href="#">Impact Stats</a>
-            <a href="#">Privacy</a>
+            <a href="#">Statistik Dampak</a>
+            <a href="#">Privasi</a>
           </div>
           <div className={styles.footerLinks}>
             <a href="#">Discord</a>
