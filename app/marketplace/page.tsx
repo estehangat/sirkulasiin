@@ -1,24 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import Navbar from "../components/navbar";
 import styles from "./marketplace.module.css";
-
-const IconBrandLogo = () => (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2" />
-    <path d="M12 2a10 10 0 0 0 0 20" />
-    <path d="M12 2a10 10 0 0 1 3.44 1.66" />
-    <path d="m8 12 3 3 5-6" />
-  </svg>
-);
 
 const marketplaceItems = [
   {
@@ -63,39 +46,7 @@ const marketplaceItems = [
 export default function MarketplacePage() {
   return (
     <main className={styles.pageShell}>
-      {/* ── Navbar ── same as landing page ── */}
-      <header className={styles.topbar}>
-        <div className={styles.brandWrap}>
-          <div className={styles.brandMark} aria-hidden>
-            <IconBrandLogo />
-          </div>
-          <span className={styles.brandName}>SirkulasiIn</span>
-        </div>
-
-        <nav className={styles.mainNav} aria-label="Navigasi utama">
-          <Link href="/" className={styles.navLink}>
-            Beranda
-          </Link>
-          <Link href="/marketplace" className={styles.navLinkActive}>
-            Marketplace
-          </Link>
-          <a href="#scan" className={styles.navLink}>
-            Scan
-          </a>
-          <a href="#riwayat" className={styles.navLink}>
-            Riwayat Scan
-          </a>
-        </nav>
-
-        <div className={styles.authCta}>
-          <Link href="/login" className={styles.loginBtn}>
-            Masuk
-          </Link>
-          <Link href="/signup" className={styles.signupBtn}>
-            Daftar
-          </Link>
-        </div>
-      </header>
+      <Navbar activeNav="marketplace" />
 
       {/* ── Hero & Filter Section ── */}
       <section className={styles.heroSection}>
@@ -106,8 +57,8 @@ export default function MarketplacePage() {
               <span className={styles.heroAccent}>kehidupan kedua.</span>
             </h1>
             <p className={styles.heroDescription}>
-              Marketplace terkurasi untuk barang preloved berkualitas. Diverifikasi
-              oleh AI, dikirim dengan cinta untuk bumi.
+              Marketplace terkurasi untuk barang preloved berkualitas.
+              Diverifikasi oleh AI, dikirim dengan cinta untuk bumi.
             </p>
           </div>
           <div>
@@ -254,7 +205,9 @@ export default function MarketplacePage() {
                 <p className={styles.cardText}>
                   Dapatkan Eco-Points ganda untuk barang kaca minggu ini.
                 </p>
-                <span className={styles.rewardBadge}>Pelajari Lebih Lanjut</span>
+                <span className={styles.rewardBadge}>
+                  Pelajari Lebih Lanjut
+                </span>
               </div>
               <svg
                 className={styles.ecoIcon}

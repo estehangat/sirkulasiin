@@ -16,109 +16,6 @@
   padding: 24px 24px 70px;
 }
 
-.topbar {
-  position: sticky;
-  top: 16px;
-  z-index: 40;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 12px 16px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 14px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-}
-
-.brandWrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brandMark {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: var(--color-primary);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.35);
-}
-
-.brandName {
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
-}
-
-.mainNav {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.navLink {
-  color: var(--color-gray-600);
-  text-decoration: none;
-  padding: 10px 16px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.navLink:hover {
-  color: var(--color-primary-dark);
-  background: rgba(39, 174, 96, 0.12);
-}
-
-.authCta {
-  display: flex;
-  gap: 8px;
-}
-
-.loginBtn,
-.signupBtn {
-  text-decoration: none;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 13px;
-  padding: 10px 16px;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
-}
-
-.loginBtn {
-  color: var(--color-primary-dark);
-  background: rgba(39, 174, 96, 0.12);
-}
-
-.signupBtn {
-  color: #fff;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-primary-dark)
-  );
-  box-shadow: 0 8px 18px rgba(39, 174, 96, 0.35);
-}
-
-.loginBtn:hover,
-.signupBtn:hover {
-  transform: translateY(-1px);
-}
-
 .hero {
   max-width: 1180px;
   margin: 28px auto 0;
@@ -321,6 +218,11 @@
   letter-spacing: -1.1px;
   line-height: 1.14;
   max-width: 22ch;
+}
+
+.stepsSection .sectionTitle {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .stepGrid {
@@ -561,20 +463,6 @@
 @media (max-width: 780px) {
   .pageShell {
     padding: 14px 14px 50px;
-  }
-
-  .topbar {
-    position: static;
-    border-radius: 24px;
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 14px;
-  }
-
-  .brandWrap,
-  .authCta,
-  .mainNav {
-    justify-content: center;
   }
 
   .heroContent {
