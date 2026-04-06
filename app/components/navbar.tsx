@@ -10,7 +10,7 @@ type NavbarProps = {
 const navItems: Array<{ key: NavbarKey; label: string; href: string }> = [
   { key: "home", label: "Beranda", href: "/" },
   { key: "marketplace", label: "Marketplace", href: "/marketplace" },
-  { key: "scan", label: "Scan", href: "#scan" },
+  { key: "scan", label: "Scan", href: "/scan" },
   { key: "riwayat", label: "Riwayat Scan", href: "#riwayat" },
 ];
 
