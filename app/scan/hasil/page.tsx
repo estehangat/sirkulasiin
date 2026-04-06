@@ -31,6 +31,7 @@ type ScanData = {
   recycle_options: string[] | null;
   upcycle_idea: string | null;
   upcycle_description: string | null;
+  upcycle_image_url: string | null;
   hero_headline: string | null;
   hero_description: string | null;
 };
@@ -186,6 +187,7 @@ export default function HasilScanPage() {
               recycle_options: r.recycleOptions || null,
               upcycle_idea: r.upcycleIdea || null,
               upcycle_description: r.upcycleDescription || null,
+              upcycle_image_url: null,
               hero_headline: r.heroHeadline || null,
               hero_description: r.heroDescription || null,
             });
@@ -445,8 +447,19 @@ export default function HasilScanPage() {
 
           {isRecycle && (
             <div className={styles.featuredCard}>
-              <div className={styles.featuredThumbnail}>
-                {upcycleEmoji(d.upcycle_idea)}
+              <div className={d.upcycle_image_url ? styles.featuredThumbnailImg : styles.featuredThumbnail}>
+                {d.upcycle_image_url ? (
+                  <Image
+                    src={d.upcycle_image_url}
+                    alt={d.upcycle_idea || "Upcycle idea"}
+                    width={90}
+                    height={90}
+                    className={styles.featuredThumbnailImage}
+                    unoptimized
+                  />
+                ) : (
+                  upcycleEmoji(d.upcycle_idea)
+                )}
               </div>
               <div className={styles.featuredContent}>
                 <p className={styles.featuredTitle}>
@@ -457,7 +470,7 @@ export default function HasilScanPage() {
                 </p>
                 <div className={styles.featuredTags}>
                   <span className={`${styles.featuredTag} ${styles.featuredTagGreen}`}>+50 Bonus Poin</span>
-                  <span className={styles.featuredTag}>Mudah</span>
+                  <span className={styles.featuredTag}>AI Generated</span>
                 </div>
               </div>
               <Link href="#" className={styles.featuredBtn}>Mulai<br />Perjalanan</Link>

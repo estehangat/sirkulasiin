@@ -26,9 +26,13 @@ CREATE TABLE IF NOT EXISTS scan_history (
   recycle_options JSONB,
   upcycle_idea TEXT,
   upcycle_description TEXT,
+  upcycle_image_url TEXT,
   hero_headline TEXT,
   hero_description TEXT
 );
+
+-- Migrasi: tambah kolom upcycle_image_url jika tabel sudah ada
+ALTER TABLE scan_history ADD COLUMN IF NOT EXISTS upcycle_image_url TEXT;
 
 -- 2. Row Level Security (open access untuk sementara)
 ALTER TABLE scan_history ENABLE ROW LEVEL SECURITY;

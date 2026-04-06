@@ -6,6 +6,9 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
 const TEXT_MODEL = "llama-3.3-70b-versatile";
 
+const HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell";
+const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_IMAGE_MODEL}`;
+
 const SYSTEM_PROMPT = `You are a waste-analysis AI for a circular economy platform called SirkulasiIn.
 Analyze the item and respond ONLY with valid JSON (no markdown fences).
 ALL text values must be in Bahasa Indonesia.
@@ -26,8 +29,9 @@ ALL text values must be in Bahasa Indonesia.
   "potentialReward": "string — poin reward, contoh: 120 Poin",
   "estimatedPrice": "string — estimasi harga jual dalam Rupiah, contoh: Rp 50.000 – Rp 100.000 (berikan walau rekomendasi bukan sell)",
   "recycleOptions": ["opsi1","opsi2","opsi3"],
-  "upcycleIdea": "string — judul ide upcycle kreatif, contoh: Vas Bunga Unik, Terrarium Premium, Pot Tanaman Gantung",
-  "upcycleDescription": "string — deskripsi singkat ide upcycle 1 kalimat",
+  "upcycleIdea": "string — judul ide upcycle kreatif dalam bahasa Inggris (untuk prompt gambar), contoh: Flower Vase, Premium Terrarium, Hanging Plant Pot, Decorative Lamp, Pencil Holder",
+  "upcycleIdeaId": "string — judul ide upcycle dalam Bahasa Indonesia, contoh: Vas Bunga Unik, Terrarium Premium, Pot Tanaman Gantung",
+  "upcycleDescription": "string — deskripsi singkat ide upcycle 1 kalimat dalam Bahasa Indonesia",
   "heroHeadline": "string — headline inspiratif sesuai rekomendasi: jika sell → tentang menjual/memberi kehidupan kedua, jika recycle → tentang daur ulang kreatif, jika dispose → tentang pembuangan bertanggung jawab",
   "heroDescription": "string — deskripsi 2-3 kalimat yang menjelaskan mengapa rekomendasi ini dipilih dan dampaknya bagi lingkungan"
 }`;
@@ -76,7 +80,6 @@ async function uploadImage(base64: string): Promise<string | null> {
       return null;
     }
 
-    // Get public URL
     const { data: urlData } = supabase.storage
       .from("scan-images")
       .getPublicUrl(filename);
@@ -84,6 +87,92 @@ async function uploadImage(base64: string): Promise<string | null> {
     return urlData.publicUrl;
   } catch (err) {
     console.error("Image upload failed:", err);
+    return null;
+  }
+}
+
+/* ═══════════════ Upload raw bytes to Supabase Storage ═══════════════ */
+async function uploadBytes(bytes: Uint8Array, prefix: string): Promise<string | null> {
+  try {
+    const supabase = getSupabase();
+    const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+
+    const { error } = await supabase.storage
+      .from("scan-images")
+      .upload(filename, bytes, {
+        contentType: "image/png",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Storage upload error:", error);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("scan-images")
+      .getPublicUrl(filename);
+
+    return urlData.publicUrl;
+  } catch (err) {
+    console.error("Bytes upload failed:", err);
+    return null;
+  }
+}
+
+/* ═══════════════ Generate upcycle image via Hugging Face ═══════════════ */
+async function generateUpcycleImage(
+  itemName: string,
+  material: string,
+  upcycleIdea: string
+): Promise<string | null> {
+  const hfKey = process.env.HUGGINGFACE_API_KEY;
+  if (!hfKey || hfKey === "hf_YOUR_TOKEN_HERE") {
+    console.warn("Hugging Face API key not configured, skipping image gen.");
+    return null;
+  }
+
+  try {
+    const prompt = `A beautiful, realistic product photo of a ${upcycleIdea} made from recycled ${material} (originally a ${itemName}). ` +
+      `Clean white studio background, professional product photography, soft lighting, high quality, detailed craftsmanship, eco-friendly upcycled design.`;
+
+    console.log("[HF] Generating upcycle image:", prompt.slice(0, 100) + "...");
+
+    const response = await fetch(HF_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${hfKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          num_inference_steps: 4,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => "");
+      console.error(`[HF] Image gen failed: ${response.status}`, errText.slice(0, 300));
+      return null;
+    }
+
+    // Response is raw image bytes (PNG/JPEG)
+    const imageBuffer = await response.arrayBuffer();
+    const imageBytes = new Uint8Array(imageBuffer);
+
+    if (imageBytes.length < 1000) {
+      console.error("[HF] Image too small, likely an error response.");
+      return null;
+    }
+
+    // Upload to Supabase
+    const publicUrl = await uploadBytes(imageBytes, "upcycle");
+    console.log("[HF] Upcycle image uploaded:", publicUrl);
+    return publicUrl;
+  } catch (err) {
+    console.error("[HF] Image generation error:", err);
     return null;
   }
 }
@@ -171,18 +260,28 @@ export async function POST(req: NextRequest) {
 
     const result = JSON.parse(jsonStr);
 
-    /* ── 2. Upload image to Supabase Storage ── */
-    let imageUrl: string | null = null;
+    /* ── 2. Upload scan image to Supabase Storage ── */
+    let scanImageUrl: string | null = null;
     if (imageBase64) {
-      imageUrl = await uploadImage(imageBase64);
+      scanImageUrl = await uploadImage(imageBase64);
     }
 
-    /* ── 3. Save to scan_history ── */
+    /* ── 3. Generate upcycle thumbnail if recommendation is recycle ── */
+    let upcycleImageUrl: string | null = null;
+    if (result.recommendation === "recycle" && result.upcycleIdea) {
+      upcycleImageUrl = await generateUpcycleImage(
+        result.itemName || "item",
+        result.material || "recycled material",
+        result.upcycleIdea
+      );
+    }
+
+    /* ── 4. Save to scan_history ── */
     const supabase = getSupabase();
     const { data: inserted, error: dbError } = await supabase
       .from("scan_history")
       .insert({
-        image_url: imageUrl,
+        image_url: scanImageUrl,
         description: description || null,
         item_name: result.itemName || "Item Tidak Dikenal",
         material: result.material || null,
@@ -199,8 +298,9 @@ export async function POST(req: NextRequest) {
         potential_reward: result.potentialReward || null,
         estimated_price: result.estimatedPrice || null,
         recycle_options: result.recycleOptions || null,
-        upcycle_idea: result.upcycleIdea || null,
+        upcycle_idea: result.upcycleIdeaId || result.upcycleIdea || null,
         upcycle_description: result.upcycleDescription || null,
+        upcycle_image_url: upcycleImageUrl,
         hero_headline: result.heroHeadline || null,
         hero_description: result.heroDescription || null,
       })
@@ -209,7 +309,6 @@ export async function POST(req: NextRequest) {
 
     if (dbError) {
       console.error("Database insert error:", dbError);
-      // Still return the result even if DB fails
       return NextResponse.json({ result, scanId: null });
     }
 

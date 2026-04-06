@@ -483,6 +483,24 @@
   font-size: 32px;
 }
 
+.featuredThumbnailImg {
+  width: 90px;
+  height: 90px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  border: 2px solid rgba(39,174,96,0.2);
+}
+
+.featuredThumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
 .featuredContent {
   flex: 1;
   min-width: 0;
