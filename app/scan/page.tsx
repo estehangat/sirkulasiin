@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 import Navbar from "../components/navbar";
 import styles from "./scan.module.css";
 
@@ -196,12 +197,59 @@ export default function ScanPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  /* ── Auto Resume Scan ── */
+  useEffect(() => {
+    const checkPendingScan = async () => {
+      const trigger = sessionStorage.getItem("pendingScanTrigger");
+      if (trigger === "true") {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          const storedImg = sessionStorage.getItem("pendingScanImage") || null;
+          const storedDesc = sessionStorage.getItem("pendingScanDesc") || "";
+          
+          if (storedImg) {
+            setImageBase64(storedImg);
+            setImagePreview(storedImg);
+          }
+          if (storedDesc) {
+             setDescription(storedDesc);
+          }
+          
+          sessionStorage.removeItem("pendingScanTrigger");
+          sessionStorage.removeItem("pendingScanImage");
+          sessionStorage.removeItem("pendingScanDesc");
+
+          handleAnalyze(storedImg || undefined, storedDesc);
+        }
+      }
+    };
+    checkPendingScan();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /* ── Analisis ── */
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (overrideImg?: string, overrideDesc?: string) => {
     setError(null);
 
-    if (!imageBase64 && !description.trim()) {
+    const targetImage = overrideImg !== undefined ? overrideImg : imageBase64;
+    const targetDesc = overrideDesc !== undefined ? overrideDesc : description;
+
+    if (!targetImage && !targetDesc.trim()) {
       setError("Harap unggah gambar atau berikan deskripsi terlebih dahulu.");
+      return;
+    }
+
+    // Check Auth Status
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      sessionStorage.setItem("pendingScanImage", targetImage || "");
+      sessionStorage.setItem("pendingScanDesc", targetDesc || "");
+      sessionStorage.setItem("pendingScanTrigger", "true");
+      router.push("/login?next=/scan");
       return;
     }
 
@@ -213,8 +261,8 @@ export default function ScanPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          imageBase64: imageBase64 ?? undefined,
-          description: description.trim() || undefined,
+          imageBase64: targetImage ?? undefined,
+          description: targetDesc.trim() || undefined,
         }),
       });
 
@@ -230,8 +278,8 @@ export default function ScanPage() {
       } else {
         // Fallback: simpan result di localStorage jika DB gagal
         localStorage.setItem("scanResult", JSON.stringify(data.result));
-        if (imageBase64) {
-          localStorage.setItem("scanImage", imageBase64);
+        if (targetImage) {
+          localStorage.setItem("scanImage", targetImage);
         }
         router.push("/scan/hasil?fallback=true");
       }
@@ -410,7 +458,7 @@ export default function ScanPage() {
               className={`${styles.analyzeBtn} ${isLoading ? styles.analyzeBtnLoading : ""}`}
               type="button"
               id="analyze-btn"
-              onClick={handleAnalyze}
+              onClick={() => handleAnalyze()}
               disabled={isLoading}
             >
               {isLoading ? (

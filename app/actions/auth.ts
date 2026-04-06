@@ -15,6 +15,7 @@ export async function loginWithEmail(
 ): Promise<AuthState> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const next = (formData.get("next") as string) || "/dashboard";
 
   if (!email || !password) {
     return { error: "Email dan password harus diisi." };
@@ -31,7 +32,7 @@ export async function loginWithEmail(
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  redirect(next);
 }
 
 // ===== LOGIN WITH PHONE (OTP) =====
@@ -65,6 +66,7 @@ export async function verifyPhoneOtp(
 ): Promise<AuthState> {
   const phone = formData.get("phone") as string;
   const token = formData.get("otp") as string;
+  const next = (formData.get("next") as string) || "/dashboard";
 
   if (!phone || !token) {
     return { error: "Nomor telepon dan kode OTP harus diisi." };
@@ -82,7 +84,7 @@ export async function verifyPhoneOtp(
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  redirect(next);
 }
 
 // ===== SIGN UP WITH EMAIL + PASSWORD =====
@@ -128,13 +130,14 @@ export async function signupWithEmail(
 }
 
 // ===== LOGIN WITH GOOGLE =====
-export async function loginWithGoogle(): Promise<AuthState> {
+export async function loginWithGoogle(nextUrl?: string): Promise<AuthState> {
   const supabase = await createServerSupabaseClient();
+  const nextParam = nextUrl ? `?next=${encodeURIComponent(nextUrl)}` : "";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback${nextParam}`,
     },
   });
 

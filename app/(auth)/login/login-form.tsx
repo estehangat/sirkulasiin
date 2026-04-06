@@ -3,6 +3,7 @@
 import { useState, useActionState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   loginWithEmail,
   loginWithPhone,
@@ -89,6 +90,9 @@ const IconBrandLogo = () => (
 type LoginMode = "phone" | "email";
 
 export default function LoginForm() {
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "";
+
   const [mode, setMode] = useState<LoginMode>("phone");
   const [otpSent, setOtpSent] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -108,7 +112,7 @@ export default function LoginForm() {
   const [otpState, otpAction, otpPending] = useActionState<AuthState, FormData>(verifyPhoneOtp, null);
 
   const handleGoogleLogin = async () => {
-    await loginWithGoogle();
+    await loginWithGoogle(next);
   };
 
   return (
@@ -181,6 +185,7 @@ export default function LoginForm() {
             {/* PHONE LOGIN */}
             {mode === "phone" && !otpSent && (
               <form action={phoneAction}>
+                <input type="hidden" name="next" value={next} />
                 {phoneState?.error && (
                   <div className={styles.errorMessage}>
                     <span className={styles.alertIcon}><IconAlertTriangle /></span>
@@ -204,6 +209,7 @@ export default function LoginForm() {
             {/* OTP VERIFY */}
             {mode === "phone" && otpSent && (
               <form action={otpAction}>
+                <input type="hidden" name="next" value={next} />
                 {phoneState?.success && (
                   <div className={styles.successMessage}>
                     <span className={styles.alertIcon}><IconCheckCircle /></span>
@@ -233,6 +239,7 @@ export default function LoginForm() {
             {/* EMAIL LOGIN */}
             {mode === "email" && (
               <form action={emailAction}>
+                <input type="hidden" name="next" value={next} />
                 {emailState?.error && (
                   <div className={styles.errorMessage}>
                     <span className={styles.alertIcon}><IconAlertTriangle /></span>
