@@ -173,11 +173,11 @@ export default function TutorialPage() {
                 <ClockIcon className={styles.metaChipIcon} />
                 5 Menit
               </span>
-              <span className={styles.metaChip}>
+              <span className={styles.metaChip} style={{ color: "var(--color-primary-dark)" }}>
                 <StarIcon
-                  className={`${styles.metaChipIcon} ${styles.metaChipStar}`}
+                  className={`${styles.metaChipIcon} ${styles.metaChipStar} `}
                 />
-                4.9/5 EcoPoin
+                +150 SirkuPoin
               </span>
             </div>
           </div>
@@ -191,13 +191,20 @@ export default function TutorialPage() {
               priority
               sizes="(max-width: 1100px) 100vw, 500px"
             />
-            <div className={styles.heroVisualOverlay}>
-              <p className={styles.heroOverlayText}>
-                Selesaikan proyek ini & raih{" "}
-                <span className={styles.heroOverlayHighlight}>
-                  +150 SirkuPoin
-                </span>{" "}
-                yang bisa ditukar di marketplace!
+            <div className={styles.impactCard}>
+              <div className={styles.impactCardHeader}>
+                <div className={styles.impactIconWrapper}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <path d="M8 17V12"></path>
+                    <path d="M12 17V8"></path>
+                    <path d="M16 17V14"></path>
+                  </svg>
+                </div>
+                <span className={styles.impactTitle}>ECO IMPACT</span>
+              </div>
+              <p className={styles.impactDesc}>
+                Saves 0.5kg of glass from the waste stream. That&apos;s enough to power a laptop for 2 hours!
               </p>
             </div>
           </div>
@@ -205,9 +212,9 @@ export default function TutorialPage() {
 
         {/* ═══════════════ Info Cards: Tools & Materials ═══════════════ */}
         <section className={styles.infoCards}>
-          <div className={styles.infoCard}>
+          <div className={`${styles.infoCard} ${styles.infoCardGreen}`}>
             <div className={styles.infoCardHeader}>
-              <div className={styles.infoCardIcon}>
+              <div className={`${styles.infoCardIcon} ${styles.infoCardIconGreen}`}>
                 <ToolIcon className={styles.categoryIcon} />
               </div>
               <div>
@@ -227,9 +234,9 @@ export default function TutorialPage() {
             </div>
           </div>
 
-          <div className={styles.infoCard}>
+          <div className={`${styles.infoCard} ${styles.infoCardBrown}`}>
             <div className={styles.infoCardHeader}>
-              <div className={styles.infoCardIcon}>
+              <div className={`${styles.infoCardIcon} ${styles.infoCardIconBrown}`}>
                 <BoxIcon className={styles.categoryIcon} />
               </div>
               <div>
