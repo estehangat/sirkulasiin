@@ -1,0 +1,912 @@
+/* ═══════════════════════════════════════════════
+   Tutorial Recycle Page — CSS Module
+   ═══════════════════════════════════════════════ */
+
+/* ── Shell ── */
+.pageShell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% -20%, rgba(39, 174, 96, 0.10) 0%, transparent 38%),
+    radial-gradient(circle at 90% 10%, rgba(130, 158, 96, 0.12) 0%, transparent 34%),
+    #f4f4f0;
+  color: var(--color-black);
+  padding: 24px 24px 0;
+}
+
+.container {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* ── Breadcrumb ── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-gray-500);
+  margin-top: 28px;
+}
+
+.breadcrumb a {
+  text-decoration: none;
+  color: var(--color-gray-500);
+  transition: color 0.2s;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-primary-dark);
+}
+
+.breadcrumbSep {
+  opacity: 0.5;
+}
+
+.breadcrumbCurrent {
+  color: var(--color-black);
+  font-weight: 600;
+}
+
+/* ── Hero Section ── */
+.hero {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.heroContent {
+  background: var(--color-white);
+  border-radius: 32px;
+  padding: 48px 44px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.categoryBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(39, 174, 96, 0.12);
+  color: var(--color-primary-dark);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  width: fit-content;
+}
+
+.categoryIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.heroTitle {
+  margin-top: 22px;
+  font-size: clamp(32px, 3.8vw, 52px);
+  letter-spacing: -1.8px;
+  line-height: 1.05;
+  color: var(--color-black);
+}
+
+.heroTitleAccent {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-style: italic;
+}
+
+.heroDesc {
+  margin-top: 18px;
+  font-size: 15px;
+  color: var(--color-gray-600);
+  line-height: 1.7;
+  max-width: 52ch;
+}
+
+.heroMeta {
+  margin-top: 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-gray-100);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.metaChipIcon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+}
+
+.metaChipStar {
+  color: #f5a623;
+}
+
+/* Hero Visual */
+.heroVisual {
+  position: relative;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.10);
+  min-height: 480px;
+}
+
+.heroImage {
+  object-fit: cover;
+}
+
+.heroVisualOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+  z-index: 2;
+}
+
+.heroOverlayText {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.5;
+}
+
+.heroOverlayHighlight {
+  color: #4ade80;
+  font-weight: 700;
+}
+
+/* ── Info Cards ── */
+.infoCards {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.infoCard {
+  background: var(--color-white);
+  border-radius: 24px;
+  padding: 26px 28px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+.infoCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.infoCardIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(39, 174, 96, 0.10);
+  display: grid;
+  place-items: center;
+  color: var(--color-primary-dark);
+}
+
+.infoCardTitle {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.infoCardSubtitle {
+  font-size: 11px;
+  color: var(--color-gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.infoChipGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.infoChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--color-gray-100);
+  padding: 9px 15px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.infoChip:hover {
+  background: rgba(39, 174, 96, 0.08);
+  border-color: rgba(39, 174, 96, 0.15);
+}
+
+.infoChipIcon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.55;
+}
+
+/* ── Assembly Process Section ── */
+.assemblySection {
+  margin-top: 72px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 42px;
+}
+
+.sectionIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--color-black);
+  display: grid;
+  place-items: center;
+  color: var(--color-white);
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-size: clamp(26px, 2.8vw, 36px);
+  letter-spacing: -1px;
+  line-height: 1.15;
+}
+
+/* ── Step Layout ── */
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.stepItem {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 0;
+  position: relative;
+}
+
+.stepTimeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.stepNumber {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-white);
+  border: 2px solid var(--color-gray-300);
+  color: var(--color-gray-500);
+  font-weight: 800;
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.stepItem:hover .stepNumber {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  background: rgba(39, 174, 96, 0.08);
+}
+
+.stepLine {
+  width: 2px;
+  flex: 1;
+  background: var(--color-gray-300);
+  min-height: 20px;
+}
+
+.stepItem:last-child .stepLine {
+  display: none;
+}
+
+.stepBody {
+  padding-bottom: 48px;
+  padding-left: 12px;
+}
+
+.stepItem:last-child .stepBody {
+  padding-bottom: 0;
+}
+
+/* ── Step Content Card ── */
+.stepContentCard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  background: var(--color-white);
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.stepContentCard:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.stepContentCardReverse {
+  direction: rtl;
+}
+
+.stepContentCardReverse > * {
+  direction: ltr;
+}
+
+.stepTextContent {
+  padding: 32px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stepLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.stepStepTitle {
+  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.stepDesc {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--color-gray-600);
+  line-height: 1.65;
+}
+
+.stepImageWrapper {
+  position: relative;
+  min-height: 260px;
+  overflow: hidden;
+}
+
+.stepImage {
+  object-fit: cover;
+}
+
+/* ── Step with sidebar (step 1 special layout) ── */
+.stepWithSidebar {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 18px;
+}
+
+.stepSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sidebarCard {
+  background: var(--color-white);
+  border-radius: 18px;
+  padding: 18px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.sidebarCardTitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-gray-400);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.sidebarCardBody {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-gray-600);
+}
+
+.sidebarHighlight {
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+/* Alternative Sidebar */
+.altMethods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.altMethod {
+  padding: 10px 12px;
+  background: var(--color-gray-100);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.altMethod:hover {
+  background: rgba(39, 174, 96, 0.08);
+  color: var(--color-primary-dark);
+}
+
+/* ── Community Section ── */
+.communityCard {
+  background: var(--color-gray-100);
+  border-radius: 18px;
+  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.communityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.communityTitle {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.communityLink {
+  font-size: 12px;
+  color: var(--color-primary-dark);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.communityLink:hover {
+  opacity: 0.7;
+}
+
+.communityAvatars {
+  display: flex;
+  gap: 10px;
+}
+
+.communityUser {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-white);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gray-700);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.communityAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-tertiary));
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* ── Step simple (text-only step) ── */
+.stepSimple {
+  background: var(--color-white);
+  border-radius: 24px;
+  padding: 30px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.stepSimple:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* ── CTA Section ── */
+.ctaSection {
+  margin-top: 72px;
+  padding: 56px 40px;
+  border-radius: 32px;
+  background: linear-gradient(135deg, #0d7d40 0%, #12814a 40%, #286f43 100%);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.ctaSection::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(255,255,255,0.08), transparent);
+  border-radius: 50%;
+}
+
+.ctaSection::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: -60px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.06), transparent);
+  border-radius: 50%;
+}
+
+.ctaLabel {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.ctaTitle {
+  margin-top: 12px;
+  font-size: clamp(28px, 3vw, 44px);
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.ctaDesc {
+  margin-top: 14px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 50ch;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  padding: 15px 28px;
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #0d3d1c;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.ctaButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(34, 197, 94, 0.45);
+}
+
+.ctaButtonIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.ctaSublinks {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.ctaSublink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.ctaSublink:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.ctaSublinkIcon {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Footer ── */
+.footer {
+  margin-top: 72px;
+  padding: 40px 0 28px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.footerInner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+.footerBrand {
+  display: flex;
+  flex-direction: column;
+}
+
+.footerLogo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.footerLogoMark {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  display: grid;
+  place-items: center;
+  color: white;
+}
+
+.footerLogoText {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.footerBrandDesc {
+  font-size: 13px;
+  color: var(--color-gray-500);
+  line-height: 1.6;
+  max-width: 30ch;
+}
+
+.footerSocials {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.footerSocialBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--color-gray-200);
+  display: grid;
+  place-items: center;
+  color: var(--color-gray-600);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.footerSocialBtn:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+.footerCol {}
+
+.footerColTitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  color: var(--color-gray-400);
+  margin-bottom: 14px;
+}
+
+.footerLinks {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footerLink {
+  font-size: 13px;
+  color: var(--color-gray-600);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footerLink:hover {
+  color: var(--color-primary-dark);
+}
+
+.footerBottom {
+  max-width: 1180px;
+  margin: 28px auto 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  font-size: 12px;
+  color: var(--color-gray-400);
+  text-align: center;
+}
+
+/* ═══════════════ Responsive ═══════════════ */
+@media (max-width: 1100px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .heroVisual {
+    min-height: 380px;
+  }
+
+  .stepContentCard {
+    grid-template-columns: 1fr;
+  }
+
+  .stepContentCardReverse {
+    direction: ltr;
+  }
+
+  .stepImageWrapper {
+    min-height: 220px;
+  }
+
+  .stepWithSidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .footerInner {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 780px) {
+  .pageShell {
+    padding: 14px 14px 0;
+  }
+
+  .heroContent {
+    padding: 32px 22px;
+    border-radius: 24px;
+  }
+
+  .heroVisual {
+    min-height: 280px;
+    border-radius: 24px;
+  }
+
+  .infoCards {
+    grid-template-columns: 1fr;
+  }
+
+  .stepItem {
+    grid-template-columns: 40px 1fr;
+  }
+
+  .stepNumber {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .stepBody {
+    padding-bottom: 32px;
+    padding-left: 8px;
+  }
+
+  .stepTextContent {
+    padding: 24px 20px;
+  }
+
+  .stepStepTitle {
+    font-size: 19px;
+  }
+
+  .communityAvatars {
+    flex-wrap: wrap;
+  }
+
+  .ctaSection {
+    padding: 36px 20px;
+    border-radius: 24px;
+  }
+
+  .footerInner {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .altMethods {
+    grid-template-columns: 1fr;
+  }
+
+  .heroMeta {
+    gap: 6px;
+  }
+}
+
+/* ═══════════════ Animations ═══════════════ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.infoCards {
+  animation: fadeInUp 0.6s ease-out 0.15s both;
+}
+
+.assemblySection {
+  animation: fadeInUp 0.6s ease-out 0.25s both;
+}
+
+.ctaSection {
+  animation: fadeInUp 0.6s ease-out 0.3s both;
+}
