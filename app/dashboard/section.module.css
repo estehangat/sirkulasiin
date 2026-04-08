@@ -1,0 +1,90 @@
+.panel {
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: var(--shadow-md);
+}
+
+.title {
+  font-size: 30px;
+  color: var(--color-black);
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--color-gray-600);
+  font-size: 15px;
+  margin-bottom: 24px;
+  max-width: 720px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  border-radius: 14px;
+  border: 1px solid var(--color-gray-200);
+  background: var(--color-gray-100);
+  padding: 16px;
+}
+
+.cardLabel {
+  font-size: 13px;
+  color: var(--color-gray-500);
+  margin-bottom: 6px;
+}
+
+.cardValue {
+  font-size: 22px;
+  color: var(--color-black);
+  font-weight: 800;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.listItem {
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  background: #fff;
+  padding: 14px;
+}
+
+.listTitle {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-gray-700);
+  margin-bottom: 4px;
+}
+
+.listMeta {
+  font-size: 13px;
+  color: var(--color-gray-500);
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: 18px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

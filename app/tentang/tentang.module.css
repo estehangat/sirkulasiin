@@ -1,0 +1,75 @@
+.pageShell {
+  min-height: 100vh;
+  background: var(--color-neutral);
+  padding: 20px;
+}
+
+.hero {
+  max-width: 1020px;
+  margin: 18px auto;
+  border-radius: 28px;
+  border: 1px solid var(--color-gray-200);
+  background: radial-gradient(circle at 85% 15%, #dff4e7 0%, #ffffff 60%);
+  padding: 30px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: clamp(28px, 4vw, 46px);
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: var(--color-gray-600);
+  font-size: 16px;
+  max-width: 760px;
+}
+
+.steps {
+  max-width: 1020px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.stepCard {
+  border-radius: 18px;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  padding: 22px;
+}
+
+.stepIndex {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  margin-bottom: 8px;
+}
+
+.stepTitle {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.stepDesc {
+  color: var(--color-gray-600);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+@media (max-width: 960px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+}

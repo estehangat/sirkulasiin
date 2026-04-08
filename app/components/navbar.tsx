@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase";
 import { logout } from "@/app/actions/auth";
 import styles from "./navbar.module.css";
 
-type NavbarKey = "home" | "marketplace" | "scan" | "riwayat";
+type NavbarKey = "home" | "marketplace" | "scan" | "tutorial" | "tentang";
 
 type NavbarProps = {
   activeNav?: NavbarKey;
@@ -23,12 +23,22 @@ const navItems: Array<{ key: NavbarKey; label: string; href: string }> = [
   { key: "home", label: "Beranda", href: "/" },
   { key: "marketplace", label: "Marketplace", href: "/marketplace" },
   { key: "scan", label: "Scan", href: "/scan" },
-  { key: "riwayat", label: "Riwayat Scan", href: "#riwayat" },
+  { key: "tutorial", label: "Tutorial", href: "/tutorial" },
+  { key: "tentang", label: "Tentang/Cara Kerja", href: "/tentang" },
 ];
 
 /* ═══════════════ SVG Icons ═══════════════ */
 const IconBrandLogo = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2" />
     <path d="M12 2a10 10 0 0 0 0 20" />
     <path d="M12 2a10 10 0 0 1 3.44 1.66" />
@@ -37,14 +47,32 @@ const IconBrandLogo = () => (
 );
 
 const UserIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
   </svg>
 );
 
 const LayoutDashboardIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <rect width="7" height="9" x="3" y="3" rx="1" />
     <rect width="7" height="5" x="14" y="3" rx="1" />
     <rect width="7" height="9" x="14" y="12" rx="1" />
@@ -53,7 +81,16 @@ const LayoutDashboardIcon = () => (
 );
 
 const LogOutIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
     <polyline points="16 17 21 12 16 7" />
     <line x1="21" x2="9" y1="12" y2="12" />
@@ -88,7 +125,11 @@ export default function Navbar({ activeNav }: NavbarProps) {
       if (session?.user) {
         const meta = session.user.user_metadata || {};
         setUser({
-          name: meta.full_name || meta.name || session.user.email?.split("@")[0] || "User",
+          name:
+            meta.full_name ||
+            meta.name ||
+            session.user.email?.split("@")[0] ||
+            "User",
           avatar: meta.avatar_url || meta.picture || null,
           email: session.user.email || "",
         });
@@ -99,7 +140,10 @@ export default function Navbar({ activeNav }: NavbarProps) {
   /* ── Close dropdown on outside click ── */
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
@@ -155,8 +199,12 @@ export default function Navbar({ activeNav }: NavbarProps) {
       {/* ── Auth Section ── */}
       {!user ? (
         <div className={styles.authCta}>
-          <Link href="/login" className={styles.loginBtn}>Masuk</Link>
-          <Link href="/signup" className={styles.signupBtn}>Daftar</Link>
+          <Link href="/login" className={styles.loginBtn}>
+            Masuk
+          </Link>
+          <Link href="/signup" className={styles.signupBtn}>
+            Daftar
+          </Link>
         </div>
       ) : (
         <div className={styles.profileWrap} ref={dropdownRef}>
