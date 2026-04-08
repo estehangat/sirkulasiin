@@ -62,7 +62,7 @@ export default function MarketplacePage() {
             </p>
           </div>
           <div>
-            <button className={styles.listItemBtn}>
+            <Link href="/marketplace/create" className={styles.listItemBtn}>
               <svg
                 className={styles.listItemIcon}
                 width="20"
@@ -79,7 +79,7 @@ export default function MarketplacePage() {
                 />
               </svg>
               Jual Barangmu
-            </button>
+            </Link>
           </div>
         </div>
 
