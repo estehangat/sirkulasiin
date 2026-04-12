@@ -36,6 +36,29 @@ ALL text values must be in Bahasa Indonesia.
   "heroDescription": "string — deskripsi 2-3 kalimat yang menjelaskan mengapa rekomendasi ini dipilih dan dampaknya bagi lingkungan"
 }`;
 
+const TUTORIAL_SYSTEM_PROMPT = `You are a creative DIY tutorial writer for SirkulasiIn, a circular economy platform.
+Given an item name, material, and upcycle idea, generate a complete upcycling tutorial.
+Respond ONLY with valid JSON (no markdown fences). ALL text in Bahasa Indonesia.
+
+{
+  "title": "string — Judul tutorial yang menarik, contoh: Pot Self-Watering dari Botol Kaca",
+  "description": "string — Deskripsi singkat 1-2 kalimat tentang proyek ini",
+  "difficulty": "Pemula | Menengah | Mahir",
+  "duration": "string — perkiraan waktu, contoh: 15 Menit, 30 Menit",
+  "ecoPoints": 150,
+  "tools": ["string — alat yang dibutuhkan"],
+  "materials": ["string — material yang dibutuhkan"],
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "string — judul langkah",
+      "description": "string — penjelasan detail 2-3 kalimat tentang langkah ini"
+    }
+  ]
+}
+
+Buatlah 4-6 langkah yang jelas dan mudah diikuti. Sertakan tips keselamatan jika diperlukan.`;
+
 /* ═══════════════ Supabase Client ═══════════════ */
 function getSupabase() {
   return createClient(
@@ -177,6 +200,62 @@ async function generateUpcycleImage(
   }
 }
 
+/* ═══════════════ Generate tutorial steps via Groq ═══════════════ */
+async function generateTutorialSteps(
+  itemName: string,
+  material: string,
+  upcycleIdea: string
+): Promise<{
+  title: string;
+  description: string;
+  difficulty: string;
+  duration: string;
+  ecoPoints: number;
+  tools: string[];
+  materials: string[];
+  steps: Array<{ stepNumber: number; title: string; description: string }>;
+} | null> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const prompt = `${TUTORIAL_SYSTEM_PROMPT}\n\nItem: ${itemName}\nMaterial: ${material}\nIde Upcycle: ${upcycleIdea}`;
+
+    const res = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: TEXT_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.5,
+        max_completion_tokens: 2048,
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("[Tutorial] Groq error:", res.status);
+      return null;
+    }
+
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || "{}";
+    let jsonStr = text;
+    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenceMatch) jsonStr = fenceMatch[1].trim();
+
+    const parsed = JSON.parse(jsonStr);
+    console.log("[Tutorial] Generated steps:", parsed.title);
+    return parsed;
+  } catch (err) {
+    console.error("[Tutorial] Generation error:", err);
+    return null;
+  }
+}
+
 /* ═══════════════ POST Handler ═══════════════ */
 export async function POST(req: NextRequest) {
   try {
@@ -276,6 +355,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    /* ── 3b. Generate tutorial steps if recycle ── */
+    let tutorialData: Awaited<ReturnType<typeof generateTutorialSteps>> = null;
+    if (result.recommendation === "recycle" && result.upcycleIdea) {
+      tutorialData = await generateTutorialSteps(
+        result.itemName || "item",
+        result.material || "material",
+        result.upcycleIdeaId || result.upcycleIdea
+      );
+    }
+
     /* ── 4. Save to scan_history ── */
     const supabase = getSupabase();
     const { data: inserted, error: dbError } = await supabase
@@ -312,9 +401,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ result, scanId: null });
     }
 
+    /* ── 5. Save tutorial to recycle_tutorials if generated ── */
+    let tutorialId: string | null = null;
+    if (tutorialData && inserted?.id) {
+      const { data: tutInserted, error: tutError } = await supabase
+        .from("recycle_tutorials")
+        .insert({
+          scan_id: inserted.id,
+          title: tutorialData.title || "Tutorial Daur Ulang",
+          description: tutorialData.description || null,
+          difficulty: tutorialData.difficulty || "Pemula",
+          duration: tutorialData.duration || "10 Menit",
+          eco_points: tutorialData.ecoPoints || 100,
+          tools: tutorialData.tools || [],
+          materials: tutorialData.materials || [],
+          steps: tutorialData.steps || [],
+          final_image_url: upcycleImageUrl,
+        })
+        .select("id")
+        .single();
+
+      if (tutError) {
+        console.error("Tutorial insert error:", tutError);
+      } else {
+        tutorialId = tutInserted.id;
+        console.log("[Tutorial] Saved with ID:", tutorialId);
+      }
+    }
+
     return NextResponse.json({
       result,
       scanId: inserted.id,
+      tutorialId,
     });
   } catch (err: unknown) {
     console.error("Scan analysis error:", err);

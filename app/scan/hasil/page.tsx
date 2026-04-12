@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -147,11 +148,26 @@ function upcycleEmoji(idea: string | null) {
 }
 
 /* ═══════════════ COMPONENT ═══════════════ */
+/* ═══════════════ Loading Messages ═══════════════ */
+const GEN_MESSAGES = [
+  "Menganalisis item untuk daur ulang...",
+  "AI sedang membuat langkah-langkah tutorial...",
+  "Membuat gambar hasil akhir dengan AI...",
+  "Menyimpan tutorial ke database...",
+  "Hampir selesai, mohon tunggu...",
+];
+
 export default function HasilScanPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [scanData, setScanData] = useState<ScanData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  /* ── Tutorial generation state ── */
+  const [tutorialId, setTutorialId] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [genMessage, setGenMessage] = useState(GEN_MESSAGES[0]);
 
   useEffect(() => {
     async function fetchData() {
@@ -159,7 +175,6 @@ export default function HasilScanPage() {
       const isFallback = searchParams.get("fallback") === "true";
 
       if (isFallback) {
-        // Fallback: load from localStorage
         try {
           const stored = localStorage.getItem("scanResult");
           const storedImage = localStorage.getItem("scanImage");
@@ -218,6 +233,16 @@ export default function HasilScanPage() {
           setError("Hasil scan tidak ditemukan.");
         } else {
           setScanData(data as ScanData);
+
+          // Auto-fetch tutorial ID for recycle recommendations
+          if (data.recommendation === "recycle") {
+            const { data: tut } = await supabase
+              .from("recycle_tutorials")
+              .select("id")
+              .eq("scan_id", id)
+              .single();
+            if (tut) setTutorialId(tut.id);
+          }
         }
       } catch {
         setError("Gagal memuat data dari database.");
@@ -226,6 +251,40 @@ export default function HasilScanPage() {
     }
     fetchData();
   }, [searchParams]);
+
+  /* ── Cycle generating messages ── */
+  useEffect(() => {
+    if (!isGenerating) return;
+    let idx = 0;
+    const interval = setInterval(() => {
+      idx = (idx + 1) % GEN_MESSAGES.length;
+      setGenMessage(GEN_MESSAGES[idx]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isGenerating]);
+
+  /* ── On-demand tutorial generation ── */
+  const handleGenerateTutorial = useCallback(async () => {
+    if (!scanData || scanData.id === "local" || isGenerating) return;
+    setIsGenerating(true);
+    setGenMessage(GEN_MESSAGES[0]);
+    try {
+      const res = await fetch("/api/scan/generate-tutorial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scanId: scanData.id }),
+      });
+      const data = await res.json();
+      if (data.tutorialId) {
+        setTutorialId(data.tutorialId);
+        router.push(`/tutorial/recycle?id=${data.tutorialId}`);
+      }
+    } catch (err) {
+      console.error("Generate tutorial error:", err);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [scanData, isGenerating, router]);
 
   /* ── Loading State ── */
   if (loading) {
@@ -274,6 +333,27 @@ export default function HasilScanPage() {
   return (
     <main className={styles.pageShell}>
       <Navbar activeNav="scan" />
+
+      {/* ═══ GENERATING OVERLAY ═══ */}
+      {isGenerating && (
+        <div className={styles.genOverlay}>
+          <div className={styles.genCard}>
+            <div className={styles.genIconWrap}>
+              <div className={styles.genRing} />
+              <div className={styles.genInner}>
+                <RecycleIcon />
+              </div>
+            </div>
+            <h2 className={styles.genTitle}>Membuat Tutorial</h2>
+            <p className={styles.genSubtitle}>{genMessage}</p>
+            <div className={styles.genDots}>
+              <span className={styles.genDot} />
+              <span className={styles.genDot} />
+              <span className={styles.genDot} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ HERO SECTION ═══ */}
       <section className={styles.heroSection}>
@@ -473,7 +553,20 @@ export default function HasilScanPage() {
                   <span className={styles.featuredTag}>AI Generated</span>
                 </div>
               </div>
-              <Link href="#" className={styles.featuredBtn}>Mulai<br />Perjalanan</Link>
+              {tutorialId ? (
+                <Link href={`/tutorial/recycle?id=${tutorialId}`} className={styles.featuredBtn}>
+                  Mulai<br />Perjalanan
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.featuredBtn}
+                  onClick={handleGenerateTutorial}
+                  disabled={isGenerating}
+                >
+                  Mulai<br />Perjalanan
+                </button>
+              )}
             </div>
           )}
 
@@ -517,7 +610,13 @@ export default function HasilScanPage() {
           )}
 
           {!isRecycle && (
-            <Link href="#" className={styles.actionRow}>
+            <button
+              type="button"
+              className={styles.actionRow}
+              onClick={handleGenerateTutorial}
+              disabled={isGenerating}
+              style={{ width: "100%", textAlign: "left", cursor: isGenerating ? "wait" : "pointer" }}
+            >
               <div className={`${styles.actionRowIcon} ${styles.actionRowIconGreen}`}>
                 <RecycleIcon />
               </div>
@@ -526,12 +625,12 @@ export default function HasilScanPage() {
                 <p className={styles.actionRowDesc}>
                   {d.upcycle_idea
                     ? `Ide: ${d.upcycle_idea}`
-                    : "Cari cara untuk mendaur ulang item ini."
+                    : "Generate tutorial daur ulang dengan AI."
                   }
                 </p>
               </div>
               <span className={styles.actionRowArrow}><ChevronRightIcon /></span>
-            </Link>
+            </button>
           )}
 
           <Link href="#" className={styles.actionRow}>
