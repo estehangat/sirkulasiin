@@ -12,25 +12,40 @@ const TUTORIAL_SYSTEM_PROMPT = `You are a creative DIY tutorial writer for Sirku
 Given an item name, material, and upcycle idea, generate a complete upcycling tutorial.
 Respond ONLY with valid JSON (no markdown fences). ALL text in Bahasa Indonesia.
 
+OUTPUT FORMAT:
 {
-  "title": "string — Judul tutorial yang menarik, contoh: Pot Self-Watering dari Botol Kaca",
-  "description": "string — Deskripsi singkat 1-2 kalimat tentang proyek ini",
+  "title": "Judul tutorial yang menarik",
+  "description": "Deskripsi singkat 1-2 kalimat tentang proyek ini",
   "difficulty": "Pemula | Menengah | Mahir",
-  "duration": "string — perkiraan waktu, contoh: 15 Menit, 30 Menit",
+  "duration": "perkiraan waktu, contoh: 15 Menit, 30 Menit",
   "ecoPoints": 150,
-  "tools": ["string — alat yang dibutuhkan"],
-  "materials": ["string — material yang dibutuhkan"],
-  "steps": [
-    {
-      "stepNumber": 1,
-      "title": "string — judul langkah",
-      "description": "string — penjelasan detail 2-3 kalimat tentang langkah ini",
-      "iconName": "string — nama ikon Lucide React yang relevan, contoh: Scissors, Paintbrush, Wrench, Ruler, Hammer, Droplets, Flame, Recycle, CheckCircle, Eye, Lightbulb, Search, Layers, Package, Settings, Leaf, Sparkles"
-    }
-  ]
+  "tools": ["alat yang dibutuhkan"],
+  "materials": ["material yang dibutuhkan"],
+  "steps": [<step objects>]
 }
 
-Buatlah 4-6 langkah yang jelas dan mudah diikuti. Sertakan tips keselamatan jika diperlukan.`;
+SETIAP STEP HARUS menggunakan format berikut (JANGAN gunakan field "description" di dalam step):
+{
+  "stepNumber": 1,
+  "label": "Persiapan",
+  "title": "Persiapan Material",
+  "iconName": "Droplets",
+  "mainDesc": "Bersihkan botol kaca kosong dari kotoran dan debu. Rendam dalam air hangat selama 10 menit untuk melepas label dan sisa lem.",
+  "detailDesc": "Pastikan botol benar-benar kering sebelum melanjutkan. Gunakan kain microfiber untuk mengelap bagian dalam dan luar botol. Periksa apakah ada retakan kecil yang dapat menyebabkan masalah di tahap berikutnya.",
+  "dos": ["Gunakan sarung tangan pelindung", "Pastikan area kerja bersih dan terang"],
+  "donts": ["Jangan gunakan botol yang sudah retak", "Hindari menyentuh bagian tajam"],
+  "expertInsight": "Merendam botol dalam air hangat dengan sedikit sabun selama 10 menit akan melunakkan label dan lem dengan sempurna.",
+  "techniqueRef": "Botol yang bersih dan kering menghasilkan potongan yang lebih presisi dan aman."
+}
+
+ATURAN KETAT:
+- Buatlah 4-6 langkah.
+- Setiap step WAJIB memiliki semua field: stepNumber, label, title, iconName, mainDesc, detailDesc, dos (2 item), donts (2 item).
+- expertInsight dan techniqueRef opsional (boleh null), tapi sangat disarankan diisi.
+- DILARANG menggunakan field "description" di dalam step. Gunakan "mainDesc" dan "detailDesc".
+- dos harus diawali kata kerja aktif. donts harus diawali "Jangan" atau "Hindari".
+- mainDesc: 2-3 kalimat penjelasan utama. detailDesc: 3-4 kalimat detail teknis.
+- iconName harus dari Lucide React: Scissors, Paintbrush, Wrench, Ruler, Hammer, Droplets, Flame, Recycle, CheckCircle, Eye, Lightbulb, Sparkles, Leaf, Shovel, Sun, Package, Settings, Eraser, Layers, Search.`;
 
 /* ═══════════════ Supabase ═══════════════ */
 function getSupabase() {
@@ -138,7 +153,13 @@ export async function POST(req: NextRequest) {
     const upcycleIdea = scan.upcycle_idea || "Kreasi Upcycle";
 
     // Generate tutorial steps via Groq
-    const prompt = `${TUTORIAL_SYSTEM_PROMPT}\n\nItem: ${itemName}\nMaterial: ${material}\nIde Upcycle: ${upcycleIdea}`;
+    const userPrompt = `Buatkan tutorial upcycling lengkap untuk:
+- Item: ${itemName}
+- Material: ${material}
+- Ide Upcycle: ${upcycleIdea}
+
+WAJIB ikuti format JSON yang ada di system prompt. Setiap step HARUS memiliki field: stepNumber, label, title, iconName, mainDesc, detailDesc, dos (array 2 string), donts (array 2 string). Field expertInsight dan techniqueRef opsional.
+JANGAN gunakan field "description". Gunakan "mainDesc" dan "detailDesc" saja.`;
 
     const groqRes = await fetch(GROQ_API_URL, {
       method: "POST",
@@ -148,9 +169,12 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: TEXT_MODEL,
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          { role: "system", content: TUTORIAL_SYSTEM_PROMPT },
+          { role: "user", content: userPrompt },
+        ],
         temperature: 0.5,
-        max_completion_tokens: 2048,
+        max_completion_tokens: 4096,
         response_format: { type: "json_object" },
       }),
     });
@@ -166,6 +190,21 @@ export async function POST(req: NextRequest) {
     if (fenceMatch) jsonStr = fenceMatch[1].trim();
 
     const tutorial = JSON.parse(jsonStr);
+
+    // Normalize steps: ensure AI output uses mainDesc/detailDesc, not description
+    const rawSteps = Array.isArray(tutorial.steps) ? tutorial.steps : [];
+    const normalizedSteps = rawSteps.map((s: Record<string, unknown>, i: number) => ({
+      stepNumber: s.stepNumber || i + 1,
+      label: s.label || `Langkah ${(s.stepNumber as number) || i + 1}`,
+      title: s.title || "",
+      iconName: s.iconName || "Recycle",
+      mainDesc: s.mainDesc || s.description || "",
+      detailDesc: s.detailDesc || "",
+      dos: Array.isArray(s.dos) ? s.dos : [],
+      donts: Array.isArray(s.donts) ? s.donts : [],
+      expertInsight: s.expertInsight ?? null,
+      techniqueRef: s.techniqueRef ?? null,
+    }));
 
     // Generate upcycle image if not already present
     let finalImageUrl = scan.upcycle_image_url || null;
@@ -193,7 +232,7 @@ export async function POST(req: NextRequest) {
         eco_points: tutorial.ecoPoints || 100,
         tools: tutorial.tools || [],
         materials: tutorial.materials || [],
-        steps: tutorial.steps || [],
+        steps: normalizedSteps,
         final_image_url: finalImageUrl,
       })
       .select("id")

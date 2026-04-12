@@ -1,0 +1,668 @@
+/* ═══════════════════════════════════════════════
+   EcoStep — Step-by-Step Tutorial Page
+   ═══════════════════════════════════════════════ */
+
+/* ── Shell ── */
+.shell {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 15% -10%, rgba(39, 174, 96, 0.07) 0%, transparent 40%),
+    radial-gradient(circle at 85% 100%, rgba(130, 158, 96, 0.06) 0%, transparent 40%),
+    #f4f4f0;
+  color: var(--color-black);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top Bar ── */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(244, 244, 240, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.topBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.closeBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--color-white);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-gray-600);
+  text-decoration: none;
+}
+
+.closeBtn:hover {
+  background: var(--color-gray-100);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--color-black);
+}
+
+.brandName {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
+}
+
+.topBarRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pointsBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-white);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-gray-800);
+}
+
+.pointsIcon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary);
+}
+
+.settingsBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--color-white);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-gray-500);
+}
+
+.settingsBtn:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+/* ── Content ── */
+.content {
+  flex: 1;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 28px 120px;
+}
+
+/* ── Progress Header ── */
+.progressHeader {
+  margin-bottom: 32px;
+}
+
+.progressTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.progressTitle {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  color: var(--color-black);
+}
+
+.progressCounter {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-500);
+}
+
+.progressBarTrack {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-gray-200);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Step Labels (horizontal) ── */
+.stepLabels {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.stepLabels::-webkit-scrollbar {
+  display: none;
+}
+
+.stepLabelItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding-right: 24px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--color-gray-400);
+  transition: color 0.3s;
+}
+
+.stepLabelItem[data-state="completed"] {
+  color: var(--color-primary-dark);
+}
+
+.stepLabelItem[data-state="active"] {
+  color: var(--color-primary-dark);
+}
+
+.stepLabelDot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.stepLabelDot[data-state="completed"] {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.stepLabelDot[data-state="active"] {
+  background: var(--color-white);
+  border: 2.5px solid var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.stepLabelDot[data-state="upcoming"] {
+  background: var(--color-gray-200);
+  color: var(--color-gray-400);
+}
+
+.checkIconSm {
+  width: 12px;
+  height: 12px;
+}
+
+/* ── Step Card ── */
+.stepCard {
+  background: var(--color-white);
+  border-radius: 28px;
+  padding: 40px 44px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+  animation: cardIn 0.4s ease-out;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stepCardInner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Left Column / Main Content */
+.stepCardLeft {}
+
+.stepMeta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.stepMetaIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--color-gray-100);
+  display: grid;
+  place-items: center;
+  color: var(--color-primary-dark);
+}
+
+.stepMetaIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.stepMetaLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-primary-dark);
+}
+
+.stepCardTitle {
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  color: var(--color-black);
+  margin-bottom: 20px;
+}
+
+.stepMainDesc {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-gray-800);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.stepDetailDesc {
+  font-size: 14px;
+  color: var(--color-gray-600);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+/* ── Tips Grid (Do's & Don'ts) ── */
+.tipsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.tipItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--color-gray-700);
+  line-height: 1.5;
+}
+
+.tipIconDo {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #166534;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tipIconDont {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fde7e7;
+  color: #991b1b;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tipIconDo svg,
+.tipIconDont svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ── Expert Insight ── */
+.expertInsight {
+  background: linear-gradient(135deg, #fefce8, #fef9c3);
+  border-left: 4px solid #ca8a04;
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+
+.expertInsightHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.expertInsightIcon {
+  width: 18px;
+  height: 18px;
+  color: #ca8a04;
+}
+
+.expertInsightLabel {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #92400e;
+}
+
+.expertInsightText {
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.65;
+  font-style: italic;
+}
+
+/* ── Technique Reference ── */
+
+.techniqueRef {
+  background: var(--color-gray-100);
+  border-radius: 14px;
+  padding: 16px 18px;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  margin-top: 16px;
+}
+
+.techniqueRefLabel {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-gray-500);
+  margin-bottom: 6px;
+}
+
+.techniqueRefText {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--color-gray-700);
+  line-height: 1.5;
+}
+
+/* ── Bottom Navigation ── */
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(244, 244, 240, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 16px 28px;
+}
+
+.bottomNavInner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navBtnBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.navBtnBack:hover {
+  background: var(--color-gray-100);
+  color: var(--color-black);
+}
+
+.navBtnBack:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.navBtnBack:disabled:hover {
+  background: transparent;
+  color: var(--color-gray-600);
+}
+
+.navBtnOverview {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  background: var(--color-white);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-gray-700);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.navBtnOverview:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.navBtnNext {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-primary);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-white);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 8px 24px rgba(39, 174, 96, 0.3);
+}
+
+.navBtnNext:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(39, 174, 96, 0.4);
+}
+
+.navBtnComplete {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #0d3d1c;
+}
+
+.navBtnIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Step Preview Cards (bottom) ── */
+.stepPreviews {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 24px 0 16px; /* Tambah padding bawah untuk ruang scrollbar */
+}
+
+
+.previewCard {
+  flex-shrink: 0;
+  width: 260px;
+  background: var(--color-white);
+  border-radius: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.6;
+}
+
+.previewCard[data-active="true"] {
+  border-color: var(--color-primary);
+  opacity: 1;
+  box-shadow: 0 4px 16px rgba(39, 174, 96, 0.12);
+}
+
+.previewCard:hover {
+  opacity: 1;
+}
+
+.previewDot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.previewDot[data-state="completed"] {
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.previewDot[data-state="active"] {
+  background: rgba(39, 174, 96, 0.12);
+  color: var(--color-primary-dark);
+}
+
+.previewDot[data-state="upcoming"] {
+  background: var(--color-gray-200);
+  color: var(--color-gray-500);
+}
+
+.previewInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.previewTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.previewSubtitle {
+  font-size: 11px;
+  color: var(--color-gray-500);
+  margin-top: 2px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 820px) {
+
+  .stepCard {
+    padding: 28px 24px;
+  }
+
+  .content {
+    padding: 20px 16px 120px;
+  }
+
+  .tipsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .bottomNavInner {
+    gap: 8px;
+  }
+
+  .navBtnBack,
+  .navBtnOverview {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .navBtnNext {
+    padding: 12px 22px;
+    font-size: 14px;
+  }
+}
+
+/* ── Loading / Error States ── */
+.loadingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60dvh;
+  gap: 16px;
+  padding: 40px 20px;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  color: var(--color-primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loadingText {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-gray-500);
+}
+
+.errorIcon {
+  width: 40px;
+  height: 40px;
+  color: #ef4444;
+}

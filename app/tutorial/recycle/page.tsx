@@ -21,7 +21,14 @@ function StepIcon({ name, className }: { name?: string; className?: string }) {
 type TutorialStep = {
   stepNumber: number;
   title: string;
-  description: string;
+  label?: string;
+  description?: string;
+  mainDesc?: string;
+  detailDesc?: string;
+  dos?: string[];
+  donts?: string[];
+  expertInsight?: string | null;
+  techniqueRef?: string | null;
   iconName?: string;
 };
 
@@ -303,10 +310,10 @@ export default function RecycleTutorialPage() {
               </span>
             </div>
 
-            <a href="#assembly" className={styles.heroActionBtn}>
+            <Link href={`/tutorial/recycle/steps?id=${t.id}`} className={styles.heroActionBtn}>
               Mulai Daur Ulang
               <PlayCircleIcon className={styles.heroActionBtnIcon} />
-            </a>
+            </Link>
           </div>
 
           <div className={styles.heroVisual}>
@@ -413,7 +420,7 @@ export default function RecycleTutorialPage() {
                         Langkah {step.stepNumber}
                       </span>
                       <h3 className={styles.stepStepTitle}>{step.title}</h3>
-                      <p className={styles.stepDesc}>{step.description}</p>
+                      <p className={styles.stepDesc}>{step.mainDesc || step.description}</p>
                     </div>
                   </div>
                 </div>

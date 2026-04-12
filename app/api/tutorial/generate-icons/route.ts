@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tutorial not found." }, { status: 404 });
     }
 
-    type Step = { stepNumber: number; title: string; description: string; iconName?: string; iconSvg?: string };
+    type Step = { stepNumber: number; title: string; description?: string; mainDesc?: string; iconName?: string; iconSvg?: string; [key: string]: unknown };
     const steps = tutorial.steps as Step[];
 
     // Skip if all steps already have valid icon names
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ steps });
     }
 
-    const stepSummaries = steps.map((s) => `${s.stepNumber}. ${s.title}: ${s.description}`).join("\n");
+    const stepSummaries = steps.map((s) => `${s.stepNumber}. ${s.title}: ${s.mainDesc || s.description || ""}`).join("\n");
 
     const groqRes = await fetch(GROQ_API_URL, {
       method: "POST",
