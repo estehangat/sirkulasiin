@@ -24,7 +24,8 @@ Respond ONLY with valid JSON (no markdown fences). ALL text in Bahasa Indonesia.
     {
       "stepNumber": 1,
       "title": "string — judul langkah",
-      "description": "string — penjelasan detail 2-3 kalimat tentang langkah ini"
+      "description": "string — penjelasan detail 2-3 kalimat tentang langkah ini",
+      "iconName": "string — nama ikon Lucide React yang relevan, contoh: Scissors, Paintbrush, Wrench, Ruler, Hammer, Droplets, Flame, Recycle, CheckCircle, Eye, Lightbulb, Search, Layers, Package, Settings, Leaf, Sparkles"
     }
   ]
 }

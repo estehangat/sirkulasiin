@@ -5,14 +5,24 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import * as LucideIcons from "lucide-react";
 import Navbar from "@/app/components/navbar";
 import styles from "./recycle-tutorial.module.css";
+
+/* ═══════════════ Dynamic Lucide Icon ═══════════════ */
+const lucideMap = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
+
+function StepIcon({ name, className }: { name?: string; className?: string }) {
+  const Icon = (name && lucideMap[name]) || lucideMap["Recycle"];
+  return <Icon className={className} />;
+}
 
 /* ═══════════════ Types ═══════════════ */
 type TutorialStep = {
   stepNumber: number;
   title: string;
   description: string;
+  iconName?: string;
 };
 
 type TutorialData = {
@@ -174,7 +184,26 @@ export default function RecycleTutorialPage() {
         if (dbErr || !data) {
           setError("Tutorial tidak ditemukan.");
         } else {
-          setTutorial(data as TutorialData);
+          const tutorialData = data as TutorialData;
+          setTutorial(tutorialData);
+
+          // Auto-enrich steps with Lucide icon names if missing
+          const steps = Array.isArray(tutorialData.steps) ? tutorialData.steps : [];
+          const needsIcons = steps.some((s: TutorialStep) => !s.iconName);
+          if (needsIcons && tutorialData.id) {
+            fetch("/api/tutorial/generate-icons", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ tutorialId: tutorialData.id }),
+            })
+              .then((r) => r.json())
+              .then((res) => {
+                if (res.steps) {
+                  setTutorial((prev) => prev ? { ...prev, steps: res.steps } : prev);
+                }
+              })
+              .catch(() => {}); // Fail silently — icons are non-critical
+          }
         }
       } catch {
         setError("Gagal memuat tutorial.");
@@ -376,11 +405,16 @@ export default function RecycleTutorialPage() {
                 </div>
                 <div className={styles.stepBody}>
                   <div className={styles.stepCard}>
-                    <span className={styles.stepLabel}>
-                      Langkah {step.stepNumber}
-                    </span>
-                    <h3 className={styles.stepStepTitle}>{step.title}</h3>
-                    <p className={styles.stepDesc}>{step.description}</p>
+                    <div className={styles.stepIconWrap}>
+                      <StepIcon name={step.iconName} />
+                    </div>
+                    <div className={styles.stepContent}>
+                      <span className={styles.stepLabel}>
+                        Langkah {step.stepNumber}
+                      </span>
+                      <h3 className={styles.stepStepTitle}>{step.title}</h3>
+                      <p className={styles.stepDesc}>{step.description}</p>
+                    </div>
                   </div>
                 </div>
               </div>

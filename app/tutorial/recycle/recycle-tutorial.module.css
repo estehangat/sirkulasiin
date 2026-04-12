@@ -636,19 +636,42 @@
   padding-bottom: 0;
 }
 
-/* Step Card (text-only) */
+/* Step Card */
 .stepCard {
   background: var(--color-white);
   border-radius: 24px;
-  padding: 28px 30px;
+  padding: 24px 28px;
   border: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .stepCard:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
+}
+
+.stepIconWrap {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--color-gray-100);
+  display: grid;
+  place-items: center;
+  color: var(--color-gray-700);
+}
+
+.stepIconWrap svg {
+  width: 24px;
+  height: 24px;
+}
+
+.stepContent {
+  flex: 1;
 }
 
 .stepLabel {
