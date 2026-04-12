@@ -250,7 +250,7 @@ export default function Navbar({ activeNav }: NavbarProps) {
                 Dashboard
               </Link>
               <Link
-                href="/dashboard/profil"
+                href="/dashboard/settings"
                 className={styles.dropdownItem}
                 onClick={() => setDropdownOpen(false)}
               >
