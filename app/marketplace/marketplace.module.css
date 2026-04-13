@@ -563,6 +563,73 @@
   opacity: 0.5;
 }
 
+/* ─── Product Card Link ─── */
+.productCardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* ─── Image Placeholder ─── */
+.productImagePlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-gray-100);
+  color: var(--color-gray-300);
+}
+
+/* ─── Barter Badge ─── */
+.barterBadge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+}
+
+/* ─── Empty State ─── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  color: var(--color-gray-400);
+  gap: 16px;
+}
+
+.emptyState h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-gray-600);
+  letter-spacing: -0.4px;
+}
+
+.emptyState p {
+  font-size: 15px;
+  color: var(--color-gray-400);
+  max-width: 40ch;
+  line-height: 1.6;
+}
+
+.emptyState .listItemBtn {
+  margin-top: 8px;
+}
+
 .loadMoreWrap {
   display: flex;
   justify-content: center;

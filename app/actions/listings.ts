@@ -36,6 +36,14 @@ export async function publishListing(
   const aiPriceMax = parseInt(formData.get("ai_price_max") as string) || null;
   const location = formData.get("location") as string;
 
+  // Barter fields
+  const barterEnabled = formData.get("barter_enabled") === "on";
+  const barterWithRaw = formData.get("barter_with") as string;
+  const barterWith = barterWithRaw
+    ? barterWithRaw.split(",").map((s) => s.trim()).filter(Boolean)
+    : null;
+  const barterNotes = formData.get("barter_notes") as string;
+
   // Validasi
   if (!title || !category) {
     return { error: "Nama item dan kategori wajib diisi." };
@@ -61,6 +69,9 @@ export async function publishListing(
     eco_points: ecoPoints,
     status: "published",
     location: location || null,
+    barter_enabled: barterEnabled,
+    barter_with: barterWith,
+    barter_notes: barterNotes || null,
   });
 
   if (error) {
@@ -99,6 +110,14 @@ export async function saveDraft(
   const aiPriceMax = parseInt(formData.get("ai_price_max") as string) || null;
   const location = formData.get("location") as string;
 
+  // Barter fields
+  const barterEnabled = formData.get("barter_enabled") === "on";
+  const barterWithRaw = formData.get("barter_with") as string;
+  const barterWith = barterWithRaw
+    ? barterWithRaw.split(",").map((s) => s.trim()).filter(Boolean)
+    : null;
+  const barterNotes = formData.get("barter_notes") as string;
+
   const price = parseInt(priceStr?.replace(/\./g, "") || "0");
 
   const { error } = await supabase.from("marketplace_listings").insert({
@@ -115,6 +134,9 @@ export async function saveDraft(
     eco_points: ecoPoints,
     status: "draft",
     location: location || null,
+    barter_enabled: barterEnabled,
+    barter_with: barterWith,
+    barter_notes: barterNotes || null,
   });
 
   if (error) {

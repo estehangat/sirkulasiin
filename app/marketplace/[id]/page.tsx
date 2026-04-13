@@ -1,91 +1,103 @@
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import Navbar from "@/app/components/navbar";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
+import BarterOfferForm from "./BarterOfferForm";
 import styles from "./productDetail.module.css";
 
-const relatedItems = [
-  {
-    name: "Rak Kayu Reklamasi",
-    price: "Rp675.000",
-    co2: "-0,8kg CO2",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAf5Lgv767RWIuGdXQFONzE0eG4qwMoGXXHDL5nLLQafS-3ckvVC8z94bOqcCxre8i9RTgK1cte_aQtc6KKW2w5huBsf619AVRUrlAQ9WsX7gO9LF5bEticzSgTII8ZmHX0K32gYbT0KYgIG5KjFj8Nnz1wQ1X0pMkGFMfjnf578txIxi5Y3P9YKYNIBMop70Ff_MEaCzX1ntuVwChZwJim9UnCgiDucprOyYO6caTo-DWS2t7EQAiOl1husoXem-lFUAbeGzNoPdjP",
-    alt: "rak tanaman kayu reklamasi minimalis",
-  },
-  {
-    name: "Selimut Katun Organik Zaitun",
-    price: "Rp1.650.000",
-    co2: "-1,2kg CO2",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDObjVz74RVeH8B4wmlVQjSWmPqQStHMyjY7YmsMaAUFC0WaKdtdBKMcQxjbJzX2CS5JcNiEPZDiekLTJOPtTluFGnt1ee1IylME42Hr-5waMICdlQOf9CmxPUdk4vlbF2pePwqcm54jCY0h5ggpJAlufbjVa9VIQwHFlFAYxDqruuH_kSc0qUkt7RvbrcooMCS_8boAYc3lmkBX3zsRlUXqjb61IUGwiuUTYs1Qt-Aa4JRwaPD9GvNHKKBPzIBXQQ0JOMLHftsOoQQ",
-    alt: "selimut katun organik warna hijau zaitun",
-  },
-  {
-    name: "Set Gelas Amber",
-    price: "Rp480.000",
-    co2: "-0,4kg CO2",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBFB99fclbK_pcG_lgPwIu464uwKmjHD_juRmbqnV3Cmbeyran7Kb69dKbn34-bCUydB0k-0VBsrwl38l2zlmBPpl7lH9hwm97ZGnlWrfi1nYM92-rYmFw41HzrNeDW558r5OPIJeLCOuLPxaTYuhzCP7JtRd-d43Luxde3gpARfqljss9j5_61U1g815ijyEpbZj9bFTwHAY2zOrgH8pIsaUrQylwH1f4IHTOoSERQ-VXkwOkUuCSQdhmswAykbehDkdvSA846wJsO",
-    alt: "tempat lilin kaca daur ulang warna amber",
-  },
-  {
-    name: "Karpet Anyaman Rami",
-    price: "Rp2.370.000",
-    co2: "-3,1kg CO2",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDIkhACudZs-O3Pb1hfHU2FgocZZeEvdR_fE4gH9U4jU2XFGY5s8ooU8AO577EtzBh3CoWTxkZ6mFXD_rX2dC7i_0nS3H8NJ74UOp_xBpin8wqu7_eNuErU3OrcnXOL_moYLt-ktxPyb3daZxdE6nZvRyWaY5AWuoKk_DwClVeU7yf6zqVxC2AH2wD8pFfSF78U8iEjXxwsF5rSTryuwxF0RfcWjznUPbgBqMo6_b3f-l_6lZfgrtmtgcJRRj0CXLTzhpO8Y8nH0VH6",
-    alt: "karpet bulat rami alami",
-  },
-];
+function formatRupiah(price: number) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(price);
+}
 
-const galleryThumbs = [
-  {
-    src: "https://lh3.googleusercontent.com/aida-public/AB6AXuC_A1C9Kj7LxbB2OJDOGEcDkt9QqQxHByWSFXNH6KEpPS-4HyfAnmX4kpKYZ12pftVhFVnYLHhfXV3ngDYNGhcFqFY_9toXxD2_GZ47o2QnkgDtpE4Z95uJsZqzFEYIMt6CdS_5U9uQ-yDqVT4Tzjf5Rnqio5wR0BaJaXebAzzpV0C-HBBPe3TA9y2kJljgkGaE9tVGbHpsxTFjgcn0y0WPK9ZT5g3z5UaDAAXsWHPLGXkhsxa1eh_HmYtSpOFt9Kc1CvrfcXXyEr56",
-    alt: "tekstur keramik artisan dari dekat",
-  },
-  {
-    src: "https://lh3.googleusercontent.com/aida-public/AB6AXuAuMo3YwX_9y2m-wh8iO1oA1F0eATuxzL4VCvMK5czTNgogGW56SQ8nCiuihbaxrGDaYW1526q8hfqfne00-H3oKjfb-98mJmQMsPwtXu-fQ9da5uIcbLE8E5yJNY5gKYJxLj0F8eYPbymu3jRNJlgiv_J-con4oNpRyv3uttHFNTYji02HlZLQJM36gDF5Jd296a-oi5FdriMjmljscM1beX1by3ZQ0M-lUikAvOJYFLeGgbrHs18OduOUfJB2OoQplrAWufXCJobu",
-    alt: "barang keramik di samping tanaman hijau",
-  },
-  {
-    src: "https://lh3.googleusercontent.com/aida-public/AB6AXuDrp6aI19rnN7YserqfiOwmBxPGHsisedo-NkddHTFO-qtRyQmrb54s6Hs4niqOg94oq7qiBrALPQIAAVuAAtIRhjRveA8JC4NzKGdHLc89Wf6G-g5DvEMOb_k8bhOWdGcm3Tx6N5jzbaJD7ADwU8vXIE4BPmKK3fGXfPs8jhjOSTvxqfzrKa8PWxXrhT4-Q2qvbpf2LrhxiR-3YC9V1QZThQm0EfZ4zmHZMv3JeQg_pltM94T8bUuL8Zj2-eVyOd94fTn0JeofUuUy",
-    alt: "tampilan bawah vas buatan tangan",
-  },
-  {
-    src: "https://lh3.googleusercontent.com/aida-public/AB6AXuASZk77YRRmdQgdZJHzDXlNcSv8cUe9S2dTiYDW6cpjK7Ugv5wOVORqhCq2QodL3aAo6rwl0jffWujJS90UlpFtO4bVBQJ3q_7UWlCF1qlu78F34JS8c7NW_elRWI-iDZOUufQ0-CElJbg-cuyypUxMyyGb8QFkoeqzI8hWhBMkKpAsRl_XOddas_uDPNi08k12XDgvLmAYyv6EpWMYNnVEKyCPmoeG0miUnB8b19ZE7Wm2bJ1lZ3X5kfLiQiIi9lJFgd8zPlDVb8jr",
-    alt: "produk di suasana ruang tamu terang",
-    hasOverlay: true,
-  },
-];
+const categoryLabels: Record<string, string> = {
+  glass: "Kaca",
+  plastic: "Plastik",
+  paper: "Kertas",
+  metal: "Logam",
+  textile: "Tekstil",
+  electronic: "Elektronik",
+  other: "Lainnya",
+};
 
-export default function ProductDetailPage() {
+export default async function ProductDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createServerSupabaseClient();
+
+  // Fetch listing
+  const { data: listing } = await supabase
+    .from("marketplace_listings")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (!listing) notFound();
+
+  // Fetch related items (same category, exclude current)
+  const { data: relatedListings } = await supabase
+    .from("marketplace_listings")
+    .select("id, title, price, image_url, carbon_saved")
+    .eq("status", "published")
+    .eq("category", listing.category)
+    .neq("id", listing.id)
+    .order("created_at", { ascending: false })
+    .limit(4);
+
+  const related = relatedListings ?? [];
+
+  // Cek apakah user sedang login (untuk form barter)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Ambil email seller
+  // Note: Supabase auth.users tidak bisa di-query dari client.
+  // Kita simpan user_id saja, tampilkan "Penjual" sebagai placeholder.
+
   return (
     <main className={styles.pageShell}>
-      {/* ── Navbar ── using shared component ── */}
       <Navbar activeNav="marketplace" />
 
       {/* ── Breadcrumbs ── */}
       <nav className={styles.breadcrumbs}>
         <Link href="/marketplace">Marketplace</Link>
         <span className={styles.breadcrumbSep}>›</span>
-        <a href="#">Gaya Hidup</a>
+        <span>{categoryLabels[listing.category] || listing.category}</span>
         <span className={styles.breadcrumbSep}>›</span>
-        <span className={styles.breadcrumbCurrent}>Dekorasi Berkelanjutan</span>
+        <span className={styles.breadcrumbCurrent}>{listing.title}</span>
       </nav>
 
       {/* ── Product Layout ── */}
       <div className={styles.productLayout}>
-        {/* Gallery */}
+        {/* Gallery — single image */}
         <div className={styles.gallery}>
           <div className={styles.mainImage}>
-            <Image
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCz6K9lGwzIXgCpJzhYN68eQ7fm_P_VeTneFXHyHgtVOEodPpWyVTQqcncNaJ7_ewf0TxfjCeagwnv-F7YtgTghXEaGALKEnvv7ztXHivsG14FY5814BB2ySdkvx7rJOUAo7cg4KLZqP0BzI3TrbhuQZu0u1ftZYORZ4DGrtxfkGCwI_dZsxiZOytZzPwUW8N-G8yo6RGDY7N6YguU7WIpjXDqH6rz4OIdpBoDsaNaRY_voamLdrbOaQmgTMMO4RqgcKqe1llPB6LGu"
-              alt="vas keramik buatan tangan dengan tekstur organik"
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 58vw"
-              className={styles.mainImageImg}
-            />
+            {listing.image_url ? (
+              <Image
+                src={listing.image_url}
+                alt={listing.title}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 58vw"
+                className={styles.mainImageImg}
+              />
+            ) : (
+              <div className={styles.imagePlaceholder}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="m21 15-5-5L5 21" />
+                </svg>
+              </div>
+            )}
             <div className={styles.verifiedBadge}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -93,72 +105,50 @@ export default function ProductDetailPage() {
                TERVERIFIKASI AI
             </div>
           </div>
-          <div className={styles.thumbGrid}>
-            {galleryThumbs.map((thumb, i) => (
-              <div
-                key={i}
-                className={`${styles.thumbItem} ${thumb.hasOverlay ? styles.thumbOverlay : ""}`}
-              >
-                <Image
-                  src={thumb.src}
-                  alt={thumb.alt}
-                  fill
-                  sizes="120px"
-                  className={`${styles.thumbImg} ${thumb.hasOverlay ? styles.thumbImgFaded : ""}`}
-                />
-                {thumb.hasOverlay && (
-                  <div className={styles.thumbOverlayText}>+2</div>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Product Info */}
         <div className={styles.productInfo}>
           <span className={styles.ecoBadge}>Pilihan Terkurasi Ramah Lingkungan</span>
-          <h1 className={styles.productTitle}>Vas Terakota Buatan Tangan</h1>
-          <p className={styles.productPrice}>Rp1.260.000</p>
+          <h1 className={styles.productTitle}>{listing.title}</h1>
+          <p className={styles.productPrice}>{formatRupiah(listing.price)}</p>
 
           {/* Impact Card */}
-          <div className={styles.impactCard}>
-            <div className={styles.impactHeader}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22c4-4 8-7.5 8-12a8 8 0 10-16 0c0 4.5 4 8 8 12z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
-              <span>Laporan Dampak Buatan AI</span>
+          {listing.carbon_saved && (
+            <div className={styles.impactCard}>
+              <div className={styles.impactHeader}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22c4-4 8-7.5 8-12a8 8 0 10-16 0c0 4.5 4 8 8 12z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span>Laporan Dampak Buatan AI</span>
+              </div>
+              <p className={styles.impactText}>
+                Dengan memilih item preloved ini, Anda mencegah{" "}
+                <strong className={styles.impactHighlight}>{listing.carbon_saved}</strong> emisi
+                dan menghemat sumber daya alam.
+              </p>
             </div>
-            <p className={styles.impactText}>
-              Dengan memilih vas preloved ini, Anda mencegah{" "}
-              <strong className={styles.impactHighlight}>2,4kg emisi CO2</strong> dan
-              menghemat <strong className={styles.impactHighlight}>120L air</strong> dibandingkan
-              dengan produksi baru.
-            </p>
-          </div>
+          )}
 
-          {/* Seller Profile */}
+          {/* Seller Card */}
           <div className={styles.sellerCard}>
             <div className={styles.sellerInfo}>
-              <div className={styles.sellerAvatar}>
-                <Image
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu0S-C0gQJItXBkLqfqh52JgyMuvfjmyuc-wBQhxm4hmCsYFBmOI5tJyiXaO9fLkaHnZe7Q52mAb4gkmnqqhw0s8wu1TIwef75FBkkPI7RHfNwyqKgLuVwd4EwWd_w_5nkfnrk7wIHWr2_unLKjvrSL7MA_ct3DxJolhyFRxgjt7Z800G9C_eQVf7u0K71TMg3lBa2V9jxTNfDcEIg5kQWzWMmEDAhIvCMUwohpl1CsMSSHh8DZj7twrwgn3pwz6ThNSaBnH4LsoKD"
-                  alt="Elena Green"
-                  fill
-                  sizes="56px"
-                  className={styles.sellerAvatarImg}
-                />
+              <div className={styles.sellerAvatarPlaceholder}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
               </div>
               <div>
-                <h4 className={styles.sellerName}>Elena Green</h4>
+                <h4 className={styles.sellerName}>Penjual</h4>
                 <div className={styles.sellerMeta}>
-                  <span className={styles.sellerBadge}>Pendukung Hijau</span>
-                  <span className={styles.sellerRating}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#ca8a04">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
-                    4.9 (124)
-                  </span>
+                  <span className={styles.sellerBadge}>Anggota</span>
+                  {listing.location && (
+                    <span className={styles.sellerRating}>
+                      📍 {listing.location}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -169,26 +159,61 @@ export default function ProductDetailPage() {
           <div className={styles.description}>
             <h3 className={styles.descTitle}>Tentang barang ini</h3>
             <p className={styles.descText}>
-              Hiasan tengah meja yang memukau, dibuat dari tanah liat Mediterania
-              lokal. Vas ini menampilkan glasir matte unik dan lingkaran lempar
-              halus yang menceritakan kisah pembuatannya. Kondisi sangat baik
-              tanpa goresan atau retakan.
+              {listing.description || "Tidak ada deskripsi."}
             </p>
             <div className={styles.specGrid}>
               <div className={styles.specItem}>
-                <span className={styles.specLabel}>Asal</span>
-                <span className={styles.specValue}>Barcelona</span>
+                <span className={styles.specLabel}>Kategori</span>
+                <span className={styles.specValue}>
+                  {categoryLabels[listing.category] || listing.category}
+                </span>
               </div>
-              <div className={styles.specItem}>
-                <span className={styles.specLabel}>Material</span>
-                <span className={styles.specValue}>Terakota</span>
-              </div>
-              <div className={styles.specItem}>
-                <span className={styles.specLabel}>Karbon</span>
-                <span className={styles.specValue}>-2,4kg</span>
-              </div>
+              {listing.location && (
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>Lokasi</span>
+                  <span className={styles.specValue}>{listing.location}</span>
+                </div>
+              )}
+              {listing.carbon_saved && (
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>Karbon</span>
+                  <span className={styles.specValue}>-{listing.carbon_saved}</span>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Barter Section */}
+          {listing.barter_enabled && (
+            <div className={styles.barterSection}>
+              <div className={styles.barterHeader}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+                <h3 className={styles.barterTitle}>Bersedia Barter</h3>
+              </div>
+              {listing.barter_with && listing.barter_with.length > 0 && (
+                <div className={styles.barterWantSection}>
+                  <p className={styles.barterWantLabel}>Ingin ditukar dengan:</p>
+                  <div className={styles.barterTagList}>
+                    {listing.barter_with.map((tag: string, i: number) => (
+                      <span key={i} className={styles.barterTag}>{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {listing.barter_notes && (
+                <p className={styles.barterNotes}>{listing.barter_notes}</p>
+              )}
+
+              {/* Barter Offer Form */}
+              <BarterOfferForm
+                listingId={listing.id}
+                isLoggedIn={!!user}
+                isOwnListing={user?.id === listing.user_id}
+              />
+            </div>
+          )}
 
           {/* CTAs */}
           <div className={styles.ctaGroup}>
@@ -204,45 +229,56 @@ export default function ProductDetailPage() {
       </div>
 
       {/* ── Related Items ── */}
-      <section className={styles.relatedSection}>
-        <div className={styles.relatedHeader}>
-          <div>
-            <span className={styles.relatedLabel}>Kurasi</span>
-            <h2 className={styles.relatedTitle}>Mungkin Anda Juga Suka</h2>
+      {related.length > 0 && (
+        <section className={styles.relatedSection}>
+          <div className={styles.relatedHeader}>
+            <div>
+              <span className={styles.relatedLabel}>Kurasi</span>
+              <h2 className={styles.relatedTitle}>Mungkin Anda Juga Suka</h2>
+            </div>
+            <Link href="/marketplace" className={styles.relatedLink}>
+              Jelajahi Marketplace →
+            </Link>
           </div>
-          <Link href="/marketplace" className={styles.relatedLink}>
-            Jelajahi Marketplace →
-          </Link>
-        </div>
 
-        <div className={styles.relatedGrid}>
-          {relatedItems.map((item, i) => (
-            <article key={i} className={styles.relatedCard}>
-              <div className={styles.relatedImageWrap}>
-                <Image
-                  src={item.image}
-                  alt={item.alt}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className={styles.relatedImage}
-                />
-                <button className={styles.relatedFav}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                </button>
-              </div>
-              <div className={styles.relatedInfo}>
-                <h4 className={styles.relatedName}>{item.name}</h4>
-                <div className={styles.relatedBottom}>
-                  <span className={styles.relatedPrice}>{item.price}</span>
-                  <span className={styles.relatedCo2}>{item.co2}</span>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+          <div className={styles.relatedGrid}>
+            {related.map((item) => (
+              <Link key={item.id} href={`/marketplace/${item.id}`} className={styles.relatedCardLink}>
+                <article className={styles.relatedCard}>
+                  <div className={styles.relatedImageWrap}>
+                    {item.image_url ? (
+                      <Image
+                        src={item.image_url}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className={styles.relatedImage}
+                      />
+                    ) : (
+                      <div className={styles.relatedImagePlaceholder}>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="m21 15-5-5L5 21" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.relatedInfo}>
+                    <h4 className={styles.relatedName}>{item.title}</h4>
+                    <div className={styles.relatedBottom}>
+                      <span className={styles.relatedPrice}>{formatRupiah(item.price)}</span>
+                      {item.carbon_saved && (
+                        <span className={styles.relatedCo2}>-{item.carbon_saved}</span>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Footer ── */}
       <footer className={styles.footer}>

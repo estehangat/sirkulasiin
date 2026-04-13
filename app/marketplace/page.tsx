@@ -1,49 +1,41 @@
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "../components/navbar";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 import styles from "./marketplace.module.css";
 
-const marketplaceItems = [
-  {
-    name: "Linen Katun Organik",
-    location: "Jakarta Selatan",
-    time: "2 jam lalu",
-    price: "Rp675.000",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBocev6v5qrmUfYEjA2_sJHut65t8ZZJ6TFidR-TEyVyt_nZcmUq2ID5sV-tUTR8eVKXwmUypGNX9bjUaZpg7tfloyThfNH9x1AbbtdJY3dwQzb05x5OB2colpX6rJWMI4CIjZpUR5iQkspMPvxIOiB3OoRVqIaGOoJVnDL_xHSy7UQKUH4P5b_Exn6uhKCyGuj51f2JAPq1J8Duiy1byTYBOWayDDMIrqSBS8x_Ls5LQhIV2sh5wUynTlOYEp-bSrBLjSfTOKj2fUI",
-    verified: true,
-  },
-  {
-    name: "Vas Keramik Vintage",
-    location: "Bandung",
-    time: "5 jam lalu",
-    price: "Rp420.000",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuA4cvh1uOCo4ltrnmiSjuJQeQHTe9N4ylU2IIyxIFN_f-JvQb8weGSaxc0qQdZSxTNYjM-Fg8l-zKh2UcIPsFoRjVt1CUPHG11r6p7JXWkhcexd70q7SD88notMjL7zEW-vqZjSzd74aMfvER5Uzu9Q4KOdvlHdvC1w8c-Yiyisec3OBZeJFBY55jmZce9_gOfFZCjP_T-UZiTt21_-sgcnZdPN2m33B6otUvQOolBDdb4O14f55rWkUF8pDi9-fTk0F4_vNTMc1sjK",
-    verified: true,
-  },
-  {
-    name: "Pisau Chef Rekondisi",
-    location: "Surabaya",
-    time: "Baru saja",
-    price: "Rp1.800.000",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDLd-lIbGI0QqpjG5_cKCNqWHlj18hqPp2v84Aej4aoZv1vIAK_t6-a3G1WV6gboEmwXtS-iBC52wx4-uMPIyT9W-PCOEdGSNjfnGbhZIuFTiTUfJsHCRphI3RE-4lvGNmKfrsZD632gCOK1Xn3_9eMSSaJOXkhp7TqihfBPvqW8lztWgJcc5UDOU3_6yMJJvln0d4wcYa1sBTpUxQrpFyzIh3Tz6t3ozUtcOGN84Rr1E0ZlJ9XFqovMxY1ZYKu1pY0RzUERUbUylvA",
-    verified: false,
-    badge: "SEPERTI BARU",
-  },
-  {
-    name: "Headphone Gen 2",
-    location: "Yogyakarta",
-    time: "1 hari lalu",
-    price: "Rp1.275.000",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAnOqNekOPcrRC518O-ueGLtsOqY3PIRINVCvEZDwjYrJ_S-0FFzOYuPL1GXV93k3RD0r7SY6_jUCUEKj5yAvmaQ5srGpv9DpoUME0hiLJYIPvPlOs7MBS7kulGifjurbOJFG8-e3w_IhzRrJ3J6K437dIE1_LrQgG5AmAWNENCfNA8Uon07lkUSgZsSWQZmS6xXfFB-cS0WgHZFiYRj24woAiPElbupPI6A7tcY5W9refRULJpFU3GQNygUAWGzL_-eaYJNbUBDm9c",
-    verified: true,
-  },
-];
+function formatRupiah(price: number) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(price);
+}
 
-export default function MarketplacePage() {
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "Baru saja";
+  if (minutes < 60) return `${minutes} menit lalu`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} jam lalu`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} hari lalu`;
+  return `${Math.floor(days / 30)} bulan lalu`;
+}
+
+export default async function MarketplacePage() {
+  const supabase = await createServerSupabaseClient();
+
+  const { data: listings } = await supabase
+    .from("marketplace_listings")
+    .select("*")
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const items = listings ?? [];
+
   return (
     <main className={styles.pageShell}>
       <Navbar activeNav="marketplace" />
@@ -62,7 +54,7 @@ export default function MarketplacePage() {
             </p>
           </div>
           <div>
-            <Link href="/marketplace/create" className={styles.listItemBtn}>
+            <Link href="/scan" className={styles.listItemBtn}>
               <svg
                 className={styles.listItemIcon}
                 width="20"
@@ -78,7 +70,7 @@ export default function MarketplacePage() {
                   strokeLinecap="round"
                 />
               </svg>
-              Jual Barangmu
+              Mulai Scan Barangmu
             </Link>
           </div>
         </div>
@@ -236,64 +228,94 @@ export default function MarketplacePage() {
           </div>
         </div>
 
-        <div className={styles.productGrid}>
-          {marketplaceItems.map((item, index) => (
-            <article key={index} className={styles.productCard}>
-              <div className={styles.productImageWrap}>
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className={styles.productImage}
-                />
-                {item.verified && (
-                  <div className={styles.verifiedBadge}>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    TERVERIFIKASI AI
+        {items.length === 0 ? (
+          <div className={styles.emptyState}>
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <h3>Belum ada listing</h3>
+            <p>Jadilah yang pertama menjual barang preloved-mu!</p>
+            <Link href="/scan" className={styles.listItemBtn}>
+              Mulai Scan Barangmu
+            </Link>
+          </div>
+        ) : (
+          <div className={styles.productGrid}>
+            {items.map((item) => (
+              <Link
+                key={item.id}
+                href={`/marketplace/${item.id}`}
+                className={styles.productCardLink}
+              >
+                <article className={styles.productCard}>
+                  <div className={styles.productImageWrap}>
+                    {item.image_url ? (
+                      <Image
+                        src={item.image_url}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className={styles.productImage}
+                      />
+                    ) : (
+                      <div className={styles.productImagePlaceholder}>
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="m21 15-5-5L5 21" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className={styles.verifiedBadge}>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      TERVERIFIKASI AI
+                    </div>
+                    {item.barter_enabled && (
+                      <div className={styles.barterBadge}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+                        </svg>
+                        BARTER
+                      </div>
+                    )}
+                    <button className={styles.favoriteBtn}>
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                    </button>
                   </div>
-                )}
-                {item.badge && (
-                  <div className={styles.mintBadge}>{item.badge}</div>
-                )}
-                <button className={styles.favoriteBtn}>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                </button>
-              </div>
-              <div className={styles.productInfo}>
-                <div className={styles.productHeader}>
-                  <h4 className={styles.productName}>{item.name}</h4>
-                  <span className={styles.productPrice}>{item.price}</span>
-                </div>
-                <div className={styles.productMeta}>
-                  <span>{item.location}</span>
-                  <span className={styles.dot}>•</span>
-                  <span>{item.time}</span>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className={styles.loadMoreWrap}>
-          <button className={styles.loadMoreBtn}>Muat Lebih Banyak</button>
-        </div>
+                  <div className={styles.productInfo}>
+                    <div className={styles.productHeader}>
+                      <h4 className={styles.productName}>{item.title}</h4>
+                      <span className={styles.productPrice}>
+                        {formatRupiah(item.price)}
+                      </span>
+                    </div>
+                    <div className={styles.productMeta}>
+                      <span>{item.location || "Indonesia"}</span>
+                      <span className={styles.dot}>•</span>
+                      <span>{timeAgo(item.created_at)}</span>
+                    </div>
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ── Footer ── */}

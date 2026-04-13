@@ -61,6 +61,10 @@ export default function CreateListingForm({ scanData }: { scanData: any }) {
   
   const [category, setCategory] = useState(scanData?.category || "glass");
   const [priceStr, setPriceStr] = useState(scanData?.estimated_price_raw?.toString() || aiPriceMin.toString());
+  const [barterEnabled, setBarterEnabled] = useState(false);
+  const [barterTags, setBarterTags] = useState<string[]>([]);
+  const [barterTagInput, setBarterTagInput] = useState("");
+  const [barterNotes, setBarterNotes] = useState("");
   const [description, setDescription] = useState(
     scanData?.description || 
     `Item preloved berkualitas, siap untuk digunakan kembali atau di-upcycle. Ditemukan dalam kondisi ${scanData?.condition || 'baik'}, material ${scanData?.material || 'campuran'}.`
@@ -145,6 +149,9 @@ export default function CreateListingForm({ scanData }: { scanData: any }) {
           <input type="hidden" name="ai_price_max" value={aiPriceMax} />
           <input type="hidden" name="carbon_saved" value={scanData?.carbon_saved || "0.5kg CO2"} />
           <input type="hidden" name="eco_points" value={scanData?.eco_points || 120} />
+          {barterEnabled && <input type="hidden" name="barter_enabled" value="on" />}
+          <input type="hidden" name="barter_with" value={barterTags.join(",")} />
+          <input type="hidden" name="barter_notes" value={barterNotes} />
 
           {/* Price Range */}
           <section>
@@ -222,6 +229,72 @@ export default function CreateListingForm({ scanData }: { scanData: any }) {
               rows={5}
               required
             />
+          </section>
+
+          {/* Barter Option */}
+          <section>
+            <label className={styles.sectionLabel}>Opsi Barter</label>
+            <div className={styles.barterToggle}>
+              <button
+                type="button"
+                className={`${styles.toggleBtn} ${barterEnabled ? styles.toggleBtnActive : ""}`}
+                onClick={() => setBarterEnabled(!barterEnabled)}
+              >
+                <span className={styles.toggleTrack}>
+                  <span className={styles.toggleThumb} />
+                </span>
+                Bersedia Barter / Tuker Tambah
+              </button>
+            </div>
+
+            {barterEnabled && (
+              <div className={styles.barterFields}>
+                <div className={styles.barterTagSection}>
+                  <span className={styles.inputLabel}>BARANG YANG DIINGINKAN</span>
+                  <div className={styles.barterTagInputWrap}>
+                    {barterTags.map((tag, i) => (
+                      <span key={i} className={styles.barterTag}>
+                        {tag}
+                        <button
+                          type="button"
+                          className={styles.barterTagRemove}
+                          onClick={() => setBarterTags(barterTags.filter((_, idx) => idx !== i))}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      type="text"
+                      className={styles.barterTagInput}
+                      placeholder="Ketik lalu Enter..."
+                      value={barterTagInput}
+                      onChange={(e) => setBarterTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && barterTagInput.trim()) {
+                          e.preventDefault();
+                          setBarterTags([...barterTags, barterTagInput.trim()]);
+                          setBarterTagInput("");
+                        }
+                        if (e.key === "Backspace" && !barterTagInput && barterTags.length > 0) {
+                          setBarterTags(barterTags.slice(0, -1));
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <span className={styles.inputLabel}>CATATAN BARTER</span>
+                  <textarea
+                    className={styles.textArea}
+                    value={barterNotes}
+                    onChange={(e) => setBarterNotes(e.target.value)}
+                    rows={2}
+                    placeholder="Contoh: Saya lebih berminat tukar dengan barang elektronik, kondisi minimal 80%..."
+                  />
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Action Buttons */}
