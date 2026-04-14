@@ -41,6 +41,17 @@ export default async function ProductDetailPage({
 
   if (!listing) notFound();
 
+  // Fetch seller profile
+  const { data: sellerProfile } = await supabase
+    .from("profiles")
+    .select("full_name, username, avatar_url, location")
+    .eq("id", listing.user_id)
+    .single();
+
+  const sellerName = sellerProfile?.full_name || sellerProfile?.username || "Penjual";
+  const sellerAvatar = sellerProfile?.avatar_url || null;
+  const sellerLocation = sellerProfile?.location || listing.location || null;
+
   // Fetch related items (same category, exclude current)
   const { data: relatedListings } = await supabase
     .from("marketplace_listings")
@@ -57,10 +68,6 @@ export default async function ProductDetailPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  // Ambil email seller
-  // Note: Supabase auth.users tidak bisa di-query dari client.
-  // Kita simpan user_id saja, tampilkan "Penjual" sebagai placeholder.
 
   return (
     <main className={styles.pageShell}>
@@ -134,19 +141,31 @@ export default async function ProductDetailPage({
           {/* Seller Card */}
           <div className={styles.sellerCard}>
             <div className={styles.sellerInfo}>
-              <div className={styles.sellerAvatarPlaceholder}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-              </div>
+              {sellerAvatar ? (
+                <div className={styles.sellerAvatar}>
+                  <Image
+                    src={sellerAvatar}
+                    alt={sellerName}
+                    fill
+                    sizes="56px"
+                    className={styles.sellerAvatarImg}
+                    unoptimized
+                  />
+                </div>
+              ) : (
+                <div className={styles.sellerAvatarPlaceholder}>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}>
+                    {sellerName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
               <div>
-                <h4 className={styles.sellerName}>Penjual</h4>
+                <h4 className={styles.sellerName}>{sellerName}</h4>
                 <div className={styles.sellerMeta}>
                   <span className={styles.sellerBadge}>Anggota</span>
-                  {listing.location && (
+                  {sellerLocation && (
                     <span className={styles.sellerRating}>
-                      📍 {listing.location}
+                      📍 {sellerLocation}
                     </span>
                   )}
                 </div>
@@ -217,7 +236,15 @@ export default async function ProductDetailPage({
 
           {/* CTAs */}
           <div className={styles.ctaGroup}>
-            <button className={styles.buyBtn}>Beli Sekarang</button>
+            {user?.id !== listing.user_id ? (
+              <Link href={`/marketplace/${listing.id}/checkout`} className={styles.buyBtn}>
+                Beli Sekarang
+              </Link>
+            ) : (
+              <button className={styles.buyBtn} disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                Listing Anda Sendiri
+              </button>
+            )}
             <button className={styles.chatBtn}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />

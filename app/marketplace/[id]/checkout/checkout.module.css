@@ -1,0 +1,436 @@
+/* ─── Page Shell ─── */
+.pageShell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% -20%, rgba(39, 174, 96, 0.10) 0%, transparent 38%),
+    radial-gradient(circle at 90% 10%, rgba(130, 158, 96, 0.12) 0%, transparent 34%),
+    #f4f4f0;
+  color: var(--color-black);
+  padding: 24px 24px 80px;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-top: 16px;
+}
+
+/* ─── Back Link ─── */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-500);
+  margin-bottom: 24px;
+  transition: color 0.2s ease;
+}
+
+.backLink:hover {
+  color: var(--color-primary-dark);
+}
+
+/* ─── Page Title ─── */
+.pageTitle {
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 6px;
+}
+
+.pageSubtitle {
+  font-size: 15px;
+  color: var(--color-gray-500);
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+/* ─── Error Banner ─── */
+.errorBanner {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  border: 1px solid rgba(220, 38, 38, 0.1);
+}
+
+/* ─── Checkout Grid ─── */
+.checkoutGrid {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 36px;
+  align-items: start;
+}
+
+/* ─── Left Column ─── */
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ─── Card ─── */
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.cardHeader {
+  margin-bottom: 28px;
+}
+
+.cardTitle {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  margin-bottom: 6px;
+}
+
+.cardSubtitle {
+  font-size: 14px;
+  color: var(--color-gray-400);
+}
+
+/* ─── Form Fields ─── */
+.formFields {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-gray-500);
+}
+
+.optionalLabel {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+  color: var(--color-gray-400);
+}
+
+.input {
+  padding: 14px 16px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  font-size: 15px;
+  background: var(--color-gray-100);
+  transition: all 0.2s ease;
+  width: 100%;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.08);
+  background: #fff;
+}
+
+.textarea {
+  padding: 14px 16px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  font-size: 15px;
+  background: var(--color-gray-100);
+  resize: vertical;
+  min-height: 48px;
+  transition: all 0.2s ease;
+  width: 100%;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.08);
+  background: #fff;
+}
+
+/* ─── Trust Row ─── */
+.trustRow {
+  display: flex;
+  gap: 20px;
+}
+
+.trustItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-tertiary);
+}
+
+.trustItem svg {
+  color: var(--color-primary);
+}
+
+/* ═══ Right Column ═══ */
+.rightColumn {
+  position: sticky;
+  top: 100px;
+}
+
+/* ─── Summary Card ─── */
+.summaryCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.summaryTitle {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Product Row ─── */
+.productRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.productImageWrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--color-gray-100);
+  flex-shrink: 0;
+}
+
+.productImage {
+  object-fit: cover;
+}
+
+.productImagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-300);
+}
+
+.productInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.productName {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.productMeta {
+  font-size: 13px;
+  color: var(--color-gray-400);
+}
+
+.productPrice {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  flex-shrink: 0;
+}
+
+/* ─── Seller Row ─── */
+.sellerRow {
+  padding: 14px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+}
+
+.sellerMini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sellerMiniAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.sellerMiniPlaceholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sellerMiniName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-gray-500);
+}
+
+/* ─── Impact Banner ─── */
+.impactBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(130, 158, 96, 0.1);
+  border: 1px solid rgba(130, 158, 96, 0.15);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-tertiary);
+  margin-bottom: 20px;
+}
+
+.impactBanner strong {
+  font-weight: 700;
+}
+
+.impactBanner svg {
+  flex-shrink: 0;
+  color: var(--color-tertiary);
+}
+
+/* ─── Pricing Section ─── */
+.pricingSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-top: 4px;
+}
+
+.priceLine {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--color-gray-500);
+}
+
+.shippingFree {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.priceTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 18px;
+  font-weight: 800;
+  padding-top: 14px;
+  border-top: 1.5px solid rgba(0, 0, 0, 0.08);
+  color: var(--color-black);
+}
+
+/* ─── Pay Button ─── */
+.payBtn {
+  width: 100%;
+  height: 56px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 12px 32px rgba(39, 174, 96, 0.22);
+  margin-bottom: 16px;
+}
+
+.payBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(39, 174, 96, 0.3);
+}
+
+.payBtn:active {
+  transform: scale(0.98);
+}
+
+.payBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Disclaimer ─── */
+.disclaimer {
+  font-size: 12px;
+  color: var(--color-gray-400);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.disclaimer a {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.disclaimer a:hover {
+  text-decoration: underline;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .checkoutGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rightColumn {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .pageShell {
+    padding: 14px 14px 60px;
+  }
+
+  .card,
+  .summaryCard {
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+}

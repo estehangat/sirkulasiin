@@ -22,6 +22,7 @@ const accountNavItems: AccountNavItem[] = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Riwayat Scan", href: "/dashboard/riwayat-scan" },
   { label: "Marketplace Saya", href: "/dashboard/listings" },
+  { label: "Tawaran Barter", href: "/dashboard/barter" },
   { label: "Rewards", href: "/dashboard/rewards" },
   { label: "Transaksi", href: "/dashboard/transactions" },
   { label: "Profil/Settings", href: "/dashboard/settings" },
@@ -56,6 +57,10 @@ function getHeaderMeta(pathname: string) {
     "/dashboard/listings": {
       title: "Marketplace Saya",
       subtitle: "Kelola listing dan performa produk Anda.",
+    },
+    "/dashboard/barter": {
+      title: "Tawaran Barter",
+      subtitle: "Kelola tawaran barter masuk dan yang Anda kirim.",
     },
     "/dashboard/rewards": {
       title: "Rewards",

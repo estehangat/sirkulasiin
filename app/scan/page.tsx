@@ -129,7 +129,7 @@ export default function ScanPage() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [showDisposeModal, setShowDisposeModal] = useState(false);
 
-  /* ── Handler: baca file → base64 ── */
+  /* ── Handler: baca file → base64 (dengan resize) ── */
   const readFileAsBase64 = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
       if (file.size > 10 * 1024 * 1024) {
@@ -137,7 +137,36 @@ export default function ScanPage() {
         return;
       }
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+
+          if (width > height && width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+            resolve(dataUrl);
+          } else {
+            resolve(reader.result as string);
+          }
+        };
+        img.onerror = () => reject(new Error("Gagal membaca gambar."));
+        img.src = reader.result as string;
+      };
       reader.onerror = () => reject(new Error("Gagal membaca file."));
       reader.readAsDataURL(file);
     });
@@ -265,6 +294,11 @@ export default function ScanPage() {
           description: targetDesc.trim() || undefined,
         }),
       });
+
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("text/html")) {
+        throw new Error("Terjadi kesalahan pada server (atau ukuran payload terlalu besar). Harap coba lagi.");
+      }
 
       const data = await res.json();
 

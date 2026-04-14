@@ -36,6 +36,17 @@ const categories = [
   { id: "other", label: "Lainnya", icon: "category" },
 ];
 
+/** Parse "Rp 50.000 – Rp 100.000" → { min: 50000, max: 100000 } */
+function parseEstimatedPrice(str: string | null | undefined): { min: number; max: number } | null {
+  if (!str) return null;
+  const nums = str.match(/[\d.]+/g);
+  if (!nums || nums.length === 0) return null;
+  const parsed = nums.map((n) => parseInt(n.replace(/\./g, ""), 10)).filter(Boolean);
+  if (parsed.length === 0) return null;
+  if (parsed.length === 1) return { min: parsed[0], max: parsed[0] };
+  return { min: Math.min(...parsed), max: Math.max(...parsed) };
+}
+
 function formatRupiah(number: number) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -56,17 +67,22 @@ export default function CreateListingForm({ scanData }: { scanData: any }) {
   );
 
   // Form states
-  const aiPriceMin = scanData?.ai_price_min || 5000;
-  const aiPriceMax = scanData?.ai_price_max || 15000;
+  const parsedPrice = parseEstimatedPrice(scanData?.estimated_price);
+  const aiPriceMin = parsedPrice?.min || scanData?.ai_price_min || 5000;
+  const aiPriceMax = parsedPrice?.max || scanData?.ai_price_max || 15000;
   
   const [category, setCategory] = useState(scanData?.category || "glass");
-  const [priceStr, setPriceStr] = useState(scanData?.estimated_price_raw?.toString() || aiPriceMin.toString());
+  const [priceStr, setPriceStr] = useState(() => {
+    const initial = aiPriceMin;
+    return new Intl.NumberFormat("id-ID").format(initial);
+  });
   const [barterEnabled, setBarterEnabled] = useState(false);
   const [barterTags, setBarterTags] = useState<string[]>([]);
   const [barterTagInput, setBarterTagInput] = useState("");
   const [barterNotes, setBarterNotes] = useState("");
   const [description, setDescription] = useState(
-    scanData?.description || 
+    scanData?.hero_description ||
+    scanData?.reason ||
     `Item preloved berkualitas, siap untuk digunakan kembali atau di-upcycle. Ditemukan dalam kondisi ${scanData?.condition || 'baik'}, material ${scanData?.material || 'campuran'}.`
   );
 
@@ -149,7 +165,7 @@ export default function CreateListingForm({ scanData }: { scanData: any }) {
           <input type="hidden" name="ai_price_max" value={aiPriceMax} />
           <input type="hidden" name="carbon_saved" value={scanData?.carbon_saved || "0.5kg CO2"} />
           <input type="hidden" name="eco_points" value={scanData?.eco_points || 120} />
-          {barterEnabled && <input type="hidden" name="barter_enabled" value="on" />}
+          <input type="hidden" name="barter_enabled" value={barterEnabled ? "on" : ""} />
           <input type="hidden" name="barter_with" value={barterTags.join(",")} />
           <input type="hidden" name="barter_notes" value={barterNotes} />
 

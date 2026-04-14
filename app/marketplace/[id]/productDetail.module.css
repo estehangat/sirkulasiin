@@ -451,6 +451,10 @@
   cursor: pointer;
   box-shadow: 0 12px 32px rgba(39, 174, 96, 0.2);
   transition: all 0.2s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .buyBtn:hover {
@@ -503,11 +507,11 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--color-gray-200);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-gray-400);
+  color: #fff;
   flex-shrink: 0;
 }
 

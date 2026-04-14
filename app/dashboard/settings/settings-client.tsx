@@ -186,12 +186,26 @@ export default function SettingsClientPage() {
       },
     });
 
-    setSavingProfile(false);
-
     if (error) {
+      setSavingProfile(false);
       setStatus({ type: "error", text: error.message });
       return;
     }
+
+    // Sync ke tabel profiles (publik)
+    if (userId) {
+      await supabase.from("profiles").upsert({
+        id: userId,
+        full_name: form.fullName.trim(),
+        username: form.username.trim(),
+        avatar_url: form.avatarUrl.trim(),
+        phone: form.phone.trim(),
+        location: form.location.trim(),
+        bio: form.bio.trim(),
+      });
+    }
+
+    setSavingProfile(false);
 
     const {
       data: { user: freshUser },

@@ -1,0 +1,496 @@
+/* ─── Wrapper ─── */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ─── Alerts ─── */
+.alertSuccess,
+.alertError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.alertSuccess {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid rgba(22, 101, 52, 0.1);
+}
+
+.alertError {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.1);
+}
+
+.alertClose {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  padding: 0 4px;
+}
+
+/* ─── Tabs ─── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--color-gray-100);
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid var(--color-gray-200);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--color-black);
+}
+
+.tabActive {
+  background: #fff;
+  color: var(--color-black);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tabBadge {
+  background: #7C3AED;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* ─── Offer List ─── */
+.offerList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ─── Empty State ─── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  background: var(--color-white);
+  border: 1px dashed var(--color-gray-200);
+  border-radius: 20px;
+  color: var(--color-gray-400);
+}
+
+.emptyState svg {
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+
+.emptyTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-gray-600);
+  margin-bottom: 6px;
+}
+
+.emptyDesc {
+  font-size: 14px;
+  max-width: 360px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.emptyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.2);
+}
+
+.emptyBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(39, 174, 96, 0.3);
+}
+
+/* ─── Offer Card ─── */
+.offerCard {
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 20px;
+  padding: 24px;
+  transition: box-shadow 0.2s ease;
+}
+
+.offerCard:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Offer Header ─── */
+.offerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.offerHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.offerAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.offerAvatarPlaceholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.offerFrom {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.offerDate {
+  font-size: 12px;
+  color: var(--color-gray-400);
+  margin-top: 2px;
+}
+
+/* ─── Badges ─── */
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.badgePending {
+  background: rgba(234, 179, 8, 0.12);
+  color: #b45309;
+}
+
+.badgeAccepted {
+  background: rgba(39, 174, 96, 0.12);
+  color: #166534;
+}
+
+.badgeRejected {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+}
+
+.badgeCancelled {
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+}
+
+/* ─── Offer Body ─── */
+.offerBody {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.offerTarget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.offerLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-gray-400);
+}
+
+.offerListingLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--color-black);
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.offerListingLink:hover {
+  color: var(--color-primary-dark);
+}
+
+.offerListingImg {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.offerListingPrice {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-left: auto;
+}
+
+.swapArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7C3AED;
+  padding-top: 20px;
+}
+
+.offerItemName {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.offerItemDesc {
+  font-size: 13px;
+  color: var(--color-gray-500);
+  line-height: 1.5;
+}
+
+/* ─── Cash Badge ─── */
+.cashBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(139, 92, 246, 0.08);
+  color: #7C3AED;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.12);
+}
+
+/* ─── Offer Message ─── */
+.offerMessage {
+  background: var(--color-gray-100);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.offerMessage p {
+  font-size: 14px;
+  color: var(--color-gray-600);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+/* ─── Offer Response ─── */
+.offerResponse {
+  background: rgba(39, 174, 96, 0.06);
+  border: 1px solid rgba(39, 174, 96, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.offerResponse p {
+  font-size: 14px;
+  color: var(--color-gray-600);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+/* ─── Offer Actions ─── */
+.offerActions {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.respondBtn {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.18);
+}
+
+.respondBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(124, 58, 237, 0.26);
+}
+
+/* ─── Response Form ─── */
+.responseForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.responseTextarea {
+  padding: 12px 14px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  font-size: 14px;
+  background: var(--color-gray-100);
+  resize: vertical;
+  min-height: 48px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.responseTextarea:focus {
+  outline: none;
+  border-color: #8B5CF6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  background: #fff;
+}
+
+.responseButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.acceptBtn {
+  flex: 1;
+  padding: 11px 16px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(39, 174, 96, 0.2);
+}
+
+.acceptBtn:hover {
+  transform: translateY(-1px);
+}
+
+.acceptBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.rejectBtn {
+  flex: 1;
+  padding: 11px 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.12);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rejectBtn:hover {
+  background: #fee2e2;
+}
+
+.rejectBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelResBtn {
+  padding: 11px 16px;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelResBtn:hover {
+  background: var(--color-gray-200);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+  .offerBody {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .swapArrow {
+    padding: 0;
+    transform: rotate(90deg);
+  }
+
+  .responseButtons {
+    flex-direction: column;
+  }
+
+  .tabs {
+    flex-direction: column;
+  }
+}
