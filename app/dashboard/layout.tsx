@@ -5,11 +5,22 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import styles from "./layout.module.css";
+import {
+  LayoutDashboard,
+  ScanLine,
+  ShoppingBag,
+  ArrowLeftRight,
+  Gift,
+  ReceiptText,
+  Settings,
+  ArrowLeft,
+  Leaf,
+} from "lucide-react";
 
 type AccountNavItem = {
   label: string;
   href: string;
+  icon: React.ReactNode;
 };
 
 type AccountUser = {
@@ -18,27 +29,55 @@ type AccountUser = {
   avatar: string | null;
 };
 
+const iconSize = 17;
+
 const accountNavItems: AccountNavItem[] = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Riwayat Scan", href: "/dashboard/riwayat-scan" },
-  { label: "Marketplace Saya", href: "/dashboard/listings" },
-  { label: "Tawaran Barter", href: "/dashboard/barter" },
-  { label: "Rewards", href: "/dashboard/rewards" },
-  { label: "Transaksi", href: "/dashboard/transactions" },
-  { label: "Profil/Settings", href: "/dashboard/settings" },
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: <LayoutDashboard size={iconSize} />,
+  },
+  {
+    label: "Riwayat Scan",
+    href: "/dashboard/riwayat-scan",
+    icon: <ScanLine size={iconSize} />,
+  },
+  {
+    label: "Marketplace Saya",
+    href: "/dashboard/listings",
+    icon: <ShoppingBag size={iconSize} />,
+  },
+  {
+    label: "Tawaran Barter",
+    href: "/dashboard/barter",
+    icon: <ArrowLeftRight size={iconSize} />,
+  },
+  {
+    label: "Rewards",
+    href: "/dashboard/rewards",
+    icon: <Gift size={iconSize} />,
+  },
+  {
+    label: "Transaksi",
+    href: "/dashboard/transactions",
+    icon: <ReceiptText size={iconSize} />,
+  },
+  {
+    label: "Profil & Pengaturan",
+    href: "/dashboard/settings",
+    icon: <Settings size={iconSize} />,
+  },
 ];
 
 function isActiveItem(pathname: string, href: string) {
-  if (href === "/dashboard") {
-    return pathname === href;
-  }
+  if (href === "/dashboard") return pathname === href;
   return pathname.startsWith(href);
 }
 
 function getInitials(name: string) {
   return name
     .split(" ")
-    .map((word) => word[0])
+    .map((w) => w[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
@@ -71,36 +110,132 @@ function getHeaderMeta(pathname: string) {
       subtitle: "Monitor status transaksi secara real-time.",
     },
     "/dashboard/settings": {
-      title: "Profil dan Settings",
+      title: "Profil dan Pengaturan",
       subtitle: "Atur profil, notifikasi, dan keamanan akun Anda.",
     },
   };
-
   return map[pathname] || map["/dashboard"];
 }
 
+// ─── Nav Item (client component needs hover state) ──────────────────────────
+function NavItem({
+  item,
+  active,
+}: {
+  item: AccountNavItem;
+  active: boolean;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  const baseStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: "11px",
+    textDecoration: "none",
+    borderRadius: "14px",
+    padding: "11px 13px",
+    fontSize: "14px",
+    fontWeight: active ? 700 : 600,
+    transition: "all 0.18s ease",
+    color: active
+      ? "#1E8449"
+      : hovered
+        ? "#1E8449"
+        : "#52524C",
+    background: active
+      ? "rgba(39, 174, 96, 0.12)"
+      : hovered
+        ? "rgba(39, 174, 96, 0.07)"
+        : "transparent",
+    border: active
+      ? "1px solid rgba(39, 174, 96, 0.22)"
+      : "1px solid transparent",
+    position: "relative",
+  };
+
+  const iconWrapStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "32px",
+    height: "32px",
+    borderRadius: "10px",
+    flexShrink: 0,
+    background: active
+      ? "rgba(39, 174, 96, 0.18)"
+      : hovered
+        ? "rgba(39, 174, 96, 0.1)"
+        : "rgba(0,0,0,0.04)",
+    color: active ? "#1E8449" : hovered ? "#27AE60" : "#737369",
+    transition: "all 0.18s ease",
+  };
+
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      style={baseStyle}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <span style={iconWrapStyle}>{item.icon}</span>
+      {item.label}
+      {active && (
+        <span
+          style={{
+            marginLeft: "auto",
+            width: "6px",
+            height: "6px",
+            borderRadius: "50%",
+            background: "#27AE60",
+            flexShrink: 0,
+          }}
+        />
+      )}
+    </Link>
+  );
+}
+
+// ─── Back Link ────────────────────────────────────────────────────────────────
+function BackLink() {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Link
+      href="/"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "8px",
+        borderRadius: "14px",
+        textDecoration: "none",
+        padding: "11px 12px",
+        background: hovered ? "#1E8449" : "#27AE60",
+        color: "#fff",
+        fontWeight: 700,
+        fontSize: "14px",
+        transition: "background 0.18s ease",
+        boxShadow: "0 2px 8px rgba(39,174,96,0.3)",
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <ArrowLeft size={15} />
+      Kembali ke Area Publik
+    </Link>
+  );
+}
+
+// ─── Main Layout ──────────────────────────────────────────────────────────────
 export default function DashboardLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const [user, setUser] = useState<AccountUser | null>(null);
-
   const headerMeta = useMemo(() => getHeaderMeta(pathname), [pathname]);
 
   useEffect(() => {
     const supabase = createClient();
-
-    const refreshUserFromDatabase = async () => {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
-
-      if (authUser) {
-        setUserFromSession(authUser);
-      }
-    };
 
     const setUserFromSession = (sessionUser: {
       email?: string | null;
@@ -112,12 +247,18 @@ export default function DashboardLayout({
         (meta.name as string) ||
         sessionUser.email?.split("@")[0] ||
         "User";
-
       setUser({
         name,
         email: sessionUser.email || "",
         avatar: (meta.avatar_url as string) || (meta.picture as string) || null,
       });
+    };
+
+    const refreshUserFromDatabase = async () => {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (authUser) setUserFromSession(authUser);
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -138,7 +279,6 @@ export default function DashboardLayout({
         email?: string;
         avatar?: string | null;
       }>;
-
       if (custom.detail) {
         setUser((prev) => ({
           name: custom.detail?.name || prev?.name || "User",
@@ -149,7 +289,6 @@ export default function DashboardLayout({
               : custom.detail.avatar,
         }));
       }
-
       void refreshUserFromDatabase();
     };
 
@@ -168,68 +307,336 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className={styles.shell}>
-      <aside className={styles.sidebar}>
-        <div className={styles.brandBlock}>
-          <p className={styles.brandCaption}>Area Akun</p>
-          <h2 className={styles.brandTitle}>SirkulasiIn</h2>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        gridTemplateColumns: "272px minmax(0, 1fr)",
+        background: "#F4F4F0",
+      }}
+    >
+      {/* ── Sidebar ───────────────────────────────────── */}
+      <aside
+        style={{
+          position: "sticky",
+          top: 0,
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+          padding: "20px 14px",
+          borderRight: "1px solid #EFEFEB",
+          background:
+            "linear-gradient(180deg, #ffffff 0%, #f7faf7 100%)",
+          overflowY: "auto",
+        }}
+      >
+        {/* Brand Block */}
+        <div
+          style={{
+            borderRadius: "18px",
+            background: "rgba(39,174,96,0.08)",
+            border: "1px solid rgba(39,174,96,0.14)",
+            padding: "14px 16px",
+            marginBottom: "10px",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+          }}
+        >
+          <div
+            style={{
+              width: "38px",
+              height: "38px",
+              borderRadius: "12px",
+              background: "rgba(39,174,96,0.18)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Leaf size={20} style={{ color: "#1E8449" }} />
+          </div>
+          <div>
+            <p
+              style={{
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "#829E60",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                marginBottom: "2px",
+              }}
+            >
+              Area Akun
+            </p>
+            <h2
+              style={{
+                fontSize: "17px",
+                fontWeight: 800,
+                color: "#1A1A1A",
+                lineHeight: 1,
+              }}
+            >
+              SirkulasiIn
+            </h2>
+          </div>
         </div>
 
-        <nav className={styles.nav} aria-label="Navigasi akun">
-          {accountNavItems.map((item) => {
-            const active = isActiveItem(pathname, item.href);
-            const className = active
-              ? `${styles.navItem} ${styles.navItemActive}`
-              : styles.navItem;
+        {/* Section label */}
+        <p
+          style={{
+            fontSize: "10px",
+            fontWeight: 700,
+            color: "#A3A39B",
+            textTransform: "uppercase",
+            letterSpacing: "0.6px",
+            padding: "0 4px",
+            marginBottom: "2px",
+          }}
+        >
+          Menu Utama
+        </p>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={className}
-                aria-current={active ? "page" : undefined}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+        {/* Nav Items */}
+        <nav
+          style={{ display: "flex", flexDirection: "column", gap: "3px" }}
+          aria-label="Navigasi akun"
+        >
+          {accountNavItems.map((item) => (
+            <NavItem
+              key={item.href}
+              item={item}
+              active={isActiveItem(pathname, item.href)}
+            />
+          ))}
         </nav>
 
-        <Link href="/" className={styles.backLink}>
-          Kembali ke Area Publik
-        </Link>
+        {/* Divider */}
+        <div
+          style={{
+            height: "1px",
+            background: "#EFEFEB",
+            margin: "8px 4px",
+          }}
+        />
+
+        {/* Back button */}
+        <BackLink />
+
+        {/* User card at bottom */}
+        {user && (
+          <div
+            style={{
+              marginTop: "auto",
+              borderRadius: "16px",
+              border: "1px solid #EFEFEB",
+              background: "#fff",
+              padding: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            {/* Avatar */}
+            <div
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                overflow: "hidden",
+                border: "2px solid rgba(39,174,96,0.25)",
+                background: "rgba(39,174,96,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              {user.avatar ? (
+                <Image
+                  src={user.avatar}
+                  alt={user.name}
+                  width={36}
+                  height={36}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  unoptimized
+                />
+              ) : (
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 800,
+                    color: "#1E8449",
+                  }}
+                >
+                  {getInitials(user.name)}
+                </span>
+              )}
+            </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <p
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  color: "#1A1A1A",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {user.name}
+              </p>
+              <p
+                style={{
+                  fontSize: "11px",
+                  color: "#737369",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {user.email}
+              </p>
+            </div>
+          </div>
+        )}
       </aside>
 
-      <main className={styles.content}>
-        <header className={styles.accountHeader}>
-          <div>
-            <p className={styles.headerEyebrow}>Area Akun</p>
-            <h1 className={styles.headerTitle}>{headerMeta.title}</h1>
-            <p className={styles.headerSubtitle}>{headerMeta.subtitle}</p>
+      {/* ── Main Content ──────────────────────────────── */}
+      <main style={{ padding: "22px 24px 36px" }}>
+        {/* Page Header */}
+        {/* Page Header */}
+        <header
+          style={{
+            position: "relative",
+            borderRadius: "24px",
+            border: "1px solid rgba(255, 255, 255, 0.5)",
+            background: "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(246,251,248,0.8) 100%)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            boxShadow: "0 8px 32px rgba(39, 174, 96, 0.04), inset 0 0 0 1px rgba(255,255,255,1)",
+            padding: "24px 30px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "16px",
+            marginBottom: "28px",
+            overflow: "hidden",
+          }}
+        >
+          {/* Aesthetic background blobs */}
+          <div style={{ position: "absolute", top: "-50px", right: "-20px", width: "150px", height: "150px", background: "radial-gradient(circle, rgba(39,174,96,0.15) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: "-30px", left: "20%", width: "120px", height: "120px", background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "24px", height: "24px", borderRadius: "8px", background: "rgba(39,174,96,0.12)", color: "#1E8449" }}>
+                <LayoutDashboard size={14} />
+              </span>
+              <p
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.8px",
+                  color: "#27AE60",
+                }}
+              >
+                Area Akun
+              </p>
+            </div>
+            <h1
+              style={{
+                fontSize: "28px",
+                lineHeight: 1.2,
+                color: "#111827",
+                fontWeight: 900,
+                letterSpacing: "-0.5px",
+                marginBottom: "4px",
+              }}
+            >
+              {headerMeta.title}
+            </h1>
+            <p style={{ color: "#6B7280", fontSize: "15px", fontWeight: 500 }}>
+              {headerMeta.subtitle}
+            </p>
           </div>
 
-          <div className={styles.headerProfile}>
-            <div className={styles.headerProfileInfo}>
-              <p className={styles.headerProfileName}>
+          {/* Profile pill */}
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: "14px",
+              padding: "8px 8px 8px 20px",
+              borderRadius: "9999px",
+              border: "1px solid rgba(229, 231, 235, 0.8)",
+              background: "#ffffff",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+              flexShrink: 0,
+              cursor: "pointer",
+              transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 8px 24px rgba(39,174,96,0.08)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.03)";
+            }}
+          >
+            <div style={{ textAlign: "right" }}>
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontWeight: 800,
+                  color: "#111827",
+                  lineHeight: 1.2,
+                }}
+              >
                 {user?.name || "Pengguna"}
               </p>
-              <p className={styles.headerProfileEmail}>
+              <p style={{ fontSize: "12px", color: "#6B7280", lineHeight: 1.3, fontWeight: 500 }}>
                 {user?.email || "Belum login"}
               </p>
             </div>
-
-            <div className={styles.headerAvatarWrap}>
+            <div
+              style={{
+                width: "46px",
+                height: "46px",
+                borderRadius: "50%",
+                overflow: "hidden",
+                border: "2px solid #fff",
+                boxShadow: "0 0 0 2px rgba(39,174,96,0.2)",
+                background: "rgba(39,174,96,0.05)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
               {user?.avatar ? (
                 <Image
                   src={user.avatar}
                   alt={user.name}
-                  width={44}
-                  height={44}
-                  className={styles.headerAvatarImg}
+                  width={46}
+                  height={46}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   unoptimized
                 />
               ) : (
-                <span className={styles.headerAvatarFallback}>
+                <span
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: 800,
+                    color: "#1E8449",
+                  }}
+                >
                   {getInitials(user?.name || "User")}
                 </span>
               )}
@@ -237,7 +644,7 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        <div className={styles.contentInner}>{children}</div>
+        {children}
       </main>
     </div>
   );

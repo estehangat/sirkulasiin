@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 /* ═══════════════ CONFIG ═══════════════ */
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -259,6 +260,9 @@ async function generateTutorialSteps(
 /* ═══════════════ POST Handler ═══════════════ */
 export async function POST(req: NextRequest) {
   try {
+    const serverSupabase = await createServerSupabaseClient();
+    const { data: { user } } = await serverSupabase.auth.getUser();
+
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
@@ -370,6 +374,7 @@ export async function POST(req: NextRequest) {
     const { data: inserted, error: dbError } = await supabase
       .from("scan_history")
       .insert({
+        user_id: user?.id || null,
         image_url: scanImageUrl,
         description: description || null,
         item_name: result.itemName || "Item Tidak Dikenal",
