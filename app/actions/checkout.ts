@@ -58,32 +58,20 @@ export async function placeOrder(
     return { error: "Listing ini sudah tidak tersedia." };
   }
 
-  // Insert order
-  const { error: orderError } = await supabase.from("orders").insert({
-    buyer_id: user.id,
-    listing_id: listingId,
-    seller_id: sellerId,
-    shipping_name: shippingName,
-    shipping_phone: shippingPhone,
-    shipping_address: shippingAddress,
-    shipping_notes: shippingNotes || null,
-    total_price: totalPrice,
-    status: "pending_payment",
+  // Panggil RPC untuk insert order & update listing secara atomic (melewati RLS listing)
+  const { data: orderId, error: rpcError } = await supabase.rpc("rpc_place_order", {
+    p_listing_id: listingId,
+    p_seller_id: sellerId,
+    p_shipping_name: shippingName,
+    p_shipping_phone: shippingPhone,
+    p_shipping_address: shippingAddress,
+    p_shipping_notes: shippingNotes || null,
+    p_total_price: totalPrice,
   });
 
-  if (orderError) {
-    console.error("Order insert error:", orderError);
+  if (rpcError || !orderId) {
+    console.error("RPC place_order error:", rpcError);
     return { error: "Gagal membuat pesanan. Silakan coba lagi." };
-  }
-
-  // Update listing status ke sold
-  const { error: updateError } = await supabase
-    .from("marketplace_listings")
-    .update({ status: "sold" })
-    .eq("id", listingId);
-
-  if (updateError) {
-    console.error("Listing update error:", updateError);
   }
 
   // Simpan info pengiriman ke profil jika alamat kosong
@@ -100,5 +88,37 @@ export async function placeOrder(
       .eq("id", user.id);
   }
 
-  redirect(`/marketplace`);
+  redirect(`/marketplace/order/${orderId}/payment`);
+}
+
+export async function processMockPayment(orderId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase
+    .from("orders")
+    .update({ status: "paid" })
+    .eq("id", orderId)
+    .eq("status", "pending_payment");
+  
+  if (error) {
+    console.error("Payment error:", error);
+    return { error: "Gagal memproses pembayaran" };
+  }
+
+  // Juga tambahkan update pada marketplace_listings untuk validasi ekstra? Tidak perlu, sudah 'sold'
+  redirect("/dashboard/transactions");
+}
+
+export async function updateOrderStatus(orderId: string, newStatus: string) {
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase
+    .from("orders")
+    .update({ status: newStatus })
+    .eq("id", orderId);
+    
+  if (error) {
+    console.error("Update status error:", error);
+    return { success: false, error: "Gagal mengupdate status" };
+  }
+  
+  return { success: true };
 }
