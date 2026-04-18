@@ -37,6 +37,10 @@ type ProfileForm = {
   location: string;
   website: string;
   avatarUrl: string;
+  payoutChannel: "bank" | "ewallet";
+  payoutBankCode: string;
+  payoutAccountNumber: string;
+  payoutAccountName: string;
 };
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -53,6 +57,10 @@ const DEFAULT_FORM: ProfileForm = {
   location: "",
   website: "",
   avatarUrl: "",
+  payoutChannel: "bank",
+  payoutBankCode: "",
+  payoutAccountNumber: "",
+  payoutAccountName: "",
 };
 
 function getInitials(name: string) {
@@ -436,6 +444,10 @@ export default function SettingsClientPage() {
         location: meta.location || "",
         website: meta.website || "",
         avatarUrl: meta.avatar_url || meta.picture || "",
+        payoutChannel: "bank",
+        payoutBankCode: "",
+        payoutAccountNumber: "",
+        payoutAccountName: "",
       });
       setPrefs({
         emailScan: meta.preferences?.emailScan ?? DEFAULT_PREFS.emailScan,
@@ -444,6 +456,23 @@ export default function SettingsClientPage() {
         emailMarketplace:
           meta.preferences?.emailMarketplace ?? DEFAULT_PREFS.emailMarketplace,
       });
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("payout_channel, payout_bank_code, payout_account_number, payout_account_name")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profile) {
+        setForm((prev) => ({
+          ...prev,
+          payoutChannel:
+            profile.payout_channel === "ewallet" ? "ewallet" : "bank",
+          payoutBankCode: profile.payout_bank_code || "",
+          payoutAccountNumber: profile.payout_account_number || "",
+          payoutAccountName: profile.payout_account_name || "",
+        }));
+      }
       setLoading(false);
     }
     bootstrap();
@@ -451,7 +480,7 @@ export default function SettingsClientPage() {
 
   const profileName = form.fullName || email || "Pengguna";
 
-  const onChangeField = (key: keyof ProfileForm, value: string) =>
+  const onChangeField = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const onChangePref = (key: keyof NotificationPrefs, value: boolean) =>
@@ -522,6 +551,10 @@ export default function SettingsClientPage() {
         phone: form.phone.trim(),
         location: form.location.trim(),
         bio: form.bio.trim(),
+        payout_channel: form.payoutChannel,
+        payout_bank_code: form.payoutBankCode.trim() || null,
+        payout_account_number: form.payoutAccountNumber.trim() || null,
+        payout_account_name: form.payoutAccountName.trim() || null,
       });
     }
     setSavingProfile(false);
@@ -869,6 +902,82 @@ export default function SettingsClientPage() {
             <Save size={15} />
             {savingProfile ? "Menyimpan..." : "Simpan Perubahan"}
           </PrimaryBtn>
+        </div>
+      </Card>
+
+      {/* ── 2. Metode Pencairan Dana (Seller) ─────────────────────────────── */}
+      <Card>
+        <SectionHeader
+          icon={<ShoppingBag size={18} />}
+          title="Metode Pencairan Dana"
+          subtitle="Untuk pencairan hasil penjualan marketplace ke rekening/ewallet Anda."
+        />
+
+        <div
+          style={{
+            display: "grid",
+            gap: "12px",
+            padding: "16px",
+            borderRadius: "18px",
+            background: "#f7f7f5",
+            border: "1px solid #EFEFEB",
+          }}
+        >
+          <Field label="Channel" fullWidth>
+            <select
+              value={form.payoutChannel}
+              onChange={(e) =>
+                onChangeField("payoutChannel", e.target.value as ProfileForm["payoutChannel"])
+              }
+              style={{
+                ...inputStyle,
+                background: "#ffffff",
+                cursor: "pointer",
+              }}
+            >
+              <option value="bank">Bank</option>
+              <option value="ewallet" disabled>
+                E-wallet (coming soon)
+              </option>
+            </select>
+          </Field>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gap: "12px",
+            }}
+          >
+            <Field label={form.payoutChannel === "bank" ? "Kode Bank" : "Provider"}>
+              <input
+                value={form.payoutBankCode}
+                onChange={(e) => onChangeField("payoutBankCode", e.target.value)}
+                placeholder={form.payoutChannel === "bank" ? "bca" : "gopay"}
+                style={inputStyle}
+              />
+            </Field>
+            <Field label={form.payoutChannel === "bank" ? "Nomor Rekening" : "Nomor Akun"}>
+              <input
+                value={form.payoutAccountNumber}
+                onChange={(e) => onChangeField("payoutAccountNumber", e.target.value)}
+                placeholder={form.payoutChannel === "bank" ? "1234567890" : "081234567890"}
+                style={inputStyle}
+              />
+            </Field>
+          </div>
+
+          <Field label="Nama Pemilik" fullWidth>
+            <input
+              value={form.payoutAccountName}
+              onChange={(e) => onChangeField("payoutAccountName", e.target.value)}
+              placeholder="Sesuai rekening"
+              style={inputStyle}
+            />
+          </Field>
+          <p style={{ fontSize: "12px", color: "#737369", lineHeight: 1.5, margin: 0 }}>
+            Catatan: Untuk sandbox IRIS, pastikan kode bank sesuai daftar Midtrans IRIS.
+          </p>
         </div>
       </Card>
 

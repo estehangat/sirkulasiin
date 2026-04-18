@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { reconcileExpiredOrder } from "@/lib/midtrans";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import Navbar from "@/app/components/navbar";
 import PaymentForm from "./PaymentForm";
@@ -32,8 +33,20 @@ export default async function PaymentPage({
 
   if (!order) notFound();
 
+  const expireResult = await reconcileExpiredOrder(order);
+  if (!expireResult.ok) {
+    throw new Error(expireResult.error);
+  }
+
+  const currentOrder = expireResult.expired
+    ? {
+        ...order,
+        status: "payment_expired",
+      }
+    : order;
+
   // Hanya pembeli yang bisa melihat halaman ini
-  if (order.buyer_id !== user.id) {
+  if (currentOrder.buyer_id !== user.id) {
     redirect("/dashboard/transactions");
   }
 
@@ -55,14 +68,14 @@ export default async function PaymentPage({
               <line x1="2" y1="10" x2="22" y2="10" />
             </svg>
           </div>
-          <h1 className={styles.title}>{titleByStatus[order.status] || "Status Pembayaran"}</h1>
+          <h1 className={styles.title}>{titleByStatus[currentOrder.status] || "Status Pembayaran"}</h1>
           <p className={styles.subtitle}>
-            Pesanan Anda untuk <strong>{order.marketplace_listings?.title || "Produk preloved"}</strong>{" "}
-            {order.status === "paid_escrow"
+            Pesanan Anda untuk <strong>{currentOrder.marketplace_listings?.title || "Produk preloved"}</strong>{" "}
+            {currentOrder.status === "paid_escrow"
               ? "sudah dibayar dan dana sedang ditahan dalam escrow."
-              : order.status === "payment_expired"
+              : currentOrder.status === "payment_expired"
                 ? "gagal dibayar karena sesi pembayaran telah kedaluwarsa."
-                : order.status === "payment_failed"
+                : currentOrder.status === "payment_failed"
                   ? "belum berhasil diproses pembayarannya."
                   : "sedang menunggu pembayaran."}
           </p>
@@ -74,15 +87,15 @@ export default async function PaymentPage({
                 style: "currency",
                 currency: "IDR",
                 minimumFractionDigits: 0,
-              }).format(order.total_price)}
+                }).format(currentOrder.total_price)}
             </div>
           </div>
 
           <PaymentForm
-            orderId={order.id}
-            status={order.status}
-            paymentUrl={order.payment_redirect_url}
-            paymentExpiredAt={order.payment_expired_at}
+            orderId={currentOrder.id}
+            status={currentOrder.status}
+            paymentUrl={currentOrder.payment_redirect_url}
+            paymentExpiredAt={currentOrder.payment_expired_at}
           />
         </div>
       </div>

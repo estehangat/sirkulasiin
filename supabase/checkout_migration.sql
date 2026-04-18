@@ -15,6 +15,10 @@ CREATE TABLE IF NOT EXISTS profiles (
   location TEXT,       -- kota/provinsi
   address TEXT,        -- alamat lengkap untuk pengiriman
   bio TEXT,
+  payout_bank_code TEXT,
+  payout_account_number TEXT,
+  payout_account_name TEXT,
+  payout_channel TEXT DEFAULT 'bank',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

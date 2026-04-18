@@ -1,5 +1,22 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Supabase Migrations
+
+This repo keeps SQL migrations under `supabase/`.
+
+Run in Supabase SQL Editor (in order, if you haven't yet):
+
+```sql
+-- Base tables
+-- supabase/checkout_migration.sql
+
+-- Midtrans Snap + escrow fields + rpc_place_order
+-- supabase/midtrans_escrow_migration.sql
+
+-- Midtrans IRIS payout fields
+-- supabase/payouts_migration.sql
+```
+
 ## Getting Started
 
 First, run the development server:

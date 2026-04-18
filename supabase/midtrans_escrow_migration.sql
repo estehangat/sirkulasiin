@@ -28,6 +28,12 @@ ALTER TABLE orders
   ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
 
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS payout_bank_code TEXT,
+  ADD COLUMN IF NOT EXISTS payout_account_number TEXT,
+  ADD COLUMN IF NOT EXISTS payout_account_name TEXT,
+  ADD COLUMN IF NOT EXISTS payout_channel TEXT DEFAULT 'bank';
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_payment_reference
   ON orders(payment_reference)
   WHERE payment_reference IS NOT NULL;

@@ -26,8 +26,17 @@ export default function PaymentForm({
   const handleRefresh = () => {
     startTransition(async () => {
       const result = await refreshPaymentStatus(orderId);
-      setMessage(result.error || (result.success ? "Status pembayaran diperbarui." : null));
-      router.refresh();
+
+      if (!result.success) {
+        setMessage(result.error || "Gagal memeriksa status pembayaran.");
+        return;
+      }
+
+      setMessage(result.message || "Status pembayaran diperbarui.");
+
+      if (result.shouldRefresh) {
+        router.refresh();
+      }
     });
   };
 

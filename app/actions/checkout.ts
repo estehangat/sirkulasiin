@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import {
   createMidtransTransaction,
   getMidtransTransactionStatus,
+  markOrderAsExpired,
   PAYMENT_EXPIRY_MINUTES,
+  reconcileExpiredOrder,
   syncOrderWithMidtransStatus,
 } from "@/lib/midtrans";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
@@ -175,7 +177,7 @@ export async function refreshPaymentStatus(orderId: string) {
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, buyer_id, seller_id, payment_reference")
+    .select("id, buyer_id, seller_id, listing_id, status, payment_reference, payment_expired_at")
     .eq("id", orderId)
     .single();
 
@@ -187,6 +189,22 @@ export async function refreshPaymentStatus(orderId: string) {
     return { success: false, error: "Sesi pembayaran belum tersedia." };
   }
 
+  const expiredResult = await reconcileExpiredOrder(order);
+  if (!expiredResult.ok) {
+    return { success: false, error: expiredResult.error };
+  }
+
+  if (expiredResult.expired) {
+    revalidatePath(`/marketplace/order/${orderId}/payment`);
+    revalidatePath("/dashboard/transactions");
+    return {
+      success: true,
+      status: "payment_expired",
+      message: "Sesi pembayaran telah kedaluwarsa. Listing sudah dikembalikan ke marketplace.",
+      shouldRefresh: true,
+    };
+  }
+
   try {
     const paymentStatus = await getMidtransTransactionStatus(order.payment_reference);
     const result = await syncOrderWithMidtransStatus(paymentStatus);
@@ -195,12 +213,43 @@ export async function refreshPaymentStatus(orderId: string) {
       return { success: false, error: result.error };
     }
 
+    const isPaid = result.status === "paid_escrow";
+    const isExpired = result.status === "payment_expired";
+
     revalidatePath(`/marketplace/order/${orderId}/payment`);
     revalidatePath("/dashboard/transactions");
-    return { success: true };
+    return {
+      success: true,
+      status: result.status,
+      shouldRefresh: isPaid || isExpired,
+      message: isPaid
+        ? "Pembayaran berhasil diverifikasi. Dana sudah masuk ke escrow."
+        : isExpired
+          ? "Pembayaran kedaluwarsa dan listing sudah dikembalikan ke marketplace."
+          : "Pembayaran masih berstatus pending di Midtrans. Selesaikan pembayaran di halaman Midtrans lalu cek lagi.",
+    };
   } catch (error) {
     console.error("Refresh payment status error:", error);
-    return { success: false, error: "Gagal memeriksa status pembayaran." };
+
+    if (order.status === "pending_payment" && order.payment_expired_at) {
+      const expiredLocally = new Date(order.payment_expired_at).getTime() <= Date.now();
+
+      if (expiredLocally) {
+        const expireResult = await markOrderAsExpired(order.id, order.listing_id);
+        if (expireResult.ok) {
+          revalidatePath(`/marketplace/order/${orderId}/payment`);
+          revalidatePath("/dashboard/transactions");
+          return {
+            success: true,
+            status: "payment_expired",
+            shouldRefresh: true,
+            message: "Sesi pembayaran telah kedaluwarsa. Listing sudah dikembalikan ke marketplace.",
+          };
+        }
+      }
+    }
+
+    return { success: false, error: "Gagal memeriksa status pembayaran. Pastikan pembayaran sudah benar-benar diselesaikan di Midtrans sandbox." };
   }
 }
 

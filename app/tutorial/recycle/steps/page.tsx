@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
@@ -78,7 +78,7 @@ const supabase = createClient(
 );
 
 /* ═══════════════ Component ═══════════════ */
-export default function StepByStepPage() {
+function StepByStepPageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [tutorial, setTutorial] = useState<TutorialData | null>(null);
@@ -618,5 +618,14 @@ export default function StepByStepPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function StepByStepPage() {
+  // Next.js requires hooks like `useSearchParams()` to live under a Suspense boundary.
+  return (
+    <Suspense fallback={null}>
+      <StepByStepPageClient />
+    </Suspense>
   );
 }

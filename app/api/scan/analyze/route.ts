@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 /* ═══════════════ CONFIG ═══════════════ */
@@ -63,7 +62,10 @@ Buatlah 4-6 langkah yang jelas dan mudah diikuti. Sertakan tips keselamatan jika
 
 
 /* ═══════════════ Upload image to Supabase Storage ═══════════════ */
-async function uploadImage(supabase: any, base64: string): Promise<string | null> {
+async function uploadImage(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  base64: string
+): Promise<string | null> {
   try {
 
     // Strip data URL prefix → raw base64
@@ -109,7 +111,11 @@ async function uploadImage(supabase: any, base64: string): Promise<string | null
 }
 
 /* ═══════════════ Upload raw bytes to Supabase Storage ═══════════════ */
-async function uploadBytes(supabase: any, bytes: Uint8Array, prefix: string): Promise<string | null> {
+async function uploadBytes(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  bytes: Uint8Array,
+  prefix: string
+): Promise<string | null> {
   try {
     const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
 
@@ -138,7 +144,7 @@ async function uploadBytes(supabase: any, bytes: Uint8Array, prefix: string): Pr
 
 /* ═══════════════ Generate upcycle image via Hugging Face ═══════════════ */
 async function generateUpcycleImage(
-  supabase: any,
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   itemName: string,
   material: string,
   upcycleIdea: string

@@ -62,6 +62,7 @@ const accountNavItems: AccountNavItem[] = [
     href: "/dashboard/transactions",
     icon: <ReceiptText size={iconSize} />,
   },
+  // Admin gate is enforced on the page.
   {
     label: "Profil & Pengaturan",
     href: "/dashboard/settings",

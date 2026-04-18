@@ -4,6 +4,19 @@ import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 export const PAYMENT_EXPIRY_MINUTES = 60;
 
+type MidtransSyncResult =
+  | { ok: true; orderId: string; status: string }
+  | { ok: false; error: string };
+
+type ExpireOrderResult =
+  | { ok: true; status: "payment_expired" }
+  | { ok: false; error: string };
+
+type ReconcileExpiredOrderResult =
+  | { ok: true; expired: false }
+  | { ok: true; expired: true; status: "payment_expired" }
+  | { ok: false; error: string };
+
 export type MidtransTransactionStatus = {
   order_id: string;
   transaction_status: string;
@@ -77,6 +90,61 @@ function toIsoString(value?: string) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function isPastDue(value?: string | null) {
+  if (!value) return false;
+  return new Date(value).getTime() <= Date.now();
+}
+
+export async function markOrderAsExpired(orderId: string, listingId: string): Promise<ExpireOrderResult> {
+  const supabase = createAdminSupabaseClient();
+  const expiredAt = new Date().toISOString();
+
+  const { error: orderError } = await supabase
+    .from("orders")
+    .update({
+      status: "payment_expired",
+      payment_status: "expire",
+      escrow_status: "cancelled",
+      payout_status: "cancelled",
+    })
+    .eq("id", orderId)
+    .eq("status", "pending_payment");
+
+  if (orderError) {
+    return { ok: false, error: orderError.message };
+  }
+
+  const { error: listingError } = await supabase
+    .from("marketplace_listings")
+    .update({ status: "published", reserved_at: null, updated_at: expiredAt })
+    .eq("id", listingId)
+    .eq("status", "reserved");
+
+  if (listingError) {
+    return { ok: false, error: listingError.message };
+  }
+
+  return { ok: true, status: "payment_expired" };
+}
+
+export async function reconcileExpiredOrder(order: {
+  id: string;
+  status: string;
+  listing_id: string;
+  payment_expired_at?: string | null;
+}): Promise<ReconcileExpiredOrderResult> {
+  if (order.status !== "pending_payment" || !isPastDue(order.payment_expired_at)) {
+    return { ok: true, expired: false };
+  }
+
+  const result = await markOrderAsExpired(order.id, order.listing_id);
+  if (!result.ok) {
+    return result;
+  }
+
+  return { ok: true, expired: true, status: "payment_expired" };
+}
+
 export async function createMidtransTransaction({
   localOrderId,
   paymentReference,
@@ -148,19 +216,24 @@ export async function verifyAndNormalizeNotification(payload: MidtransTransactio
     return null;
   }
 
-  const snap = getMidtransSnap();
-  return (await snap.transaction.notification(payload)) as MidtransTransactionStatus;
+  // The dashboard "test notification" and some delivery attempts should not depend on an outbound
+  // Midtrans API call. After verifying signature, trust the payload we received.
+  return payload;
 }
 
-export async function syncOrderWithMidtransStatus(payload: MidtransTransactionStatus) {
+export async function syncOrderWithMidtransStatus(
+  payload: MidtransTransactionStatus
+): Promise<MidtransSyncResult> {
   const supabase = createAdminSupabaseClient();
   const { data: order, error } = await supabase
     .from("orders")
-    .select("id, status, listing_id, paid_at")
+    .select("id, status, listing_id, paid_at, escrow_status, payout_status")
     .eq("payment_reference", payload.order_id)
     .single();
 
   if (error || !order) {
+    // Midtrans can send "test notification" with a synthetic order_id, or we may get a late notify
+    // after an order was deleted. Treat as non-fatal so webhook can still return 200.
     return { ok: false, error: "Order tidak ditemukan untuk notifikasi Midtrans." };
   }
 
@@ -184,8 +257,10 @@ export async function syncOrderWithMidtransStatus(payload: MidtransTransactionSt
     if (["pending_payment", "payment_failed", "payment_expired"].includes(currentStatus)) {
       nextOrderStatus = "paid_escrow";
     }
-    nextEscrowStatus = "held";
-    nextPayoutStatus = currentStatus === "paid_out" ? "released" : "pending";
+    // Never regress escrow/payout states for shipped/completed flows.
+    if (["pending", "cancelled", null].includes((order.escrow_status as string | null) ?? null)) {
+      nextEscrowStatus = "held";
+    }
   } else if (
     transactionStatus === "pending" ||
     transactionStatus === "deny" ||
