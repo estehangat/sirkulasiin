@@ -16,7 +16,17 @@ type ListingForm = {
   image_url: string;
 };
 
-export default function EditListingClient({ listing }: { listing: any }) {
+type EditableListing = {
+  id: string;
+  title: string | null;
+  description: string | null;
+  price: number | null;
+  category: string | null;
+  status: string | null;
+  image_url: string | null;
+};
+
+export default function EditListingClient({ listing }: { listing: EditableListing }) {
   const router = useRouter();
   const supabase = createClient();
   const [form, setForm] = useState<ListingForm>({
@@ -191,6 +201,7 @@ export default function EditListingClient({ listing }: { listing: any }) {
             <select style={inputStyle} value={form.status} onChange={(e) => onChange("status", e.target.value)}>
               <option value="draft">Draft</option>
               <option value="published">Publikasikan (Aktif)</option>
+              <option value="reserved" disabled>Ditahan Sistem</option>
               <option value="sold">Terjual</option>
               <option value="archived">Diarsipkan</option>
             </select>

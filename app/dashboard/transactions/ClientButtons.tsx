@@ -25,6 +25,15 @@ export default function TransactionButtons({ orderId, status, isBuyer }: Props) 
     return <span style={{ fontSize: '13px', color: '#666', fontWeight: 600 }}>Memproses...</span>;
   }
 
+  const badgeStyle = {
+    fontSize: "12px",
+    fontWeight: 700,
+    color: "#166534",
+    background: "#ecfdf3",
+    padding: "8px 12px",
+    borderRadius: "999px",
+  } as const;
+
   // Action pembeli
   if (isBuyer) {
     if (status === "pending_payment") {
@@ -45,6 +54,10 @@ export default function TransactionButtons({ orderId, status, isBuyer }: Props) 
           Bayar Sekarang
         </button>
       );
+    }
+
+    if (status === "paid_escrow") {
+      return <span style={badgeStyle}>Dana Ditahan Aman</span>;
     }
     
     if (status === "shipped") {
@@ -70,7 +83,7 @@ export default function TransactionButtons({ orderId, status, isBuyer }: Props) 
 
   // Action penjual
   if (!isBuyer) {
-    if (status === "paid") {
+    if (status === "paid_escrow") {
       return (
         <button
           onClick={() => handleUpdate("shipped")}
@@ -88,6 +101,10 @@ export default function TransactionButtons({ orderId, status, isBuyer }: Props) 
           Tandai Dikirim
         </button>
       );
+    }
+
+    if (status === "completed") {
+      return <span style={badgeStyle}>Siap Dicairkan</span>;
     }
   }
 

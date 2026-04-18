@@ -6,14 +6,6 @@ import Link from "next/link";
 import { publishListing, saveDraft, ListingState } from "@/app/actions/listings";
 import styles from "./createListing.module.css";
 
-// Icons
-const RefreshIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-    <path d="M3 3v5h5" />
-  </svg>
-);
-
 const CloudDoneIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
     <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM10 17l-3.5-3.5 1.41-1.41L10 14.17l5.09-5.09L16.5 10.5 10 17z" />
@@ -55,7 +47,23 @@ function formatRupiah(number: number) {
   }).format(number);
 }
 
-export default function CreateListingForm({ scanData }: { scanData: any }) {
+type ScanData = {
+  id?: string | null;
+  estimated_price?: string | null;
+  ai_price_min?: number | null;
+  ai_price_max?: number | null;
+  category?: string | null;
+  hero_description?: string | null;
+  reason?: string | null;
+  condition?: string | null;
+  material?: string | null;
+  image_url?: string | null;
+  carbon_saved?: string | null;
+  eco_points?: number | null;
+  item_name?: string | null;
+};
+
+export default function CreateListingForm({ scanData }: { scanData: ScanData | null }) {
   const [publishState, publishAction, isPublishing] = useActionState<ListingState, FormData>(
     publishListing,
     null

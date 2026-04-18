@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { Pencil, Trash2, AlertTriangle, X, CheckCircle2, XCircle } from "lucide-react";
@@ -10,16 +10,11 @@ import { createPortal } from "react-dom";
 export default function ListingActions({ id }: { id: string }): ReactElement {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   
   const router = useRouter();
   const supabase = createClient();
-
-  // For portal rendering consistency
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = typeof document !== "undefined";
 
   const confirmDelete = async () => {
     setIsDeleting(true);

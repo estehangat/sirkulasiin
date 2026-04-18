@@ -84,7 +84,14 @@
   gap: 16px;
 }
 
+.payButtonLink {
+  text-decoration: none;
+}
+
 .payButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 56px;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
@@ -101,6 +108,42 @@
 .payButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(39, 174, 96, 0.3);
+}
+
+.secondaryButton {
+  width: 100%;
+  height: 48px;
+  background: #f4f4f0;
+  color: var(--color-black);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.statusBox {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(39, 174, 96, 0.1);
+  color: #166534;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.statusBoxError {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.helperText {
+  font-size: 13px;
+  color: var(--color-gray-500);
+  line-height: 1.5;
 }
 
 .payButton:active {

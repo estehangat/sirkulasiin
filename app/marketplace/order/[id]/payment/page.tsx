@@ -37,10 +37,12 @@ export default async function PaymentPage({
     redirect("/dashboard/transactions");
   }
 
-  // Jika sudah dibayar atau status lain, redirect ke dashboard
-  if (order.status !== "pending_payment") {
-    redirect("/dashboard/transactions");
-  }
+  const titleByStatus: Record<string, string> = {
+    pending_payment: "Menunggu Pembayaran",
+    paid_escrow: "Pembayaran Berhasil",
+    payment_expired: "Pembayaran Kedaluwarsa",
+    payment_failed: "Pembayaran Gagal",
+  };
 
   return (
     <main className={styles.pageShell}>
@@ -53,9 +55,16 @@ export default async function PaymentPage({
               <line x1="2" y1="10" x2="22" y2="10" />
             </svg>
           </div>
-          <h1 className={styles.title}>Menunggu Pembayaran</h1>
+          <h1 className={styles.title}>{titleByStatus[order.status] || "Status Pembayaran"}</h1>
           <p className={styles.subtitle}>
-            Pesanan Anda untuk <strong>{order.marketplace_listings?.title || "Produk preloved"}</strong> sedang menunggu pembayaran.
+            Pesanan Anda untuk <strong>{order.marketplace_listings?.title || "Produk preloved"}</strong>{" "}
+            {order.status === "paid_escrow"
+              ? "sudah dibayar dan dana sedang ditahan dalam escrow."
+              : order.status === "payment_expired"
+                ? "gagal dibayar karena sesi pembayaran telah kedaluwarsa."
+                : order.status === "payment_failed"
+                  ? "belum berhasil diproses pembayarannya."
+                  : "sedang menunggu pembayaran."}
           </p>
           
           <div className={styles.amountBox}>
@@ -69,7 +78,12 @@ export default async function PaymentPage({
             </div>
           </div>
 
-          <PaymentForm orderId={order.id} />
+          <PaymentForm
+            orderId={order.id}
+            status={order.status}
+            paymentUrl={order.payment_redirect_url}
+            paymentExpiredAt={order.payment_expired_at}
+          />
         </div>
       </div>
     </main>

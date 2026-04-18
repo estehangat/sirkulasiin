@@ -19,7 +19,7 @@ type Profile = {
   avatar_url: string | null;
 };
 
-type IncomingOffer = {
+export type IncomingOffer = {
   id: string;
   created_at: string;
   status: string;
@@ -33,7 +33,7 @@ type IncomingOffer = {
   profiles: Profile | null;
 };
 
-type OutgoingOffer = {
+export type OutgoingOffer = {
   id: string;
   created_at: string;
   status: string;

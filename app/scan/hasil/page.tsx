@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
@@ -157,7 +157,7 @@ const GEN_MESSAGES = [
   "Hampir selesai, mohon tunggu...",
 ];
 
-export default function HasilScanPage() {
+function HasilScanPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [scanData, setScanData] = useState<ScanData | null>(null);
@@ -687,5 +687,13 @@ export default function HasilScanPage() {
         </nav>
       </footer>
     </main>
+  );
+}
+
+export default function HasilScanPage() {
+  return (
+    <Suspense>
+      <HasilScanPageContent />
+    </Suspense>
   );
 }

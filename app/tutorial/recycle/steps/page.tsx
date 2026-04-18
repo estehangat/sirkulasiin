@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
@@ -78,7 +78,7 @@ const supabase = createClient(
 );
 
 /* ═══════════════ Component ═══════════════ */
-export default function StepByStepPage() {
+function StepByStepPageContent() {
   const searchParams = useSearchParams();
   const [tutorial, setTutorial] = useState<TutorialData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -331,5 +331,13 @@ export default function StepByStepPage() {
         </div>
       </nav>
     </main>
+  );
+}
+
+export default function StepByStepPage() {
+  return (
+    <Suspense>
+      <StepByStepPageContent />
+    </Suspense>
   );
 }

@@ -11,7 +11,9 @@ export const metadata: Metadata = {
 
 const statusMap: Record<string, string> = {
   pending_payment: "Menunggu Pembayaran",
-  paid: "Sudah Dibayar",
+  paid_escrow: "Dana Ditahan di Escrow",
+  payment_failed: "Pembayaran Gagal",
+  payment_expired: "Pembayaran Kedaluwarsa",
   shipped: "Sedang Dikirim",
   completed: "Selesai",
   cancelled: "Dibatalkan",
@@ -28,14 +30,14 @@ export default async function TransactionsPage() {
   // Fetch Pembelian
   const { data: purchasesQuery } = await supabase
     .from("orders")
-    .select("*, marketplace_listings(title)")
+    .select("*, marketplace_listings(id, title)")
     .eq("buyer_id", user.id)
     .order("created_at", { ascending: false });
 
   // Fetch Penjualan
   const { data: salesQuery } = await supabase
     .from("orders")
-    .select("*, marketplace_listings(title)")
+    .select("*, marketplace_listings(id, title)")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -77,7 +79,8 @@ export default async function TransactionsPage() {
                   {item.marketplace_listings?.title || "Produk Preloved"}
                 </h3>
                 <p className={styles.listMeta} style={{ fontSize: "13px", color: "var(--color-gray-500)" }}>
-                  {formatRupiah(item.total_price)} · {statusMap[item.status] || item.status} · {formatDate(item.created_at)}
+                  {formatRupiah(item.total_price)} · {statusMap[item.status] || item.status}
+                  {item.status === "paid_escrow" && item.escrow_status ? ` · Escrow: ${item.escrow_status}` : ""} · {formatDate(item.created_at)}
                 </p>
               </div>
               <TransactionButtons orderId={item.id} status={item.status} isBuyer={true} />
@@ -99,7 +102,8 @@ export default async function TransactionsPage() {
                   {item.marketplace_listings?.title || "Produk Preloved"}
                 </h3>
                 <p className={styles.listMeta} style={{ fontSize: "13px", color: "var(--color-gray-500)" }}>
-                  {formatRupiah(item.total_price)} · {statusMap[item.status] || item.status} · {formatDate(item.created_at)}
+                  {formatRupiah(item.total_price)} · {statusMap[item.status] || item.status}
+                  {item.status === "paid_escrow" && item.escrow_status ? ` · Escrow: ${item.escrow_status}` : ""} · {formatDate(item.created_at)}
                 </p>
               </div>
               <TransactionButtons orderId={item.id} status={item.status} isBuyer={false} />

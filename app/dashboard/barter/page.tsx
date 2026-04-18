@@ -1,6 +1,36 @@
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-import BarterDashboard from "./BarterDashboard";
+import BarterDashboard, {
+  type IncomingOffer,
+  type OutgoingOffer,
+} from "./BarterDashboard";
+
+type RawListing = {
+  id: string;
+  title: string;
+  image_url: string | null;
+  price: number;
+};
+
+type RawProfile = {
+  full_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+};
+
+type RawIncomingOffer = Omit<IncomingOffer, "marketplace_listings" | "profiles"> & {
+  marketplace_listings: RawListing[] | RawListing;
+  profiles: RawProfile[] | RawProfile | null;
+};
+
+type RawOutgoingOffer = Omit<OutgoingOffer, "marketplace_listings"> & {
+  marketplace_listings: RawListing[] | RawListing;
+};
+
+function firstRelation<T>(value: T[] | T | null | undefined): T | null {
+  if (!value) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
+}
 
 export default async function BarterPage() {
   const supabase = await createServerSupabaseClient();
@@ -43,10 +73,35 @@ export default async function BarterPage() {
     .eq("offerer_id", user.id)
     .order("created_at", { ascending: false });
 
+  const normalizedIncoming: IncomingOffer[] = ((incoming as RawIncomingOffer[] | null) || [])
+    .map((offer) => {
+      const listing = firstRelation(offer.marketplace_listings);
+      if (!listing) return null;
+
+      return {
+        ...offer,
+        marketplace_listings: listing,
+        profiles: firstRelation(offer.profiles),
+      };
+    })
+    .filter((offer): offer is IncomingOffer => offer !== null);
+
+  const normalizedOutgoing: OutgoingOffer[] = ((outgoing as RawOutgoingOffer[] | null) || [])
+    .map((offer) => {
+      const listing = firstRelation(offer.marketplace_listings);
+      if (!listing) return null;
+
+      return {
+        ...offer,
+        marketplace_listings: listing,
+      };
+    })
+    .filter((offer): offer is OutgoingOffer => offer !== null);
+
   return (
     <BarterDashboard
-      incomingOffers={(incoming as any) || []}
-      outgoingOffers={(outgoing as any) || []}
+      incomingOffers={normalizedIncoming}
+      outgoingOffers={normalizedOutgoing}
     />
   );
 }

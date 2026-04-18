@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -154,7 +154,7 @@ const LOADING_MESSAGES = [
 ];
 
 /* ═══════════════ Component ═══════════════ */
-export default function RecycleTutorialPage() {
+function RecycleTutorialPageContent() {
   const searchParams = useSearchParams();
   const [tutorial, setTutorial] = useState<TutorialData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -468,5 +468,13 @@ export default function RecycleTutorialPage() {
         </footer>
       </div>
     </main>
+  );
+}
+
+export default function RecycleTutorialPage() {
+  return (
+    <Suspense>
+      <RecycleTutorialPageContent />
+    </Suspense>
   );
 }

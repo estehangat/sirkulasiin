@@ -35,7 +35,7 @@ type ListingRow = {
   category: string;
   carbon_saved: string | null;
   eco_points: number;
-  status: "draft" | "published" | "sold" | "archived";
+  status: "draft" | "published" | "reserved" | "sold" | "archived";
   location: string | null;
 };
 
@@ -107,6 +107,8 @@ function getStatusColor(status: string) {
   switch (status) {
     case "published":
       return { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0", label: "Aktif" };
+    case "reserved":
+      return { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa", label: "Ditahan" };
     case "draft":
       return { bg: "#f3f4f6", text: "#4b5563", border: "#e5e7eb", label: "Draft" };
     case "sold":
@@ -171,7 +173,7 @@ export default async function ListingsPage({
   const publishedCount = statsData.filter((r) => r.status === "published").length;
   const soldCount = statsData.filter((r) => r.status === "sold").length;
   const potentialRevenue = statsData
-    .filter((r) => r.status === "published" || r.status === "sold")
+    .filter((r) => r.status === "published" || r.status === "reserved" || r.status === "sold")
     .reduce((acc, r) => acc + (r.price || 0), 0);
 
   return (
