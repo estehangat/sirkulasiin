@@ -335,6 +335,10 @@ export default async function RiwayatScanPage({ searchParams }: { searchParams: 
         {/* List */}
         {!error && rows.length > 0 && (
           <div>
+            <style dangerouslySetInnerHTML={{__html: `
+              .row-hover { transition: background 0.2s ease; }
+              .row-hover:hover { background: #fafaf9 !important; }
+            `}} />
             <div style={{ display: "grid" }}>
               {rows.map((row, idx) => {
                 const circPct = row.circular_potential ?? 0;
@@ -345,7 +349,12 @@ export default async function RiwayatScanPage({ searchParams }: { searchParams: 
                 const isLast = idx === rows.length - 1;
 
                 return (
-                  <article key={row.id ?? `${row.item_name}-${idx}`} style={{ display: "grid", gap: "10px", padding: "20px 24px", borderBottom: isLast ? "none" : "1px solid #f5f5f4" }}>
+                  <Link 
+                    href={`/scan/hasil?id=${row.id}`}
+                    key={row.id ?? `${row.item_name}-${idx}`} 
+                    className="row-hover"
+                    style={{ display: "grid", gap: "10px", padding: "20px 24px", borderBottom: isLast ? "none" : "1px solid #f5f5f4", textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                  >
                     {/* Top row */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
                       <div style={{ display: "flex", flex: 1, minWidth: 0, alignItems: "flex-start", gap: "12px" }}>
@@ -402,7 +411,7 @@ export default async function RiwayatScanPage({ searchParams }: { searchParams: 
                         </span>
                       )}
                     </div>
-                  </article>
+                  </Link>
                 );
               })}
             </div>
