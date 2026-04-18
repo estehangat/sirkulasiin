@@ -60,18 +60,11 @@ Respond ONLY with valid JSON (no markdown fences). ALL text in Bahasa Indonesia.
 
 Buatlah 4-6 langkah yang jelas dan mudah diikuti. Sertakan tips keselamatan jika diperlukan.`;
 
-/* ═══════════════ Supabase Client ═══════════════ */
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
+
 
 /* ═══════════════ Upload image to Supabase Storage ═══════════════ */
-async function uploadImage(base64: string): Promise<string | null> {
+async function uploadImage(supabase: any, base64: string): Promise<string | null> {
   try {
-    const supabase = getSupabase();
 
     // Strip data URL prefix → raw base64
     const raw = base64.includes(",") ? base64.split(",")[1] : base64;
@@ -116,9 +109,8 @@ async function uploadImage(base64: string): Promise<string | null> {
 }
 
 /* ═══════════════ Upload raw bytes to Supabase Storage ═══════════════ */
-async function uploadBytes(bytes: Uint8Array, prefix: string): Promise<string | null> {
+async function uploadBytes(supabase: any, bytes: Uint8Array, prefix: string): Promise<string | null> {
   try {
-    const supabase = getSupabase();
     const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
 
     const { error } = await supabase.storage
@@ -146,6 +138,7 @@ async function uploadBytes(bytes: Uint8Array, prefix: string): Promise<string | 
 
 /* ═══════════════ Generate upcycle image via Hugging Face ═══════════════ */
 async function generateUpcycleImage(
+  supabase: any,
   itemName: string,
   material: string,
   upcycleIdea: string
@@ -192,7 +185,7 @@ async function generateUpcycleImage(
     }
 
     // Upload to Supabase
-    const publicUrl = await uploadBytes(imageBytes, "upcycle");
+    const publicUrl = await uploadBytes(supabase, imageBytes, "upcycle");
     console.log("[HF] Upcycle image uploaded:", publicUrl);
     return publicUrl;
   } catch (err) {
@@ -346,13 +339,14 @@ export async function POST(req: NextRequest) {
     /* ── 2. Upload scan image to Supabase Storage ── */
     let scanImageUrl: string | null = null;
     if (imageBase64) {
-      scanImageUrl = await uploadImage(imageBase64);
+      scanImageUrl = await uploadImage(serverSupabase, imageBase64);
     }
 
     /* ── 3. Generate upcycle thumbnail if recommendation is recycle ── */
     let upcycleImageUrl: string | null = null;
     if (result.recommendation === "recycle" && result.upcycleIdea) {
       upcycleImageUrl = await generateUpcycleImage(
+        serverSupabase,
         result.itemName || "item",
         result.material || "recycled material",
         result.upcycleIdea
@@ -370,8 +364,7 @@ export async function POST(req: NextRequest) {
     }
 
     /* ── 4. Save to scan_history ── */
-    const supabase = getSupabase();
-    const { data: inserted, error: dbError } = await supabase
+    const { data: inserted, error: dbError } = await serverSupabase
       .from("scan_history")
       .insert({
         user_id: user?.id || null,
@@ -409,7 +402,7 @@ export async function POST(req: NextRequest) {
     /* ── 5. Save tutorial to recycle_tutorials if generated ── */
     let tutorialId: string | null = null;
     if (tutorialData && inserted?.id) {
-      const { data: tutInserted, error: tutError } = await supabase
+      const { data: tutInserted, error: tutError } = await serverSupabase
         .from("recycle_tutorials")
         .insert({
           scan_id: inserted.id,
@@ -431,6 +424,21 @@ export async function POST(req: NextRequest) {
       } else {
         tutorialId = tutInserted.id;
         console.log("[Tutorial] Saved with ID:", tutorialId);
+      }
+    }
+
+    /* ── 5b. Record eco points from scan ── */
+    if (user && inserted?.id) {
+      const rewardText = result.potentialReward || "";
+      const pointsEarned = parseInt(rewardText.replace(/[^\d]/g, ""), 10) || 0;
+      if (pointsEarned > 0) {
+        await serverSupabase.rpc("add_points_transaction", {
+          p_user_id: user.id,
+          p_points: pointsEarned,
+          p_source_type: "scan",
+          p_source_id: inserted.id,
+          p_description: `Scan: ${result.itemName || "Item"}`,
+        });
       }
     }
 

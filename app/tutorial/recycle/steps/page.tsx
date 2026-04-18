@@ -1,14 +1,14 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import * as LucideIcons from "lucide-react";
 import {
   X, Leaf, Settings, ArrowLeft, ArrowRight,
   Check, CheckCircle, XCircle, Lightbulb, Loader2,
-  AlertCircle,
+  AlertCircle, Camera, Upload, Image as ImageIcon, Trophy, Sparkles,
 } from "lucide-react";
 import styles from "./steps.module.css";
 
@@ -78,12 +78,23 @@ const supabase = createClient(
 );
 
 /* ═══════════════ Component ═══════════════ */
-function StepByStepPageContent() {
+export default function StepByStepPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [tutorial, setTutorial] = useState<TutorialData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+
+  /* ── Submit Modal State ── */
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitImage, setSubmitImage] = useState<string | null>(null);
+  const [submitPreview, setSubmitPreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<{ ecoPoints: number } | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const submitFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchTutorial() {
@@ -114,6 +125,99 @@ function StepByStepPageContent() {
 
     fetchTutorial();
   }, [searchParams]);
+
+  /* ── File reader with resize ── */
+  const readFileAsBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      if (file.size > 10 * 1024 * 1024) {
+        reject(new Error("Ukuran file melebihi 10MB."));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
+          if (width > height && width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
+          } else {
+            resolve(reader.result as string);
+          }
+        };
+        img.onerror = () => reject(new Error("Gagal membaca gambar."));
+        img.src = reader.result as string;
+      };
+      reader.onerror = () => reject(new Error("Gagal membaca file."));
+      reader.readAsDataURL(file);
+    });
+
+  const handleSubmitFile = useCallback(async (file: File) => {
+    setSubmitError(null);
+    try {
+      const base64 = await readFileAsBase64(file);
+      setSubmitImage(base64);
+      setSubmitPreview(base64);
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : "Gagal memproses file.");
+    }
+  }, []);
+
+  const onSubmitDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) handleSubmitFile(file);
+    else setSubmitError("Harap unggah file gambar (JPEG, PNG).");
+  }, [handleSubmitFile]);
+
+  /* ── Submit to API ── */
+  const handleSubmitCompletion = async () => {
+    if (!submitImage || !tutorial) return;
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/tutorial/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tutorialId: tutorial.id,
+          imageBase64: submitImage,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal mengirim.");
+
+      setSubmitSuccess({ ecoPoints: data.ecoPoints });
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : "Terjadi kesalahan.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowSubmitModal(false);
+    setSubmitImage(null);
+    setSubmitPreview(null);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+  };
 
   /* ── Loading State ── */
   if (loading) {
@@ -323,6 +427,7 @@ function StepByStepPageContent() {
             <button
               className={`${styles.navBtnNext} ${styles.navBtnComplete}`}
               type="button"
+              onClick={() => setShowSubmitModal(true)}
             >
               Selesai & Klaim Poin
               <CheckCircle className={styles.navBtnIcon} />
@@ -330,14 +435,188 @@ function StepByStepPageContent() {
           )}
         </div>
       </nav>
-    </main>
-  );
-}
 
-export default function StepByStepPage() {
-  return (
-    <Suspense>
-      <StepByStepPageContent />
-    </Suspense>
+      {/* ═══ Submit Completion Modal ═══ */}
+      {showSubmitModal && (
+        <div className={styles.modalOverlay} onClick={closeModal}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            {/* Success State */}
+            {submitSuccess ? (
+              <div className={styles.successContent}>
+                <div className={styles.successIconWrap}>
+                  <div className={styles.successIconRing}>
+                    <Trophy className={styles.successIcon} />
+                  </div>
+                  <Sparkles className={styles.successSparkle1} />
+                  <Sparkles className={styles.successSparkle2} />
+                </div>
+                <h3 className={styles.successTitle}>Selamat! 🎉</h3>
+                <p className={styles.successDesc}>
+                  Tutorial berhasil diselesaikan. Anda mendapatkan poin eco untuk kontribusi Anda!
+                </p>
+                <div className={styles.successPointsCard}>
+                  <Leaf className={styles.successPointsIcon} />
+                  <span className={styles.successPointsValue}>+{submitSuccess.ecoPoints}</span>
+                  <span className={styles.successPointsLabel}>Eco Points</span>
+                </div>
+                <div className={styles.successActions}>
+                  <button
+                    className={styles.successBtnPrimary}
+                    type="button"
+                    onClick={() => router.push("/tutorial")}
+                  >
+                    Jelajahi Tutorial Lain
+                  </button>
+                  <button
+                    className={styles.successBtnSecondary}
+                    type="button"
+                    onClick={() => router.push("/dashboard")}
+                  >
+                    Ke Dashboard
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Upload State */
+              <>
+                <div className={styles.modalHeader}>
+                  <div className={styles.modalHeaderInfo}>
+                    <div className={styles.modalHeaderIcon}>
+                      <Camera size={20} />
+                    </div>
+                    <div>
+                      <h3 className={styles.modalTitle}>Kirim Bukti Hasil</h3>
+                      <p className={styles.modalSubtitle}>
+                        Upload foto hasil daur ulang Anda untuk mengklaim poin
+                      </p>
+                    </div>
+                  </div>
+                  <button className={styles.modalCloseBtn} type="button" onClick={closeModal}>
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className={styles.modalBody}>
+                  {/* Hidden file input */}
+                  <input
+                    ref={submitFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/heic,image/heif"
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleSubmitFile(file);
+                    }}
+                  />
+
+                  {!submitPreview ? (
+                    <div
+                      className={`${styles.submitDropZone} ${isDragOver ? styles.submitDropZoneActive : ""}`}
+                      onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                      onDragLeave={() => setIsDragOver(false)}
+                      onDrop={onSubmitDrop}
+                      onClick={() => submitFileRef.current?.click()}
+                    >
+                      <div className={styles.submitDropIcon}>
+                        <Upload size={28} />
+                      </div>
+                      <p className={styles.submitDropTitle}>
+                        Seret & letakkan foto hasil karya Anda
+                      </p>
+                      <p className={styles.submitDropHint}>
+                        JPEG, PNG, atau HEIC — maksimal 10MB
+                      </p>
+                      <div className={styles.submitDropActions} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className={styles.submitUploadBtn}
+                          type="button"
+                          onClick={() => submitFileRef.current?.click()}
+                        >
+                          <ImageIcon size={16} />
+                          Pilih Foto
+                        </button>
+                        <button
+                          className={styles.submitCameraBtn}
+                          type="button"
+                          onClick={() => {
+                            if (submitFileRef.current) {
+                              submitFileRef.current.setAttribute("capture", "environment");
+                              submitFileRef.current.click();
+                              submitFileRef.current.removeAttribute("capture");
+                            }
+                          }}
+                        >
+                          <Camera size={16} />
+                          Ambil Foto
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={styles.submitPreviewWrap}>
+                      <img
+                        src={submitPreview}
+                        alt="Pratinjau hasil karya"
+                        className={styles.submitPreviewImg}
+                      />
+                      <button
+                        className={styles.submitPreviewRemove}
+                        type="button"
+                        onClick={() => {
+                          setSubmitImage(null);
+                          setSubmitPreview(null);
+                          if (submitFileRef.current) submitFileRef.current.value = "";
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Points preview */}
+                  <div className={styles.submitRewardPreview}>
+                    <Leaf className={styles.submitRewardIcon} />
+                    <span className={styles.submitRewardText}>
+                      Anda akan mendapatkan <strong>{tutorial.eco_points} Eco Points</strong>
+                    </span>
+                  </div>
+
+                  {/* Error */}
+                  {submitError && (
+                    <div className={styles.submitErrorBanner}>
+                      <AlertCircle size={16} />
+                      <p>{submitError}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.modalFooter}>
+                  <button className={styles.modalCancelBtn} type="button" onClick={closeModal}>
+                    Batal
+                  </button>
+                  <button
+                    className={styles.modalSubmitBtn}
+                    type="button"
+                    onClick={handleSubmitCompletion}
+                    disabled={!submitImage || isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className={styles.submitSpinner} />
+                        Mengirim...
+                      </>
+                    ) : (
+                      <>
+                        Kirim & Klaim Poin
+                        <CheckCircle size={18} />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </main>
   );
 }

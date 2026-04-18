@@ -58,10 +58,6 @@ function formatTimeAgo(value: string) {
   });
 }
 
-function extractNumber(value: string | null) {
-  if (!value) return 0;
-  return Number(value.replace(/[^\d]/g, "")) || 0;
-}
 
 function recommendationLabel(rec: string) {
   if (rec === "recycle") return "Daur Ulang";
@@ -133,20 +129,29 @@ async function getDashboardData() {
     return null;
   }
 
-  const { data, error } = await supabase
-    .from("scan_history")
-    .select(
-      "created_at,item_name,material,recommendation,carbon_offset,potential_reward,circular_potential,reason"
-    )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(300);
+  const [scanResult, pointsResult] = await Promise.all([
+    supabase
+      .from("scan_history")
+      .select(
+        "created_at,item_name,material,recommendation,carbon_offset,potential_reward,circular_potential,reason"
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(300),
+    supabase
+      .from("user_points")
+      .select("total_points")
+      .eq("user_id", user.id)
+      .single(),
+  ]);
 
-  if (error || !data) {
+  const ecoPoints = pointsResult.data?.total_points ?? 0;
+
+  if (scanResult.error || !scanResult.data) {
     return {
       status: "fallback" as const,
       totalScanMonth: 0,
-      ecoPoints: 0,
+      ecoPoints,
       recycleRate: 0,
       totalCarbonOffset: 0,
       weeklyTrend: buildWeeklyTrend([]),
@@ -161,7 +166,7 @@ async function getDashboardData() {
     };
   }
 
-  const rows = data as ScanHistoryRow[];
+  const rows = scanResult.data as ScanHistoryRow[];
   const rowsThisMonth = rows.filter((r) => new Date(r.created_at) >= new Date(monthStart));
   
   const todayKey = new Date().toISOString().slice(0, 10);
@@ -171,7 +176,6 @@ async function getDashboardData() {
   const sellCount = rowsThisMonth.filter((r) => r.recommendation === "sell").length;
   const disposeCount = rowsThisMonth.filter((r) => r.recommendation === "dispose").length;
   
-  const ecoPoints = rowsThisMonth.reduce((acc, row) => acc + extractNumber(row.potential_reward), 0);
   const totalCarbonOffset = rowsThisMonth.reduce((acc, row) => acc + (row.carbon_offset || 0), 0);
   const circularPotentialSum = rowsThisMonth.reduce((acc, row) => acc + (row.circular_potential || 0), 0);
   
