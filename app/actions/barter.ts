@@ -5,6 +5,7 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 export type BarterOfferState = {
   error?: string;
   success?: string;
+  room_id?: string;
 } | null;
 
 export async function submitBarterOffer(
@@ -34,7 +35,7 @@ export async function submitBarterOffer(
   // Cegah user barter listing sendiri
   const { data: listing } = await supabase
     .from("marketplace_listings")
-    .select("user_id, barter_enabled")
+    .select("user_id, barter_enabled, title")
     .eq("id", listingId)
     .single();
 
@@ -66,8 +67,56 @@ export async function submitBarterOffer(
     return { error: "Gagal mengirim tawaran. Silakan coba lagi." };
   }
 
-  return { success: "Tawaran barter berhasil dikirim!" };
+  // ── Create/find chat room and insert barter_card bubble ──
+  const sellerId = listing.user_id;
+  const [p1, p2] = [user.id, sellerId].sort();
+
+  // Upsert chat room
+  const { data: existingRoom } = await supabase
+    .from("chat_rooms")
+    .select("id")
+    .eq("participant1", p1)
+    .eq("participant2", p2)
+    .maybeSingle();
+
+  let roomId: string;
+
+  if (existingRoom) {
+    roomId = existingRoom.id;
+  } else {
+    const { data: newRoom, error: roomErr } = await supabase
+      .from("chat_rooms")
+      .insert({ participant1: p1, participant2: p2 })
+      .select("id")
+      .single();
+
+    if (roomErr || !newRoom) {
+      // Silently fail chat creation — barter offer already saved
+      console.error("Failed to create chat room for barter:", roomErr);
+      return { success: "Tawaran barter berhasil dikirim!" };
+    }
+    roomId = newRoom.id;
+  }
+
+  // Insert barter_card message
+  await supabase.from("chat_messages").insert({
+    room_id: roomId,
+    sender_id: user.id,
+    content: "",
+    type: "barter_card",
+    metadata: {
+      listing_id: listingId,
+      listing_title: listing.title,
+      offered_item_name: offeredItemName,
+      offered_item_description: offeredItemDescription || null,
+      cash_addition: cashAddition,
+      message: message || null,
+    },
+  });
+
+  return { success: "Tawaran barter berhasil dikirim!", room_id: roomId };
 }
+
 
 export async function respondBarterOffer(
   offerId: string,

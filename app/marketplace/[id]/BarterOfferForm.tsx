@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { submitBarterOffer, BarterOfferState } from "@/app/actions/barter";
 import styles from "./productDetail.module.css";
 
@@ -13,6 +14,7 @@ export default function BarterOfferForm({
   isLoggedIn: boolean;
   isOwnListing: boolean;
 }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [state, formAction, isPending] = useActionState<BarterOfferState, FormData>(
     submitBarterOffer,
@@ -20,6 +22,13 @@ export default function BarterOfferForm({
   );
 
   const [cashStr, setCashStr] = useState("");
+
+  // Redirect to chat room after successful barter submission
+  useEffect(() => {
+    if (state?.room_id) {
+      router.push(`/messages?room=${state.room_id}`);
+    }
+  }, [state?.room_id, router]);
 
   const handleCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, "");

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Navbar from "@/app/components/navbar";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import BarterOfferForm from "./BarterOfferForm";
+import ChatSellerButton from "./ChatSellerButton";
 import styles from "./productDetail.module.css";
 
 function formatRupiah(price: number) {
@@ -245,12 +246,18 @@ export default async function ProductDetailPage({
                 Listing Anda Sendiri
               </button>
             )}
-            <button className={styles.chatBtn}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-              </svg>
-              Chat dengan Penjual
-            </button>
+            {user?.id !== listing.user_id && (
+              <ChatSellerButton
+                sellerId={listing.user_id}
+                listing={{
+                  id: listing.id,
+                  title: listing.title,
+                  price: listing.price,
+                  image_url: listing.image_url ?? null,
+                  carbon_saved: listing.carbon_saved ?? null,
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

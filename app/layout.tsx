@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import ChatFab from "@/app/components/ChatFab";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="id" className={`${plusJakartaSans.variable} antialiased`}>
       <body className="min-h-screen" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
         {children}
+        <ChatFab />
       </body>
     </html>
   );
