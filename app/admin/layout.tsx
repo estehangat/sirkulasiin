@@ -2,22 +2,20 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { createPortal } from "react-dom";
 import {
   LayoutDashboard,
-  ScanLine,
-  ShoppingBag,
-  ArrowLeftRight,
-  Gift,
-  ReceiptText,
+  FileText,
+  Users,
   Settings,
   ArrowLeft,
-  Leaf,
+  ShieldCheck,
   LogOut,
   Loader2,
+  Map
 } from "lucide-react";
 
 type AccountNavItem = {
@@ -36,45 +34,34 @@ const iconSize = 17;
 
 const accountNavItems: AccountNavItem[] = [
   {
-    label: "Dashboard",
-    href: "/dashboard",
+    label: "Statistik Sistem",
+    href: "/admin",
     icon: <LayoutDashboard size={iconSize} />,
   },
   {
-    label: "Riwayat Scan",
-    href: "/dashboard/riwayat-scan",
-    icon: <ScanLine size={iconSize} />,
+    label: "Manajemen Pengguna",
+    href: "/admin/users",
+    icon: <Users size={iconSize} />,
   },
   {
-    label: "Marketplace Saya",
-    href: "/dashboard/listings",
-    icon: <ShoppingBag size={iconSize} />,
+    label: "Manajemen Konten",
+    href: "/admin/content",
+    icon: <FileText size={iconSize} />,
   },
   {
-    label: "Tawaran Barter",
-    href: "/dashboard/barter",
-    icon: <ArrowLeftRight size={iconSize} />,
+    label: "Nama Halaman (URL)",
+    href: "/admin/telemetry",
+    icon: <Map size={iconSize} />,
   },
   {
-    label: "Rewards",
-    href: "/dashboard/rewards",
-    icon: <Gift size={iconSize} />,
-  },
-  {
-    label: "Transaksi",
-    href: "/dashboard/transactions",
-    icon: <ReceiptText size={iconSize} />,
-  },
-  // Admin gate is enforced on the page.
-  {
-    label: "Profil & Pengaturan",
-    href: "/dashboard/settings",
+    label: "Profil Sistem",
+    href: "/admin/profile",
     icon: <Settings size={iconSize} />,
   },
 ];
 
 function isActiveItem(pathname: string, href: string) {
-  if (href === "/dashboard") return pathname === href;
+  if (href === "/admin") return pathname === href;
   return pathname.startsWith(href);
 }
 
@@ -89,46 +76,32 @@ function getInitials(name: string) {
 
 function getHeaderMeta(pathname: string) {
   const map: Record<string, { title: string; subtitle: string }> = {
-    "/dashboard": {
-      title: "Dashboard Akun",
-      subtitle: "Ringkasan performa aktivitas sirkular Anda.",
+    "/admin": {
+      title: "Control Panel Admin",
+      subtitle: "Monitoring metrik utama dan memantau keseluruhan pertumbuhan sistem pengguna.",
     },
-    "/dashboard/riwayat-scan": {
-      title: "Riwayat Scan",
-      subtitle: "Pantau semua hasil identifikasi material Anda.",
+    "/admin/users": {
+      title: "Manajemen Pengguna",
+      subtitle: "Tinjau hak akses pengguna, pemblokiran akun, dan kontrol peran.",
     },
-    "/dashboard/listings": {
-      title: "Marketplace Saya",
-      subtitle: "Kelola listing dan performa produk Anda.",
+    "/admin/content": {
+      title: "Manajemen Konten",
+      subtitle: "Ubah tulisan dinamis dan gambar pada Beranda dan Tentang aplikasi.",
     },
-    "/dashboard/barter": {
-      title: "Tawaran Barter",
-      subtitle: "Kelola tawaran barter masuk dan yang Anda kirim.",
+    "/admin/telemetry": {
+      title: "Nama Halaman (URL)",
+      subtitle: "Kelola terjemahan pembacaan statistik rute URL menjadi nama halaman yang bersahabat.",
     },
-    "/dashboard/rewards": {
-      title: "Rewards",
-      subtitle: "Lihat poin dan hadiah yang sudah Anda kumpulkan.",
-    },
-    "/dashboard/transactions": {
-      title: "Transaksi",
-      subtitle: "Monitor status transaksi secara real-time.",
-    },
-    "/dashboard/settings": {
-      title: "Profil dan Pengaturan",
-      subtitle: "Atur profil, notifikasi, dan keamanan akun Anda.",
+    "/admin/profile": {
+      title: "Profil & Keamanan",
+      subtitle: "Perbarui identitas admin dan ubah kata sandi sistem.",
     },
   };
-  return map[pathname] || map["/dashboard"];
+  return map[pathname] || map["/admin"];
 }
 
-// ─── Nav Item (client component needs hover state) ──────────────────────────
-function NavItem({
-  item,
-  active,
-}: {
-  item: AccountNavItem;
-  active: boolean;
-}) {
+// ─── Nav Item ──────────────────────────────────────────
+function NavItem({ item, active }: { item: AccountNavItem; active: boolean }) {
   const [hovered, setHovered] = useState(false);
 
   const baseStyle: React.CSSProperties = {
@@ -141,18 +114,14 @@ function NavItem({
     fontSize: "14px",
     fontWeight: active ? 700 : 600,
     transition: "all 0.18s ease",
-    color: active
-      ? "#1E8449"
-      : hovered
-        ? "#1E8449"
-        : "#52524C",
+    color: active ? "#2563EB" : hovered ? "#2563EB" : "#475569",
     background: active
-      ? "rgba(39, 174, 96, 0.12)"
+      ? "rgba(37, 99, 235, 0.1)"
       : hovered
-        ? "rgba(39, 174, 96, 0.07)"
+        ? "rgba(37, 99, 235, 0.05)"
         : "transparent",
     border: active
-      ? "1px solid rgba(39, 174, 96, 0.22)"
+      ? "1px solid rgba(37, 99, 235, 0.2)"
       : "1px solid transparent",
     position: "relative",
   };
@@ -166,11 +135,11 @@ function NavItem({
     borderRadius: "10px",
     flexShrink: 0,
     background: active
-      ? "rgba(39, 174, 96, 0.18)"
+      ? "rgba(37, 99, 235, 0.15)"
       : hovered
-        ? "rgba(39, 174, 96, 0.1)"
+        ? "rgba(37, 99, 235, 0.08)"
         : "rgba(0,0,0,0.04)",
-    color: active ? "#1E8449" : hovered ? "#27AE60" : "#737369",
+    color: active ? "#2563EB" : hovered ? "#3B82F6" : "#64748B",
     transition: "all 0.18s ease",
   };
 
@@ -191,7 +160,7 @@ function NavItem({
             width: "6px",
             height: "6px",
             borderRadius: "50%",
-            background: "#27AE60",
+            background: "#2563EB",
             flexShrink: 0,
           }}
         />
@@ -200,7 +169,7 @@ function NavItem({
   );
 }
 
-// ─── Back Link ────────────────────────────────────────────────────────────────
+// ─── Back Link ──────────────────────────────────────────
 function BackLink() {
   const [hovered, setHovered] = useState(false);
   return (
@@ -214,23 +183,23 @@ function BackLink() {
         borderRadius: "14px",
         textDecoration: "none",
         padding: "11px 12px",
-        background: hovered ? "#1E8449" : "#27AE60",
+        background: hovered ? "#1E3A8A" : "#1E40AF",
         color: "#fff",
         fontWeight: 700,
         fontSize: "14px",
         transition: "background 0.18s ease",
-        boxShadow: "0 2px 8px rgba(39,174,96,0.3)",
+        boxShadow: "0 2px 8px rgba(30, 58, 138, 0.3)",
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <ArrowLeft size={15} />
-      Kembali ke Area Publik
+      Kembali ke Beranda
     </Link>
   );
 }
 
-// ─── Logout Button ────────────────────────────────────────────────────────────
+// ─── Logout Button ──────────────────────────────────────
 function LogoutButton() {
   const [hovered, setHovered] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -259,7 +228,7 @@ function LogoutButton() {
         disabled={isLoggingOut}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        title="Keluar dari akun"
+        title="Keluar dari akun admin"
         style={{
           display: "flex",
           alignItems: "center",
@@ -282,9 +251,9 @@ function LogoutButton() {
         <div style={{
           position: "fixed",
           top: 0, left: 0, right: 0, bottom: 0,
-          background: "rgba(0, 0, 0, 0.4)",
-          backdropFilter: "blur(4px)",
-          WebkitBackdropFilter: "blur(4px)",
+          background: "rgba(0, 0, 0, 0.6)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -303,12 +272,12 @@ function LogoutButton() {
             }
           `}</style>
           <div style={{
-            background: "#fff",
+            background: "#1E293B",
             borderRadius: "24px",
             padding: "32px",
             width: "100%",
             maxWidth: "380px",
-            boxShadow: "0 24px 48px rgba(0,0,0,0.1)",
+            boxShadow: "0 24px 48px rgba(0,0,0,0.5)",
             animation: "slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
             textAlign: "center"
           }}>
@@ -316,7 +285,7 @@ function LogoutButton() {
               width: "64px",
               height: "64px",
               borderRadius: "50%",
-              background: "#fef2f2",
+              background: "rgba(239, 68, 68, 0.1)",
               color: "#ef4444",
               display: "flex",
               alignItems: "center",
@@ -325,11 +294,11 @@ function LogoutButton() {
             }}>
               <LogOut size={32} />
             </div>
-            <h3 style={{ fontSize: "20px", fontWeight: 800, color: "#111827", marginBottom: "8px" }}>
-              Keluar dari Akun?
+            <h3 style={{ fontSize: "20px", fontWeight: 800, color: "#F8FAFC", marginBottom: "8px" }}>
+              Keluar dari Admin?
             </h3>
-            <p style={{ fontSize: "14px", color: "#6B7280", marginBottom: "32px", lineHeight: 1.5 }}>
-              Apakah Anda yakin ingin mengakhiri sesi ini? Anda harus login kembali untuk mengakses profil Anda.
+            <p style={{ fontSize: "14px", color: "#94A3B8", marginBottom: "32px", lineHeight: 1.5 }}>
+              Sesi privileged admin Anda akan diakhiri dan harus login ulang untuk kembali.
             </p>
             <div style={{ display: "flex", gap: "12px" }}>
               <button
@@ -339,9 +308,9 @@ function LogoutButton() {
                   flex: 1,
                   padding: "12px",
                   borderRadius: "14px",
-                  background: "#F4F4F0",
-                  border: "1px solid #EFEFEB",
-                  color: "#52524C",
+                  background: "#334155",
+                  border: "1px solid #475569",
+                  color: "#cbd5e1",
                   fontSize: "14px",
                   fontWeight: 700,
                   cursor: "pointer",
@@ -383,118 +352,72 @@ function LogoutButton() {
   );
 }
 
-// ─── Main Layout ──────────────────────────────────────────────────────────────
-export default function DashboardLayout({
+// ─── Main Layout ──────────────────────────────────────────
+export default function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
-  const [verifyingRole, setVerifyingRole] = useState(true);
   const [user, setUser] = useState<AccountUser | null>(null);
+  const [verifying, setVerifying] = useState(true);
+  const [rolesChecked, setRolesChecked] = useState(false);
   const headerMeta = useMemo(() => getHeaderMeta(pathname), [pathname]);
 
   useEffect(() => {
-    const supabase = createClient();
+    const checkRole = async () => {
+      const supabase = createClient();
+      const { data: { user: authUser } } = await supabase.auth.getUser();
 
-    const setUserFromSession = (sessionUser: {
-      email?: string | null;
-      user_metadata?: Record<string, unknown>;
-    }) => {
-      const meta = sessionUser.user_metadata || {};
-      const name =
-        (meta.full_name as string) ||
-        (meta.name as string) ||
-        sessionUser.email?.split("@")[0] ||
-        "User";
-      setUser({
-        name,
-        email: sessionUser.email || "",
-        avatar: (meta.avatar_url as string) || (meta.picture as string) || null,
-      });
-    };
-
-    const checkAdminRedirect = async (userId: string) => {
-      let isAdmin = false;
-      try {
-        const { data: p } = await supabase.from('profiles').select('role').eq('id', userId).single();
-        if (p?.role === 'admin') isAdmin = true;
-        else {
-          const { data: u } = await supabase.from('users').select('role').eq('id', userId).single();
-          if (u?.role === 'admin') isAdmin = true;
-        }
-      } catch (e) {}
-
-      if (isAdmin) {
-        router.push('/admin');
-      } else {
-        setVerifyingRole(false);
-      }
-    };
-
-    const refreshUserFromDatabase = async () => {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
-      if (authUser) {
-        setUserFromSession(authUser);
-        checkAdminRedirect(authUser.id);
-      }
-    };
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) {
-        setVerifyingRole(false);
+      if (!authUser) {
+        router.push("/login?next=/admin");
         return;
       }
-      setUserFromSession(session.user);
-      checkAdminRedirect(session.user.id);
-    });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!session?.user) return;
-        setUserFromSession(session.user);
-      },
-    );
-
-    const onProfileUpdated = (event: Event) => {
-      const custom = event as CustomEvent<{
-        name?: string;
-        email?: string;
-        avatar?: string | null;
-      }>;
-      if (custom.detail) {
-        setUser((prev) => ({
-          name: custom.detail?.name || prev?.name || "User",
-          email: custom.detail?.email || prev?.email || "",
-          avatar:
-            custom.detail?.avatar === undefined
-              ? (prev?.avatar ?? null)
-              : custom.detail.avatar,
-        }));
+      // Mengecek tabel profiles atau users untuk role admin
+      let role = 'user';
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", authUser.id)
+          .single();
+        if (profile?.role) role = profile.role;
+      } catch {
+        try {
+           const { data: userRow } = await supabase
+            .from("users")
+            .select("role")
+            .eq("id", authUser.id)
+            .single();
+           if (userRow?.role) role = userRow.role;
+        } catch (e) { }
       }
-      void refreshUserFromDatabase();
+
+      if (role !== "admin") {
+        router.push("/dashboard"); // unauthorized 
+        return;
+      }
+
+      // Valid admin
+      const meta = authUser.user_metadata || {};
+      const name = (meta.full_name as string) || (meta.name as string) || authUser.email?.split("@")[0] || "Admin";
+      setUser({
+        name,
+        email: authUser.email || "",
+        avatar: (meta.avatar_url as string) || (meta.picture as string) || null,
+      });
+      setVerifying(false);
+      setRolesChecked(true);
     };
 
-    window.addEventListener(
-      "account-profile-updated",
-      onProfileUpdated as EventListener,
-    );
+    checkRole();
+  }, [router]);
 
-    return () => {
-      authListener.subscription.unsubscribe();
-      window.removeEventListener(
-        "account-profile-updated",
-        onProfileUpdated as EventListener,
-      );
-    };
-  }, []);
-
-  if (verifyingRole) {
+  if (verifying) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#F5F5F4", flexDirection: "column", gap: "16px" }}>
-        <Loader2 className="animate-spin" size={32} color="#27AE60" />
-        <p style={{ color: "#737369", fontSize: "14px", fontWeight: 600 }}>Memuat profil...</p>
+      <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#F1F5F9", flexDirection: "column", gap: "16px" }}>
+        <Loader2 className="animate-spin" size={32} color="#2563EB" />
+        <p style={{ color: "#475569", fontSize: "14px", fontWeight: 600 }}>Memverifikasi otorisasi admin...</p>
       </div>
     );
   }
@@ -505,7 +428,7 @@ export default function DashboardLayout({
         minHeight: "100vh",
         display: "grid",
         gridTemplateColumns: "272px minmax(0, 1fr)",
-        background: "#F4F4F0",
+        background: "#F8FAFC",
       }}
     >
       {/* ── Sidebar ───────────────────────────────────── */}
@@ -518,9 +441,8 @@ export default function DashboardLayout({
           flexDirection: "column",
           gap: "6px",
           padding: "20px 14px",
-          borderRight: "1px solid #EFEFEB",
-          background:
-            "linear-gradient(180deg, #ffffff 0%, #f7faf7 100%)",
+          borderRight: "1px solid #E2E8F0",
+          background: "#FFFFFF",
           overflowY: "auto",
         }}
       >
@@ -528,8 +450,8 @@ export default function DashboardLayout({
         <div
           style={{
             borderRadius: "18px",
-            background: "rgba(39,174,96,0.08)",
-            border: "1px solid rgba(39,174,96,0.14)",
+            background: "rgba(37, 99, 235, 0.08)",
+            border: "1px solid rgba(37, 99, 235, 0.14)",
             padding: "14px 16px",
             marginBottom: "10px",
             display: "flex",
@@ -542,37 +464,37 @@ export default function DashboardLayout({
               width: "38px",
               height: "38px",
               borderRadius: "12px",
-              background: "rgba(39,174,96,0.18)",
+              background: "rgba(37, 99, 235, 0.15)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
             }}
           >
-            <Leaf size={20} style={{ color: "#1E8449" }} />
+            <ShieldCheck size={20} style={{ color: "#2563EB" }} />
           </div>
           <div>
             <p
               style={{
                 fontSize: "10px",
                 fontWeight: 700,
-                color: "#829E60",
+                color: "#1E40AF",
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
                 marginBottom: "2px",
               }}
             >
-              Area Akun
+              Control Panel
             </p>
             <h2
               style={{
                 fontSize: "17px",
                 fontWeight: 800,
-                color: "#1A1A1A",
+                color: "#0F172A",
                 lineHeight: 1,
               }}
             >
-              SirkulasiIn
+              System Admin
             </h2>
           </div>
         </div>
@@ -582,20 +504,20 @@ export default function DashboardLayout({
           style={{
             fontSize: "10px",
             fontWeight: 700,
-            color: "#A3A39B",
+            color: "#94A3B8",
             textTransform: "uppercase",
             letterSpacing: "0.6px",
             padding: "0 4px",
             marginBottom: "2px",
           }}
         >
-          Menu Utama
+          Tools
         </p>
 
         {/* Nav Items */}
         <nav
           style={{ display: "flex", flexDirection: "column", gap: "3px" }}
-          aria-label="Navigasi akun"
+          aria-label="Navigasi admin"
         >
           {accountNavItems.map((item) => (
             <NavItem
@@ -610,7 +532,7 @@ export default function DashboardLayout({
         <div
           style={{
             height: "1px",
-            background: "#EFEFEB",
+            background: "#F1F5F9",
             margin: "8px 4px",
           }}
         />
@@ -624,8 +546,8 @@ export default function DashboardLayout({
             style={{
               marginTop: "auto",
               borderRadius: "16px",
-              border: "1px solid #EFEFEB",
-              background: "#fff",
+              border: "1px solid #E2E8F0",
+              background: "#F8FAFC",
               padding: "12px",
               display: "flex",
               alignItems: "center",
@@ -639,8 +561,8 @@ export default function DashboardLayout({
                 height: "36px",
                 borderRadius: "50%",
                 overflow: "hidden",
-                border: "2px solid rgba(39,174,96,0.25)",
-                background: "rgba(39,174,96,0.1)",
+                border: "2px solid rgba(37,99,235,0.25)",
+                background: "rgba(37,99,235,0.1)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -661,7 +583,7 @@ export default function DashboardLayout({
                   style={{
                     fontSize: "12px",
                     fontWeight: 800,
-                    color: "#1E8449",
+                    color: "#2563EB",
                   }}
                 >
                   {getInitials(user.name)}
@@ -673,7 +595,7 @@ export default function DashboardLayout({
                 style={{
                   fontSize: "13px",
                   fontWeight: 700,
-                  color: "#1A1A1A",
+                  color: "#0F172A",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -684,7 +606,7 @@ export default function DashboardLayout({
               <p
                 style={{
                   fontSize: "11px",
-                  color: "#737369",
+                  color: "#64748B",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -699,18 +621,15 @@ export default function DashboardLayout({
       </aside>
 
       {/* ── Main Content ──────────────────────────────── */}
-      <main style={{ padding: "22px 24px 36px" }}>
-        {/* Page Header */}
+      <main style={{ padding: "22px 24px 36px", isolation: "isolate" }}>
         {/* Page Header */}
         <header
           style={{
             position: "relative",
             borderRadius: "24px",
-            border: "1px solid rgba(255, 255, 255, 0.5)",
-            background: "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(246,251,248,0.8) 100%)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            boxShadow: "0 8px 32px rgba(39, 174, 96, 0.04), inset 0 0 0 1px rgba(255,255,255,1)",
+            border: "1px solid #E2E8F0",
+            background: "linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(248,250,252,0.8) 100%)",
+            boxShadow: "0 8px 32px rgba(15, 23, 42, 0.03)",
             padding: "24px 30px",
             display: "flex",
             justifyContent: "space-between",
@@ -721,13 +640,13 @@ export default function DashboardLayout({
           }}
         >
           {/* Aesthetic background blobs */}
-          <div style={{ position: "absolute", top: "-50px", right: "-20px", width: "150px", height: "150px", background: "radial-gradient(circle, rgba(39,174,96,0.15) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", bottom: "-30px", left: "20%", width: "120px", height: "120px", background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "-50px", right: "-20px", width: "150px", height: "150px", background: "radial-gradient(circle, rgba(37,99,235,0.08) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: "-30px", left: "20%", width: "120px", height: "120px", background: "radial-gradient(circle, rgba(79,70,229,0.05) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
 
           <div style={{ position: "relative", zIndex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "24px", height: "24px", borderRadius: "8px", background: "rgba(39,174,96,0.12)", color: "#1E8449" }}>
-                <LayoutDashboard size={14} />
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "24px", height: "24px", borderRadius: "8px", background: "rgba(37,99,235,0.12)", color: "#2563EB" }}>
+                <ShieldCheck size={14} />
               </span>
               <p
                 style={{
@@ -735,17 +654,17 @@ export default function DashboardLayout({
                   fontWeight: 800,
                   textTransform: "uppercase",
                   letterSpacing: "0.8px",
-                  color: "#27AE60",
+                  color: "#2563EB",
                 }}
               >
-                Area Akun
+                ADMINISTRATOR
               </p>
             </div>
             <h1
               style={{
                 fontSize: "28px",
                 lineHeight: 1.2,
-                color: "#111827",
+                color: "#0F172A",
                 fontWeight: 900,
                 letterSpacing: "-0.5px",
                 marginBottom: "4px",
@@ -753,7 +672,7 @@ export default function DashboardLayout({
             >
               {headerMeta.title}
             </h1>
-            <p style={{ color: "#6B7280", fontSize: "15px", fontWeight: 500 }}>
+            <p style={{ color: "#64748B", fontSize: "15px", fontWeight: 500 }}>
               {headerMeta.subtitle}
             </p>
           </div>
@@ -768,20 +687,10 @@ export default function DashboardLayout({
               gap: "14px",
               padding: "8px 8px 8px 20px",
               borderRadius: "9999px",
-              border: "1px solid rgba(229, 231, 235, 0.8)",
+              border: "1px solid #E2E8F0",
               background: "#ffffff",
               boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
               flexShrink: 0,
-              cursor: "pointer",
-              transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 8px 24px rgba(39,174,96,0.08)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.03)";
             }}
           >
             <div style={{ textAlign: "right" }}>
@@ -789,14 +698,14 @@ export default function DashboardLayout({
                 style={{
                   fontSize: "14px",
                   fontWeight: 800,
-                  color: "#111827",
+                  color: "#0F172A",
                   lineHeight: 1.2,
                 }}
               >
-                {user?.name || "Pengguna"}
+                {user?.name || "Admin"}
               </p>
-              <p style={{ fontSize: "12px", color: "#6B7280", lineHeight: 1.3, fontWeight: 500 }}>
-                {user?.email || "Belum login"}
+              <p style={{ fontSize: "12px", color: "#64748B", lineHeight: 1.3, fontWeight: 500 }}>
+                High Privileges
               </p>
             </div>
             <div
@@ -806,8 +715,8 @@ export default function DashboardLayout({
                 borderRadius: "50%",
                 overflow: "hidden",
                 border: "2px solid #fff",
-                boxShadow: "0 0 0 2px rgba(39,174,96,0.2)",
-                background: "rgba(39,174,96,0.05)",
+                boxShadow: "0 0 0 2px rgba(37,99,235,0.2)",
+                background: "rgba(37,99,235,0.05)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -828,10 +737,10 @@ export default function DashboardLayout({
                   style={{
                     fontSize: "15px",
                     fontWeight: 800,
-                    color: "#1E8449",
+                    color: "#2563EB",
                   }}
                 >
-                  {getInitials(user?.name || "User")}
+                  {getInitials(user?.name || "Admin")}
                 </span>
               )}
             </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Navbar from "../components/navbar";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 import styles from "./tentang.module.css";
 
 export const metadata: Metadata = {
@@ -22,7 +23,13 @@ const steps = [
   },
 ];
 
-export default function TentangPage() {
+export default async function TentangPage() {
+  const supabase = await createServerSupabaseClient();
+  const { data: aboutData } = await supabase.from('site_content').select('content').eq('id', 'about_page').single();
+  
+  const missionTitle = aboutData?.content?.mission_title || "Platform untuk mengubah limbah jadi peluang";
+  const missionText = aboutData?.content?.mission_text || "SirkulasiIn menghubungkan discovery publik dengan operasional akun, sehingga user bisa belajar, mencoba, lalu konsisten menjalankan aksi sirkular setiap hari.";
+
   return (
     <main className={styles.pageShell}>
       <Navbar activeNav="tentang" />
@@ -30,12 +37,10 @@ export default function TentangPage() {
       <section className={styles.hero}>
         <p className={styles.eyebrow}>Tentang SirkulasiIn</p>
         <h1 className={styles.title}>
-          Platform untuk mengubah limbah jadi peluang
+          {missionTitle}
         </h1>
         <p className={styles.subtitle}>
-          SirkulasiIn menghubungkan discovery publik dengan operasional akun,
-          sehingga user bisa belajar, mencoba, lalu konsisten menjalankan aksi
-          sirkular setiap hari.
+          {missionText}
         </p>
       </section>
 

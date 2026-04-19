@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "./components/navbar";
 import styles from "./page.module.css";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 const langkahSirkular = [
   {
@@ -51,7 +52,13 @@ const produkUnggulan = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createServerSupabaseClient();
+  const { data: homeContentData } = await supabase.from('site_content').select('content').eq('id', 'home_page').single();
+  
+  const heroTitle = homeContentData?.content?.hero_title || "Kelola sampah rumah jadi peluang, bukan beban.";
+  const heroSubtitle = homeContentData?.content?.hero_subtitle || "SirkulasiIn membantu Anda memilah, memetakan, dan menyalurkan sampah ke ekosistem daur ulang sambil mengumpulkan insentif dan insight berbasis AI.";
+
   return (
     <main className={styles.pageShell}>
       <Navbar activeNav="home" />
@@ -60,14 +67,10 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <span className={styles.eyebrow}>Platform AI Ekonomi Sirkular</span>
           <h1 className={styles.heroTitle}>
-            Kelola sampah rumah jadi peluang,
-            <br />
-            bukan beban.
+            {heroTitle}
           </h1>
           <p className={styles.heroText}>
-            SirkulasiIn membantu Anda memilah, memetakan, dan menyalurkan sampah
-            ke ekosistem daur ulang sambil mengumpulkan insentif dan insight
-            berbasis AI.
+            {heroSubtitle}
           </p>
 
           <div className={styles.heroActions}>

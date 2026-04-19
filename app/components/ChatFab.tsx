@@ -12,8 +12,9 @@ export default function ChatFab() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Hide on the messages page itself
+  // Hide on the messages page itself and the admin pages
   const isMessagesPage = pathname?.startsWith("/messages");
+  const isAdminPage = pathname?.startsWith("/admin");
 
   useEffect(() => {
     const supabase = createClient();
@@ -74,7 +75,7 @@ export default function ChatFab() {
     };
   }, [userId]);
 
-  if (!show || isMessagesPage) return null;
+  if (!show || isMessagesPage || isAdminPage) return null;
 
   return (
     <button

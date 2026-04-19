@@ -32,7 +32,25 @@ export async function loginWithEmail(
     return { error: error.message };
   }
 
-  redirect(next);
+  let role = 'user';
+  try {
+     const userReq = await supabase.auth.getUser();
+     if (userReq.data?.user) {
+         const uid = userReq.data.user.id;
+         const { data: p } = await supabase.from('profiles').select('role').eq('id', uid).single();
+         if (p?.role) role = p.role;
+         else {
+           const { data: u } = await supabase.from('users').select('role').eq('id', uid).single();
+           if (u?.role) role = u.role;
+         }
+     }
+  } catch (e) {}
+  
+  let finalNext = next;
+  if (role === 'admin' && next === '/dashboard') {
+     finalNext = '/admin';
+  }
+  redirect(finalNext);
 }
 
 // ===== LOGIN WITH PHONE (OTP) =====
