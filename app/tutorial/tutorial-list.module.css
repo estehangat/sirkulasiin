@@ -2,6 +2,240 @@
    Tutorial Listing Page — CSS Module
    ═══════════════════════════════════════════════ */
 
+/* ── Filter Bar ── */
+.filterBar {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--color-white);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 20px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  animation: fadeInUp 0.4s ease-out 0.1s both;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filterLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-gray-500);
+  min-width: 72px;
+  flex-shrink: 0;
+}
+
+.filterLabelIcon {
+  width: 13px;
+  height: 13px;
+}
+
+.filterChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1.5px solid rgba(0,0,0,0.08);
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  background: rgba(39, 174, 96, 0.06);
+  transform: translateY(-1px);
+}
+
+.chipActive {
+  background: var(--chip-color, var(--color-primary));
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--chip-color, var(--color-primary)) 40%, transparent);
+}
+
+.chipActiveMaterial {
+  background: var(--color-black) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+.chipDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.clearFilter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1.5px solid rgba(239, 68, 68, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.clearFilter:hover {
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.clearFilterIcon {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Active Pills ── */
+.activePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 2px;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.activePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 14px;
+  border-radius: 999px;
+  background: rgba(39, 174, 96, 0.1);
+  color: var(--color-primary-dark);
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(39, 174, 96, 0.2);
+}
+
+.activePill button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--color-primary-dark);
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.activePill button:hover { opacity: 1; }
+
+.pillX {
+  width: 12px;
+  height: 12px;
+}
+
+/* ── Material badge on card ── */
+.cardBadgeMaterial {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: var(--color-gray-600) !important;
+}
+
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 48px;
+  margin-bottom: 8px;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.pageBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0,0,0,0.08);
+  background: var(--color-white);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.pageBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.pageBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pageNum {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 6px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0,0,0,0.08);
+  background: var(--color-white);
+  color: var(--color-gray-600);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.pageNum:hover:not(.pageNumActive) {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.pageNumActive {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 14px rgba(39, 174, 96, 0.35);
+  transform: scale(1.05);
+}
+
+.pageEllipsis {
+  color: var(--color-gray-400);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0 2px;
+  line-height: 40px;
+}
+
+
 .pageShell {
   min-height: 100vh;
   padding: 24px 24px 0;
@@ -257,8 +491,103 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
   animation: fadeInUp 0.5s ease-out 0.2s both;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sectionHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Filter Toggle Button ── */
+.filterToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid rgba(0,0,0,0.1);
+  background: var(--color-white);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filterToggleBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.filterToggleBtnActive {
+  background: var(--color-black) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+}
+
+.filterToggleBtnHasFilter {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.filterToggleIcon {
+  width: 13px;
+  height: 13px;
+}
+
+.filterDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  border: 1.5px solid var(--color-white);
+}
+
+/* ── Collapsible Filter Panel ── */
+.filterPanel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.2, 1, 0.3, 1), margin-bottom 0.4s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.3s ease, visibility 0s 0.4s;
+  opacity: 0;
+  margin-bottom: 0;
+  visibility: hidden;
+}
+
+.filterPanelOpen {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-bottom: 24px;
+  visibility: visible;
+  transition: grid-template-rows 0.4s cubic-bezier(0.2, 1, 0.3, 1), margin-bottom 0.4s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.3s ease, visibility 0s 0s;
+}
+
+.filterPanelInnerWrapper {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.filterPanelInner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--color-white);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 20px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
 }
 
 .sectionHeaderLeft {
@@ -295,12 +624,11 @@
   font-weight: 600;
 }
 
-/* ── Grid ── */
+/* ── Grid with stagger animation ── */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  animation: fadeInUp 0.5s ease-out 0.25s both;
 }
 
 .card {
@@ -314,6 +642,9 @@
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  /* Stagger: each card animates in with delay based on its index */
+  animation: cardSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--stagger-i, 0) * 70ms);
 }
 
 .card:hover {
@@ -583,14 +914,13 @@
 
 /* ── Animation ── */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ── Responsive ── */
