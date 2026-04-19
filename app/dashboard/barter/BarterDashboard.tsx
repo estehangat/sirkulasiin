@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { respondBarterOffer } from "@/app/actions/barter";
-import { Inbox, Send, ArrowRightLeft, CheckCircle2, XCircle, Clock, Banknote, ShieldCheck, HelpCircle, Store, X, MessageSquare } from "lucide-react";
+import { Inbox, Send, ArrowRightLeft, CheckCircle2, XCircle, Clock, Banknote, ShieldCheck, HelpCircle, Store, X, MessageSquare, AlertCircle } from "lucide-react";
 
 export type Listing = {
   id: string;

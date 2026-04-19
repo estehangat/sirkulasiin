@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import {
   LayoutDashboard,
@@ -15,6 +16,7 @@ import {
   Settings,
   ArrowLeft,
   Leaf,
+  LogOut,
 } from "lucide-react";
 
 type AccountNavItem = {
@@ -224,6 +226,159 @@ function BackLink() {
       <ArrowLeft size={15} />
       Kembali ke Area Publik
     </Link>
+  );
+}
+
+// ─── Logout Button ────────────────────────────────────────────────────────────
+function LogoutButton() {
+  const [hovered, setHovered] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoggingOut(false);
+      setShowConfirm(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => setShowConfirm(true)}
+        disabled={isLoggingOut}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        title="Keluar dari akun"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "36px",
+          height: "36px",
+          borderRadius: "10px",
+          border: hovered ? "1px solid #fecaca" : "1px solid transparent",
+          background: hovered ? "#fef2f2" : "transparent",
+          color: hovered ? "#ef4444" : "#A3A39B",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          flexShrink: 0,
+        }}
+      >
+        <LogOut size={16} />
+      </button>
+
+      {showConfirm && typeof document !== "undefined" && createPortal(
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(4px)",
+          WebkitBackdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: "20px",
+          animation: "fadeIn 0.2s ease-out"
+        }}>
+          <style>{`
+            @keyframes slideUpFade {
+              from { opacity: 0; transform: scale(0.95) translateY(10px); }
+              to { opacity: 1; transform: scale(1) translateY(0); }
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+          `}</style>
+          <div style={{
+            background: "#fff",
+            borderRadius: "24px",
+            padding: "32px",
+            width: "100%",
+            maxWidth: "380px",
+            boxShadow: "0 24px 48px rgba(0,0,0,0.1)",
+            animation: "slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+            textAlign: "center"
+          }}>
+            <div style={{
+              width: "64px",
+              height: "64px",
+              borderRadius: "50%",
+              background: "#fef2f2",
+              color: "#ef4444",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 20px"
+            }}>
+              <LogOut size={32} />
+            </div>
+            <h3 style={{ fontSize: "20px", fontWeight: 800, color: "#111827", marginBottom: "8px" }}>
+              Keluar dari Akun?
+            </h3>
+            <p style={{ fontSize: "14px", color: "#6B7280", marginBottom: "32px", lineHeight: 1.5 }}>
+              Apakah Anda yakin ingin mengakhiri sesi ini? Anda harus login kembali untuk mengakses profil Anda.
+            </p>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                onClick={() => setShowConfirm(false)}
+                disabled={isLoggingOut}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  borderRadius: "14px",
+                  background: "#F4F4F0",
+                  border: "1px solid #EFEFEB",
+                  color: "#52524C",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  borderRadius: "14px",
+                  background: "#ef4444",
+                  border: "none",
+                  color: "#fff",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  cursor: isLoggingOut ? "wait" : "pointer",
+                  opacity: isLoggingOut ? 0.7 : 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 4px 12px rgba(239, 68, 68, 0.2)"
+                }}
+              >
+                {isLoggingOut ? "Memproses..." : "Ya, Keluar"}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
 
@@ -501,6 +656,7 @@ export default function DashboardLayout({
                 {user.email}
               </p>
             </div>
+            <LogoutButton />
           </div>
         )}
       </aside>
