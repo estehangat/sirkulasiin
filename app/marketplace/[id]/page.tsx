@@ -94,6 +94,7 @@ export default async function ProductDetailPage({
                 alt={listing.title}
                 fill
                 priority
+                unoptimized
                 sizes="(max-width: 1024px) 100vw, 58vw"
                 className={styles.mainImageImg}
               />

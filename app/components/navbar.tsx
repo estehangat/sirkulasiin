@@ -24,7 +24,7 @@ const navItems: Array<{ key: NavbarKey; label: string; href: string }> = [
   { key: "home", label: "Beranda", href: "/" },
   { key: "marketplace", label: "Marketplace", href: "/marketplace" },
   { key: "scan", label: "Scan", href: "/scan" },
-  { key: "tutorial", label: "Tutorial", href: "/tutorial" },
+  { key: "tutorial", label: "Daur Ulang", href: "/tutorial" },
   { key: "tentang", label: "Tentang/Cara Kerja", href: "/tentang" },
 ];
 
