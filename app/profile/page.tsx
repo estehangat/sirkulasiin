@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Navbar from "../components/navbar";
 import ProfileClientActions from "./ProfileClientActions";
+import FollowStatsClient from "./FollowStatsClient";
 import GalleryClient from "./GalleryClient";
 import styles from "./profile.module.css";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
@@ -62,6 +63,28 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   }
 
   const isOwnProfile = currentUser?.id === profile.id;
+
+  // Fetch Follow Stats
+  const { count: followersCount } = await supabase
+    .from("user_follows")
+    .select("*", { count: "exact", head: true })
+    .eq("following_id", targetId);
+
+  const { count: followingCount } = await supabase
+    .from("user_follows")
+    .select("*", { count: "exact", head: true })
+    .eq("follower_id", targetId);
+
+  let isFollowing = false;
+  if (currentUser && !isOwnProfile) {
+    const { data: followData } = await supabase
+      .from("user_follows")
+      .select()
+      .eq("follower_id", currentUser.id)
+      .eq("following_id", targetId)
+      .maybeSingle();
+    isFollowing = !!followData;
+  }
 
   const joinDate = new Date(profile.created_at || Date.now()).toLocaleDateString("id-ID", {
     month: "long",
@@ -165,7 +188,12 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <div className={styles.heroContent}>
               <div className={styles.heroHeaderRow}>
                 <h1 className={styles.userName}>{profile.full_name || profile.username || "Pengguna Anonim"}</h1>
-                <ProfileClientActions targetUserId={profile.id} isOwnProfile={isOwnProfile} />
+                <ProfileClientActions 
+                  targetUserId={profile.id} 
+                  targetUserName={profile.full_name || profile.username || "Pengguna ini"}
+                  isOwnProfile={isOwnProfile} 
+                  initialIsFollowing={isFollowing} 
+                />
               </div>
               <p className={styles.userBio}>
                 {profile.bio || "Bergabung dengan komunitas untuk mendukung gaya hidup sirkular dan ramah lingkungan. 🌱"}
@@ -180,6 +208,12 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                   <span>Bergabung sejak {joinDate}</span>
                 </div>
               </div>
+
+              <FollowStatsClient 
+                userId={profile.id}
+                initialFollowersCount={followersCount || 0}
+                initialFollowingCount={followingCount || 0}
+              />
             </div>
           </section>
 
@@ -312,22 +346,18 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                 marginTop: "24px"
               }}>
                 {rowItems.map((item) => (
-                  <Link href={`/marketplace/${item.id}`} key={item.id} style={{textDecoration: "none"}}>
-                    <div style={{
-                      backgroundColor: "#fff", borderRadius: "16px", overflow: "hidden", 
-                      border: "1px solid #EFEFEB", boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-                      display: "flex", flexDirection: "column", transition: "transform 0.2s", height: "100%"
-                    }} onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"} onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}>
-                      <div style={{ width: "100%", height: "180px", position: "relative", backgroundColor: "#f5f5f4" }}>
+                  <Link href={`/marketplace/${item.id}`} key={item.id} className={styles.smallMarketplaceLink}>
+                    <div className={styles.smallMarketplaceCard}>
+                      <div className={styles.smallMarketplaceImgWrap}>
                          {item.image_url ? (
-                           <img src={item.image_url} alt={item.title} style={{width: "100%", height: "100%", objectFit: "cover"}} />
-                         ) : <div style={{width: "100%", height: "100%", backgroundColor: "#e2e3de"}} />}
+                           <img src={item.image_url} alt={item.title} className={styles.smallMarketplaceImg} />
+                         ) : <div className={styles.smallMarketplaceImgPlaceholder} />}
                       </div>
-                      <div style={{ padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1 }}>
-                         <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#1A1A1A", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      <div className={styles.smallMarketplaceContent}>
+                         <h3 className={styles.smallMarketplaceTitle}>
                            {item.title}
                          </h3>
-                         <p style={{ color: "#006a35", fontWeight: 800, fontSize: "14px", marginTop: "8px" }}>
+                         <p className={styles.smallMarketplacePrice}>
                            {formatRupiah(item.price)}
                          </p>
                       </div>

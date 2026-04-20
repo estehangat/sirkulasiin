@@ -3,16 +3,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { toggleFollow } from "@/app/actions/follow";
+import FollowButton from "@/app/components/FollowButton";
 import styles from "./profile.module.css";
 
 export default function ProfileClientActions({ 
   targetUserId, 
-  isOwnProfile 
+  targetUserName,
+  isOwnProfile,
+  initialIsFollowing = false
 }: { 
   targetUserId: string;
+  targetUserName: string;
   isOwnProfile?: boolean;
+  initialIsFollowing?: boolean;
 }) {
-  const [loading, setLoading] = useState(false);
+  const [messageLoading, setMessageLoading] = useState(false);
   const router = useRouter();
 
   const handleMessage = async () => {
@@ -29,7 +35,7 @@ export default function ProfileClientActions({
       return;
     }
 
-    setLoading(true);
+    setMessageLoading(true);
     try {
       const res = await fetch("/api/chat/room", {
         method: "POST",
@@ -44,13 +50,8 @@ export default function ProfileClientActions({
       console.error("Message error:", err);
       // In a real app we'd show a toast here
     } finally {
-      setLoading(false);
+      setMessageLoading(false);
     }
-  };
-
-  const handleFollow = () => {
-    // Follow fungsinya nanti dulu as requested
-    alert("Fungsi Follow akan segera hadir!");
   };
 
   if (isOwnProfile) {
@@ -69,20 +70,18 @@ export default function ProfileClientActions({
 
   return (
     <div className={styles.heroButtons}>
-      <button 
-        type="button" 
-        className={styles.btnFollow} 
-        onClick={handleFollow}
-      >
-        Ikuti
-      </button>
+      <FollowButton 
+        targetUserId={targetUserId}
+        targetUserName={targetUserName}
+        initialIsFollowing={initialIsFollowing}
+      />
       <button 
         type="button" 
         className={styles.btnMessage} 
         onClick={handleMessage}
-        disabled={loading}
+        disabled={messageLoading}
       >
-        {loading ? "Menghubungkan..." : "Pesan"}
+        {messageLoading ? "Menghubungkan..." : "Pesan"}
       </button>
     </div>
   );
