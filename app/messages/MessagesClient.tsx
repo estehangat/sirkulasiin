@@ -542,7 +542,7 @@ export default function MessagesClient({
           <>
             {/* Header */}
             <div className={styles.chatHeader}>
-              <div className={styles.chatHeaderUser}>
+              <Link href={`/profile?id=${activeRoom.other_user.id}`} className={styles.chatHeaderUser} style={{ textDecoration: "none", color: "inherit" }}>
                 <AvatarEl name={activeRoom.other_user.name} avatar={activeRoom.other_user.avatar} size={40} />
                 <div>
                   <p className={styles.chatHeaderName}>{activeRoom.other_user.name}</p>
@@ -551,7 +551,7 @@ export default function MessagesClient({
                     Online
                   </p>
                 </div>
-              </div>
+              </Link>
             </div>
 
             {/* Messages */}

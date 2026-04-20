@@ -14,6 +14,7 @@ export type Listing = {
 };
 
 export type Profile = {
+  id: string;
   full_name: string | null;
   username: string | null;
   avatar_url: string | null;
@@ -185,7 +186,7 @@ export default function BarterDashboard({
                 
                 {/* Header Profile */}
                 <div style={{ padding: "16px 20px", borderBottom: "1px solid #f5f5f4", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fafaf9" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <Link href={`/profile?id=${offer.profiles?.id}`} style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none", color: "inherit" }}>
                     {offer.profiles?.avatar_url ? (
                        <Image src={offer.profiles.avatar_url} alt={offererName} width={36} height={36} style={{ borderRadius: "50%", objectFit: "cover" }} unoptimized />
                     ) : (
@@ -197,7 +198,7 @@ export default function BarterDashboard({
                       <p style={{ fontSize: "14px", fontWeight: 800, color: "#1A1A1A" }}>{offererName}</p>
                       <p style={{ fontSize: "12px", color: "#A3A39B" }}>{formatDate(offer.created_at)}</p>
                     </div>
-                  </div>
+                  </Link>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 800, background: sDesign.bg, color: sDesign.text, border: `1px solid ${sDesign.border}`, padding: "4px 10px", borderRadius: "99px" }}>
                      {sDesign.icon} {sDesign.label}
                   </span>

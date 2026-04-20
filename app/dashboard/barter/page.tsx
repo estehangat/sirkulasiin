@@ -13,6 +13,7 @@ type RawListing = {
 };
 
 type RawProfile = {
+  id: string;
   full_name: string | null;
   username: string | null;
   avatar_url: string | null;
@@ -48,7 +49,7 @@ export default async function BarterPage() {
       cash_addition, message, seller_response,
       listing_id,
       marketplace_listings!inner ( id, title, image_url, price ),
-      profiles!barter_offers_offerer_id_fkey ( full_name, username, avatar_url )
+      profiles!barter_offers_offerer_id_fkey ( id, full_name, username, avatar_url )
     `)
     .in(
       "listing_id",

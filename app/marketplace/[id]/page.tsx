@@ -140,7 +140,7 @@ export default async function ProductDetailPage({
           )}
 
           {/* Seller Card */}
-          <div className={styles.sellerCard}>
+          <Link href={`/profile?id=${listing.user_id}`} className={styles.sellerCard} style={{ textDecoration: 'none', color: 'inherit' }}>
             <div className={styles.sellerInfo}>
               {sellerAvatar ? (
                 <div className={styles.sellerAvatar}>
@@ -173,7 +173,7 @@ export default async function ProductDetailPage({
               </div>
             </div>
             <span className={styles.sellerArrow}>›</span>
-          </div>
+          </Link>
 
           {/* Description */}
           <div className={styles.description}>

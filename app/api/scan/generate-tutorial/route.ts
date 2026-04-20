@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const TEXT_MODEL = "llama-3.3-70b-versatile";
 
-const HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell";
+const HF_IMAGE_MODEL = "unsloth/Qwen3.6-35B-A3B-GGUF";
 const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_IMAGE_MODEL}`;
 
 const TUTORIAL_SYSTEM_PROMPT = `You are a creative DIY tutorial writer for SirkulasiIn, a circular economy platform.
