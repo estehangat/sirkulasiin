@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import styles from "./profile.module.css";
 
-export default function ProfileClientActions({ targetUserId }: { targetUserId: string }) {
+export default function ProfileClientActions({ 
+  targetUserId, 
+  isOwnProfile 
+}: { 
+  targetUserId: string;
+  isOwnProfile?: boolean;
+}) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -46,6 +52,20 @@ export default function ProfileClientActions({ targetUserId }: { targetUserId: s
     // Follow fungsinya nanti dulu as requested
     alert("Fungsi Follow akan segera hadir!");
   };
+
+  if (isOwnProfile) {
+    return (
+      <div className={styles.heroButtons}>
+        <button 
+          type="button" 
+          className={styles.btnEditProfile} 
+          onClick={() => router.push("/dashboard/settings")}
+        >
+          Ubah Profile
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.heroButtons}>

@@ -50,3 +50,10 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   pointer-events: none;
 }
+
+@media (max-width: 767px) {
+  .fab {
+    bottom: 95px; /* Dinikkan agar di atas bottom nav bar */
+    right: 16px;
+  }
+}

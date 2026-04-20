@@ -215,6 +215,22 @@
   opacity: 0.9;
 }
 
+.btnEditProfile {
+  background-color: #ece1cd;
+  color: #585142;
+  padding: 8px 24px;
+  border-radius: 999px;
+  font-weight: 700;
+  border: 1px solid #d6c9b0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnEditProfile:hover {
+  background-color: #e5d8bf;
+  transform: translateY(-1px);
+}
+
 .userBio {
   font-size: 18px;
   color: #5a5c59;

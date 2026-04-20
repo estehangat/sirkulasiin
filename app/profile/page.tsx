@@ -28,11 +28,13 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
   const supabase = await createServerSupabaseClient();
 
+  // Get current user session for own-profile check
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
+
   // If no ID is provided, try to show the current user's profile, else redirect or show not found
   let targetId = id;
   if (!targetId) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    if (!currentUser) {
       return (
         <div className={styles.pageShell}>
           <Navbar />
@@ -45,7 +47,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         </div>
       );
     }
-    targetId = user.id;
+    targetId = currentUser.id;
   }
 
   // Fetch Profile
@@ -58,6 +60,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   if (profileErr || !profile) {
     notFound();
   }
+
+  const isOwnProfile = currentUser?.id === profile.id;
 
   const joinDate = new Date(profile.created_at || Date.now()).toLocaleDateString("id-ID", {
     month: "long",
@@ -161,7 +165,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <div className={styles.heroContent}>
               <div className={styles.heroHeaderRow}>
                 <h1 className={styles.userName}>{profile.full_name || profile.username || "Pengguna Anonim"}</h1>
-                <ProfileClientActions targetUserId={profile.id} />
+                <ProfileClientActions targetUserId={profile.id} isOwnProfile={isOwnProfile} />
               </div>
               <p className={styles.userBio}>
                 {profile.bio || "Bergabung dengan komunitas untuk mendukung gaya hidup sirkular dan ramah lingkungan. 🌱"}

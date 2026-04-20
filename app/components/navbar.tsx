@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase";
 import { logout } from "@/app/actions/auth";
+import { Home, Store, Camera, Recycle, HelpCircle, User, LayoutDashboard, LogOut } from "lucide-react";
 import styles from "./navbar.module.css";
 
 type NavbarKey = "home" | "marketplace" | "scan" | "tutorial" | "tentang";
@@ -157,7 +158,8 @@ export default function Navbar({ activeNav }: NavbarProps) {
   };
 
   return (
-    <header className={styles.topbar}>
+    <>
+      <header className={styles.topbar}>
       <div className={styles.brandWrap}>
         <div className={styles.brandMark} aria-hidden>
           <IconBrandLogo />
@@ -166,112 +168,147 @@ export default function Navbar({ activeNav }: NavbarProps) {
       </div>
 
       <nav className={styles.mainNav} aria-label="Navigasi utama">
-        {navItems.map((item) => {
-          const isActive = item.key === activeNav;
-          const className = getNavClassName(isActive);
+        <div className={styles.navInner}>
+          {navItems.map((item) => {
+            const isActive = item.key === activeNav;
+            const className = getNavClassName(isActive);
 
-          if (item.href.startsWith("#")) {
+            if (item.href.startsWith("#")) {
+              return (
+                <a
+                  key={item.key}
+                  href={item.href}
+                  className={className}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {item.label}
+                </a>
+              );
+            }
+
             return (
-              <a
+              <Link
                 key={item.key}
                 href={item.href}
                 className={className}
                 aria-current={isActive ? "page" : undefined}
               >
                 {item.label}
-              </a>
+              </Link>
             );
-          }
-
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              className={className}
-              aria-current={isActive ? "page" : undefined}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
+          })}
+        </div>
       </nav>
 
-      {/* ── Auth Section ── */}
-      {!user ? (
-        <div className={styles.authCta}>
-          <Link href="/login" className={styles.loginBtn}>
-            Masuk
-          </Link>
-          <Link href="/signup" className={styles.signupBtn}>
-            Daftar
-          </Link>
-        </div>
-      ) : (
-        <div className={styles.profileWrap} ref={dropdownRef}>
-          <button
-            className={styles.profileBtn}
-            onClick={() => setDropdownOpen((v) => !v)}
-            aria-label="Menu profil"
-            aria-expanded={dropdownOpen}
-            type="button"
-          >
-            {user.avatar ? (
-              <Image
-                src={user.avatar}
-                alt={user.name}
-                width={36}
-                height={36}
-                className={styles.profileAvatar}
-                unoptimized
-              />
-            ) : (
-              <span className={styles.profileInitials}>
-                {getInitials(user.name)}
-              </span>
-            )}
-          </button>
+      <div className={styles.rightSection}>
+        {/* ── Auth Section ── */}
+        {!user ? (
+          <div className={styles.authCta}>
+            <Link href="/login" className={styles.loginBtn}>
+              Masuk
+            </Link>
+            <Link href="/signup" className={styles.signupBtn}>
+              Daftar
+            </Link>
+          </div>
+        ) : (
+          <div className={styles.profileWrap} ref={dropdownRef}>
+            <button
+              className={styles.profileBtn}
+              onClick={() => setDropdownOpen((v) => !v)}
+              aria-label="Menu profil"
+              aria-expanded={dropdownOpen}
+              type="button"
+            >
+              {user.avatar ? (
+                <Image
+                  src={user.avatar}
+                  alt={user.name}
+                  width={36}
+                  height={36}
+                  className={styles.profileAvatar}
+                  unoptimized
+                />
+              ) : (
+                <span className={styles.profileInitials}>
+                  {getInitials(user.name)}
+                </span>
+              )}
+            </button>
 
-          {dropdownOpen && (
-            <div className={styles.dropdown}>
-              {/* User info header */}
-              <div className={styles.dropdownHeader}>
-                <p className={styles.dropdownName}>{user.name}</p>
-                <p className={styles.dropdownEmail}>{user.email}</p>
+            {dropdownOpen && (
+              <div className={styles.dropdown}>
+                {/* User info header */}
+                <div className={styles.dropdownHeader}>
+                  <p className={styles.dropdownName}>{user.name}</p>
+                  <p className={styles.dropdownEmail}>{user.email}</p>
+                </div>
+                <div className={styles.dropdownDivider} />
+
+                {/* Menu items */}
+                <Link
+                  href="/dashboard"
+                  className={styles.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <LayoutDashboard size={16} />
+                  Dashboard
+                </Link>
+                <Link
+                  href="/profile"
+                  className={styles.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <User size={16} />
+                  Profil
+                </Link>
+
+                <div className={styles.dropdownDivider} />
+
+                <button
+                  className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
+                  onClick={handleLogout}
+                  type="button"
+                >
+                  <LogOut size={16} />
+                  Keluar
+                </button>
               </div>
-              <div className={styles.dropdownDivider} />
-
-              {/* Menu items */}
-              <Link
-                href="/dashboard"
-                className={styles.dropdownItem}
-                onClick={() => setDropdownOpen(false)}
-              >
-                <LayoutDashboardIcon />
-                Dashboard
-              </Link>
-              <Link
-                href="/dashboard/settings"
-                className={styles.dropdownItem}
-                onClick={() => setDropdownOpen(false)}
-              >
-                <UserIcon />
-                Profil
-              </Link>
-
-              <div className={styles.dropdownDivider} />
-
-              <button
-                className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`}
-                onClick={handleLogout}
-                type="button"
-              >
-                <LogOutIcon />
-                Keluar
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
     </header>
+
+    {/* ── Mobile Bottom Navigation ── */}
+    <nav className={styles.bottomNav}>
+       <Link href="/" className={`${styles.bottomNavItem} ${activeNav === 'home' ? styles.bottomNavItemActive : ''}`}>
+          <Home size={22} strokeWidth={activeNav === 'home' ? 2.5 : 2} />
+          <span>Beranda</span>
+       </Link>
+       
+       <Link href="/marketplace" className={`${styles.bottomNavItem} ${activeNav === 'marketplace' ? styles.bottomNavItemActive : ''}`}>
+          <Store size={22} strokeWidth={activeNav === 'marketplace' ? 2.5 : 2} />
+          <span>Marketplace</span>
+       </Link>
+       
+       <div className={styles.scanBtnContainer}>
+         <Link href="/scan" className={styles.scanBtn}>
+            <Camera size={28} color="#fff" strokeWidth={2.5} />
+            <span className={styles.scanLabel}>SCAN</span>
+         </Link>
+       </div>
+       
+       <Link href="/tutorial" className={`${styles.bottomNavItem} ${activeNav === 'tutorial' ? styles.bottomNavItemActive : ''}`}>
+          <Recycle size={22} strokeWidth={activeNav === 'tutorial' ? 2.5 : 2} />
+          <span>Daur ulang</span>
+       </Link>
+       
+       <Link href="/tentang" className={`${styles.bottomNavItem} ${activeNav === 'tentang' ? styles.bottomNavItemActive : ''}`}>
+          <HelpCircle size={22} strokeWidth={activeNav === 'tentang' ? 2.5 : 2} />
+          <span>Tentang</span>
+       </Link>
+    </nav>
+    </>
   );
 }
