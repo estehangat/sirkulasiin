@@ -19,6 +19,8 @@ import {
   LogOut,
   Loader2,
 } from "lucide-react";
+import { NotificationProvider } from "@/app/context/NotificationContext";
+import NotificationBell from "@/app/components/NotificationBell";
 
 type AccountNavItem = {
   label: string;
@@ -509,14 +511,15 @@ export default function DashboardLayout({
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        gridTemplateColumns: "272px minmax(0, 1fr)",
-        background: "#F4F4F0",
-      }}
-    >
+    <NotificationProvider>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "grid",
+          gridTemplateColumns: "272px minmax(0, 1fr)",
+          background: "#F4F4F0",
+        }}
+      >
       {/* ── Sidebar ───────────────────────────────────── */}
       <aside
         style={{
@@ -726,12 +729,21 @@ export default function DashboardLayout({
             alignItems: "center",
             gap: "16px",
             marginBottom: "28px",
-            overflow: "hidden",
+            // overflow: "hidden", // Removed to prevent cutting off the notification dropdown
           }}
         >
-          {/* Aesthetic background blobs */}
-          <div style={{ position: "absolute", top: "-50px", right: "-20px", width: "150px", height: "150px", background: "radial-gradient(circle, rgba(39,174,96,0.15) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", bottom: "-30px", left: "20%", width: "120px", height: "120px", background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+          {/* Aesthetic background blobs clipped container */}
+          <div style={{ 
+            position: "absolute", 
+            inset: 0, 
+            borderRadius: "24px", 
+            overflow: "hidden", 
+            pointerEvents: "none",
+            zIndex: 0 
+          }}>
+            <div style={{ position: "absolute", top: "-50px", right: "-20px", width: "150px", height: "150px", background: "radial-gradient(circle, rgba(39,174,96,0.15) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%" }} />
+            <div style={{ position: "absolute", bottom: "-30px", left: "20%", width: "120px", height: "120px", background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%" }} />
+          </div>
 
           <div style={{ position: "relative", zIndex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
@@ -765,6 +777,36 @@ export default function DashboardLayout({
             <p style={{ color: "#6B7280", fontSize: "15px", fontWeight: 500 }}>
               {headerMeta.subtitle}
             </p>
+          </div>
+
+          <div 
+            style={{ 
+              marginLeft: "auto", 
+              marginRight: "16px", 
+              position: "relative", 
+              zIndex: 2,
+              background: "#ffffff",
+              border: "1px solid rgba(229, 231, 235, 0.8)",
+              borderRadius: "50%",
+              width: "46px",
+              height: "46px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+              transition: "transform 0.2s, box-shadow 0.2s",
+              cursor: "pointer",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 8px 24px rgba(39,174,96,0.08)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.03)";
+            }}
+          >
+            <NotificationBell />
           </div>
 
           {/* Profile pill */}
@@ -808,6 +850,7 @@ export default function DashboardLayout({
                 {user?.email || "Belum login"}
               </p>
             </div>
+
             <div
               style={{
                 width: "46px",
@@ -847,8 +890,9 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        {children}
-      </main>
-    </div>
+          {children}
+        </main>
+      </div>
+    </NotificationProvider>
   );
 }

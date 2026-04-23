@@ -235,6 +235,27 @@ function RecycleTutorialPageContent() {
           const tutorialData = data as TutorialData;
           setTutorial(tutorialData);
 
+          // Auto-generate final image if missing
+          if (!tutorialData.final_image_url && tutorialData.scan_id) {
+            fetch("/api/scan/generate-tutorial", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ scanId: tutorialData.scan_id }),
+            })
+              .then((r) => r.json())
+              .then((res) => {
+                if (res.tutorialId) {
+                  // Re-fetch tutorial data to get the newly generated image
+                  supabase.from("recycle_tutorials").select("final_image_url").eq("id", res.tutorialId).single().then(({data}) => {
+                    if (data?.final_image_url) {
+                      setTutorial((prev) => prev ? { ...prev, final_image_url: data.final_image_url } : prev);
+                    }
+                  });
+                }
+              })
+              .catch(() => {});
+          }
+
           // Auto-enrich steps with Lucide icon names if missing
           const steps = Array.isArray(tutorialData.steps) ? tutorialData.steps : [];
           const needsIcons = steps.some((s: TutorialStep) => !s.iconName);

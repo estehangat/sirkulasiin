@@ -18,10 +18,30 @@ function formatRupiah(price: number) {
 
 function parseCarbonString(str: string | null): number {
   if (!str) return 0;
-  // ambil angka (termasuk desimal) dari string seperti "2.5kg CO2" atau "10"
-  const match = str.match(/[\d.]+/);
-  if (match) return parseFloat(match[0]);
-  return 0;
+  
+  // 1. Bersihkan kata "CO2" agar angka '2'-nya tidak ikut terhitung
+  let cleaned = str.replace(/CO2/gi, '');
+  
+  // 2. Normalisasi koma ke titik
+  cleaned = cleaned.replace(',', '.');
+  
+  // 3. Ambil angka pertama yang tersisa
+  const match = cleaned.match(/[\d.]+/);
+  if (!match) return 0;
+  
+  let value = parseFloat(match[0]);
+  
+  // Proteksi: Jika hasil parse bukan angka (NaN), kembalikan 0
+  if (isNaN(value)) return 0;
+  
+  // 4. Logika Pembersihan Data Lama (Skor 0-100 vs Berat KG)
+  const hasKg = str.toLowerCase().includes('kg');
+  if (value > 5 && !hasKg) {
+    value = value / 100;
+  }
+  
+  // Batas maksimum realistis per barang (misal 5kg)
+  return Math.min(value, 5);
 }
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
@@ -102,44 +122,75 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
   const activeListingsCount = listings?.length || 0;
 
-  const { data: submissionsData, count: submissionsCount } = await supabase
-    .from("tutorial_submissions")
-    .select("id, photo_url, tutorial_id, recycle_tutorials(title)", { count: "exact" })
-    .eq("user_id", targetId)
-    .order("created_at", { ascending: false })
-    .limit(15);
 
-  // 1. Kalkulasi CO2 dari Marketplace Listings (mengabaikan status karena item yang sudah terjual juga dihitung dampaknya)
+
+  // 1. Ambil data Marketplace
   const { data: allListingsForCarbon } = await supabase
     .from("marketplace_listings")
-    .select("carbon_saved")
+    .select("id, created_at, title, carbon_saved")
     .eq("user_id", targetId);
   const marketplaceCo2 = (allListingsForCarbon || []).reduce((acc, row) => acc + parseCarbonString(row.carbon_saved), 0);
 
-  // 2. Kalkulasi CO2 dari Tutorial Submissions melalui relasi scan_history
-  const { data: tutorialSubmissionsForCarbon } = await supabase
-    .from("tutorial_submissions")
-    .select(`
-      recycle_tutorials (
-        scan_id
-      )
-    `)
-    .eq("user_id", targetId);
-
-  const scanIds = (tutorialSubmissionsForCarbon || [])
-    // @ts-expect-error tipe relasi dari supabase dapat berupa array atau objek statis
-    .map(sub => Array.isArray(sub.recycle_tutorials) ? sub.recycle_tutorials[0]?.scan_id : sub.recycle_tutorials?.scan_id)
-    .filter(Boolean);
-
-  let tutorialsCo2 = 0;
-  if (scanIds.length > 0) {
-    const { data: scans } = await supabase
+  // 2. Ambil data Daur Ulang & Scan History (Gabungan)
+  const [{ data: submissionsData, count: submissionsCount }, { data: scanHistory }] = await Promise.all([
+    supabase
+      .from("tutorial_submissions")
+      .select(`
+        id, created_at, photo_url, eco_points_earned,
+        recycle_tutorials ( title, scan_history ( carbon_saved ) )
+      `, { count: "exact" })
+      .eq("user_id", targetId)
+      .order("created_at", { ascending: false })
+      .limit(15),
+    supabase
       .from("scan_history")
-      .select("carbon_offset")
-      .in("id", scanIds);
-    tutorialsCo2 = (scans || []).reduce((acc, row) => acc + (row.carbon_offset || 0), 0);
-  }
+      .select("id, created_at, item_name, recommendation")
+      .eq("user_id", targetId)
+      .order("created_at", { ascending: false })
+      .limit(10)
+  ]);
 
+  const itemsRecycled = submissionsCount || 0;
+
+  // Kalkulasi CO2 Daur Ulang dari data gabungan
+  const tutorialsCo2 = (submissionsData || []).reduce((acc, sub) => {
+    // @ts-expect-error handling nested relation
+    const carbonStr = sub.recycle_tutorials?.scan_history?.carbon_saved;
+    return acc + parseCarbonString(carbonStr);
+  }, 0);
+
+  // ═══ 3. Persiapan Data Linimasa Dampak ═══
+  const timelineActivities = [
+    ...(allListingsForCarbon || []).map(item => ({
+      id: item.id,
+      date: new Date(item.created_at || Date.now()),
+      type: 'marketplace',
+      title: item.title,
+      description: 'Menambahkan barang ke marketplace',
+      impact: item.carbon_saved
+    })),
+    ...(submissionsData || []).map(sub => {
+      // @ts-expect-error handling nested relation
+      const co2 = sub.recycle_tutorials?.scan_history?.carbon_saved;
+      return {
+        id: sub.id,
+        date: new Date((sub as any).created_at || Date.now()),
+        type: 'tutorial',
+        // @ts-expect-error handling nested relation
+        title: sub.recycle_tutorials?.title || 'Proyek Daur Ulang',
+        description: 'Menyelesaikan proyek daur ulang',
+        impact: co2 ? `${co2} • +${sub.eco_points_earned} Poin` : `+${sub.eco_points_earned} Poin`
+      };
+    }),
+    ...(scanHistory || []).map(scan => ({
+      id: scan.id,
+      date: new Date(scan.created_at || Date.now()),
+      type: 'scan',
+      title: scan.item_name,
+      description: `Melakukan analisis sampah (${scan.recommendation})`,
+      impact: null
+    }))
+  ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 10);
   const galleryItems = submissionsData ?? [];
   const marketplaceItemsAll = listings ?? [];
   
@@ -147,7 +198,6 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const rowItems = marketplaceItemsAll.slice(4, 9);
   const hasMoreMarketplace = marketplaceItemsAll.length > 9;
   
-  const itemsRecycled = submissionsCount || 0;
   const co2Saved = marketplaceCo2 + tutorialsCo2;
 
   return (
@@ -387,6 +437,37 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                 <Link className={styles.linkViewAll} href={`/profile/gallery?id=${targetId}`}>Lihat Semua Proyek</Link>
               </div>
               <GalleryClient items={galleryItems as any[]} />
+            </div>
+
+            {/* ═══ Impact Timeline ═══ */}
+            <div id="timeline" className={styles.timelineSection} style={{ scrollMarginTop: '80px' }}>
+              <h2 className={styles.galleryTitle}>Linimasa Dampak</h2>
+              <div className={styles.timelineContainer}>
+                {timelineActivities.length > 0 ? (
+                  timelineActivities.map((act, idx) => (
+                    <div key={act.id + idx} className={styles.timelineItem}>
+                      <div className={styles.timelineDate}>
+                        {act.date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </div>
+                      <div className={styles.timelineDotWrap}>
+                        <div className={`${styles.timelineDot} ${styles[`dot_${act.type}`]}`}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                            {act.type === 'marketplace' ? 'storefront' : act.type === 'scan' ? 'center_focus_weak' : 'recycling'}
+                          </span>
+                        </div>
+                        {idx !== timelineActivities.length - 1 && <div className={styles.timelineLine} />}
+                      </div>
+                      <div className={styles.timelineContent}>
+                        <h4 className={styles.timelineItemTitle}>{act.title}</h4>
+                        <p className={styles.timelineItemDesc}>{act.description}</p>
+                        {act.impact && <span className={styles.timelineImpactTag}>{act.impact}</span>}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.emptyState}>Belum ada aktivitas dampak terekam.</div>
+                )}
+              </div>
             </div>
           </section>
         </main>

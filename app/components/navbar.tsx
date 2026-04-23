@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase";
 import { logout } from "@/app/actions/auth";
 import { Home, Store, Camera, Recycle, HelpCircle, User, LayoutDashboard, LogOut } from "lucide-react";
 import styles from "./navbar.module.css";
+import NotificationBell from "./NotificationBell";
 
 type NavbarKey = "home" | "marketplace" | "scan" | "tutorial" | "tentang";
 
@@ -201,6 +202,9 @@ export default function Navbar({ activeNav }: NavbarProps) {
       </nav>
 
       <div className={styles.rightSection}>
+        {/* ── Notification Bell ── */}
+        {user && <NotificationBell />}
+
         {/* ── Auth Section ── */}
         {!user ? (
           <div className={styles.authCta}>

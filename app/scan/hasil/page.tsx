@@ -234,6 +234,23 @@ function HasilScanPageContent() {
         } else {
           setScanData(data as ScanData);
 
+          // Auto-generate tutorial & image if missing
+          if (data.recommendation === "recycle") {
+            fetch("/api/scan/generate-tutorial", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ scanId: id }),
+            }).then(res => res.json()).then(resData => {
+              if (resData.tutorialId) setTutorialId(resData.tutorialId);
+              // Trigger refresh data scan untuk mendapatkan upcycle_image_url terbaru
+              supabase.from("scan_history").select("upcycle_image_url").eq("id", id).single().then(({data: updated}) => {
+                if (updated?.upcycle_image_url) {
+                  setScanData(prev => prev ? { ...prev, upcycle_image_url: updated.upcycle_image_url } : null);
+                }
+              });
+            }).catch(console.error);
+          }
+
           // Auto-fetch tutorial ID for recycle recommendations
           if (data.recommendation === "recycle") {
             const { data: tut } = await supabase

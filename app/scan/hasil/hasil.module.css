@@ -121,7 +121,7 @@
 
 .verifiedBadge {
   position: relative;
-  z-index: 2;
+  z-index: 5;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -146,6 +146,16 @@
   letter-spacing: -1px;
   color: #fff;
   line-height: 1.15;
+  width: fit-content;
+}
+
+.imageCardTitle::before {
+  content: "";
+  position: absolute;
+  inset: -10px -60px -40px;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.45) 0%, transparent 75%);
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* ── Right Column ── */

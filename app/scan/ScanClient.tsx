@@ -482,7 +482,7 @@ export default function ScanClient({ riwayatScan }: { riwayatScan: Array<{ id: s
             <div className={styles.bottomTags}>
               <span className={`${styles.tagChip} ${styles.tagAI}`}>
                 <BoltIcon />
-                Model AI: Qwen3.6-35B-A3B
+                Model AI: Llama 4 Scout (Multimodal)
               </span>
             </div>
             <button

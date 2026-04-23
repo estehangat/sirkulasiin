@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const TEXT_MODEL = "llama-3.3-70b-versatile";
 
-const HF_IMAGE_MODEL = "unsloth/Qwen3.6-35B-A3B-GGUF";
+const HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell";
 const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_IMAGE_MODEL}`;
 
 const TUTORIAL_SYSTEM_PROMPT = `You are a creative DIY tutorial writer for SirkulasiIn, a circular economy platform.
@@ -99,14 +99,19 @@ async function generateImage(itemName: string, material: string, upcycleIdea: st
       }),
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const errText = await response.text().catch(() => "");
+      console.error(`[HF] Image gen failed: ${response.status}`, errText.slice(0, 300));
+      return null;
+    }
 
     const imageBuffer = await response.arrayBuffer();
     const imageBytes = new Uint8Array(imageBuffer);
     if (imageBytes.length < 1000) return null;
 
     return await uploadBytes(imageBytes, "upcycle");
-  } catch {
+  } catch (err) {
+    console.error("[HF] Exception during image gen:", err);
     return null;
   }
 }
@@ -134,6 +139,22 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (existing) {
+      // Jika tutorial ada tapi gambar masih kosong di scan_history, coba buatkan gambarnya
+      const { data: scanCheck } = await supabase
+        .from("scan_history")
+        .select("item_name, material, upcycle_idea, upcycle_image_url")
+        .eq("id", scanId)
+        .single();
+
+      if (scanCheck && !scanCheck.upcycle_image_url) {
+        const newImg = await generateImage(scanCheck.item_name, scanCheck.material, scanCheck.upcycle_idea);
+        if (newImg) {
+          await Promise.all([
+            supabase.from("scan_history").update({ upcycle_image_url: newImg }).eq("id", scanId),
+            supabase.from("recycle_tutorials").update({ final_image_url: newImg }).eq("id", existing.id)
+          ]);
+        }
+      }
       return NextResponse.json({ tutorialId: existing.id });
     }
 

@@ -1091,3 +1091,111 @@
 }
 
 
+/* ── Impact Timeline ── */
+.timelineSection {
+  margin-top: 80px;
+  padding-bottom: 40px;
+}
+
+.timelineContainer {
+  margin-top: 32px;
+  max-width: 800px;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.timelineDate {
+  width: 60px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5a5c59;
+  text-align: right;
+  padding-top: 4px;
+}
+
+.timelineDotWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timelineDot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border: 2px solid #e2e3de;
+  z-index: 2;
+  color: #5a5c59;
+}
+
+.dot_marketplace {
+  background-color: #ece1cd;
+  border-color: #d6c9b0;
+  color: #585142;
+}
+
+.dot_tutorial {
+  background-color: #75f39c;
+  border-color: #006a35;
+  color: #006a35;
+}
+
+.timelineLine {
+  width: 2px;
+  flex: 1;
+  background-color: #e2e3de;
+  margin: 4px 0;
+}
+
+.timelineContent {
+  padding-bottom: 40px;
+  flex: 1;
+}
+
+.timelineItemTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2d2f2d;
+}
+
+.timelineItemDesc {
+  font-size: 14px;
+  color: #5a5c59;
+  margin-top: 4px;
+}
+
+.timelineImpactTag {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 4px 12px;
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.emptyState {
+  padding: 40px;
+  text-align: center;
+  color: #5a5c59;
+  background-color: #fff;
+  border-radius: 16px;
+  border: 1px dashed #dcddd9;
+}
+
+.dot_scan {
+  background-color: #d9f8b1;
+  border-color: #476029;
+  color: #476029;
+}

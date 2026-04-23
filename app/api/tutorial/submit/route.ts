@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { sendNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   try {
@@ -95,6 +96,15 @@ export async function POST(req: NextRequest) {
         p_source_type: "tutorial",
         p_source_id: submissionRow.id,
         p_description: `Tutorial: ${tutorial?.title || "Daur Ulang"}`,
+      });
+
+      // Send notification
+      await sendNotification({
+        userId: user.id,
+        type: "reward",
+        title: "Daur Ulang Selesai! 🌱",
+        message: `Selamat! Anda berhasil menyelesaikan tutorial "${tutorial?.title || "Daur Ulang"}" dan mendapatkan ${ecoPoints} Eco-points.`,
+        link: "/dashboard/rewards"
       });
     }
 

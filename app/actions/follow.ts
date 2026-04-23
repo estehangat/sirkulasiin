@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
+import { sendNotification } from "@/lib/notifications";
 
 /**
  * Toggle follow status between current user and target user
@@ -40,6 +41,21 @@ export async function toggleFollow(targetUserId: string) {
       });
     
     if (error) throw error;
+
+    // Send notification to target user
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, username")
+      .eq("id", user.id)
+      .single();
+
+    await sendNotification({
+      userId: targetUserId,
+      type: "social",
+      title: "Pengikut Baru! 👋",
+      message: `${profile?.full_name || profile?.username || "Seseorang"} mulai mengikuti Anda.`,
+      link: `/profile?id=${user.id}`
+    });
   }
 
   revalidatePath(`/profile`);
