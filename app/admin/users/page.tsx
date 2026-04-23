@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase";
-import { Loader2, ShieldAlert, CheckCircle2, Shield, AlertCircle, XCircle, Trash2, Search, TriangleAlert, Eye, User as UserIcon } from "lucide-react";
+import { Loader2, ShieldAlert, CheckCircle2, Shield, AlertCircle, XCircle, Trash2, Search, TriangleAlert, Eye, User as UserIcon, Ban, UserCheck, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Profile = {
   id: string;
@@ -18,6 +18,7 @@ type Profile = {
   payout_bank_code: string | null;
   payout_account_number: string | null;
   payout_account_name: string | null;
+  is_active: boolean;
 };
 
 export default function AdminUsersPage() {
@@ -26,9 +27,11 @@ export default function AdminUsersPage() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{type: "success" | "error", msg: string} | null>(null);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   
   const [confirmRoleTarget, setConfirmRoleTarget] = useState<{ id: string; name: string; currentRole: string | null } | null>(null);
   const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [confirmToggleActiveTarget, setConfirmToggleActiveTarget] = useState<{ id: string; name: string; isActive: boolean } | null>(null);
   const [viewDetailTarget, setViewDetailTarget] = useState<Profile | null>(null);
 
   const supabase = createClient();
@@ -40,8 +43,8 @@ export default function AdminUsersPage() {
   async function fetchUsers() {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('profiles').select('id, full_name, username, phone, role, avatar_url, bio, location, payout_channel, payout_bank_code, payout_account_number, payout_account_name').order('full_name');
-      if (data) setUsers(data as Profile[]);
+      const { data, error } = await supabase.from('profiles').select('id, full_name, username, phone, role, avatar_url, bio, location, payout_channel, payout_bank_code, payout_account_number, payout_account_name, is_active').order('full_name');
+      if (data) setUsers((data as any[]).map(d => ({ ...d, is_active: d.is_active !== false })) as Profile[]);
       else if (error) {
          // Coba ambil dari users jika tabel profiles tidak memuat semuanya
          const { data: uData } = await supabase.from('users').select('*');
@@ -89,6 +92,24 @@ export default function AdminUsersPage() {
       }
   }
 
+  async function executeToggleActive(id: string, currentlyActive: boolean) {
+      setConfirmToggleActiveTarget(null);
+      setProcessingId(id);
+      setFeedback(null);
+      const newStatus = !currentlyActive;
+      try {
+         const { error } = await supabase.from('profiles').update({ is_active: newStatus }).eq('id', id);
+         if (error) throw error;
+         setUsers(prev => prev.map(u => u.id === id ? { ...u, is_active: newStatus } : u));
+         setFeedback({ type: "success", msg: newStatus ? "Akun berhasil diaktifkan kembali!" : "Akun berhasil dinonaktifkan." });
+         setTimeout(() => setFeedback(null), 3000);
+      } catch (err: any) {
+         setFeedback({ type: "error", msg: "Gagal mengubah status akun. " + err.message });
+      } finally {
+         setProcessingId(null);
+      }
+  }
+
   const filteredUsers = users.filter(u => 
       (u.full_name?.toLowerCase() || "").includes(search.toLowerCase()) || 
       (u.id.toLowerCase().includes(search.toLowerCase()))
@@ -120,7 +141,7 @@ export default function AdminUsersPage() {
            type="text"
            placeholder="Cari nama pengguna..."
            value={search}
-           onChange={e => setSearch(e.target.value)}
+           onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
            style={{ flex: 1, padding: "12px 12px 12px 40px", borderRadius: "14px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", fontFamily: "inherit" }}
          />
          <div style={{ padding: "12px 18px", borderRadius: "14px", background: "#EFF6FF", border: "1px solid #BFDBFE", fontSize: "14px", fontWeight: 700, color: "#2563EB" }}>
@@ -141,15 +162,16 @@ export default function AdminUsersPage() {
                         <th style={{ padding: "16px 20px", fontSize: "12px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #E2E8F0" }}>Informasi Pengguna</th>
                         <th style={{ padding: "16px 20px", fontSize: "12px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #E2E8F0" }}>ID Registrasi</th>
                         <th style={{ padding: "16px 20px", fontSize: "12px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #E2E8F0" }}>Otoritas</th>
+                        <th style={{ padding: "16px 20px", fontSize: "12px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #E2E8F0" }}>Status</th>
                         <th style={{ padding: "16px 20px", fontSize: "12px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #E2E8F0", textAlign: "right" }}>Operasi</th>
                      </tr>
                   </thead>
                   <tbody>
                      {filteredUsers.length === 0 ? (
                         <tr>
-                          <td colSpan={4} style={{ padding: "40px", textAlign: "center", color: "#64748B", fontSize: "14px" }}>Belum ada data tersedia.</td>
+                          <td colSpan={5} style={{ padding: "40px", textAlign: "center", color: "#64748B", fontSize: "14px" }}>Belum ada data tersedia.</td>
                         </tr>
-                     ) : filteredUsers.map(u => (
+                     ) : filteredUsers.slice((currentPage - 1) * 8, currentPage * 8).map(u => (
                         <tr key={u.id} style={{ borderBottom: "1px solid #F1F5F9", transition: "background 0.2s" }}>
                            <td style={{ padding: "16px 20px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -178,6 +200,23 @@ export default function AdminUsersPage() {
                                  {u.role === 'admin' ? 'Pemilik Admin' : 'Anggota Publik'}
                               </span>
                            </td>
+                           <td style={{ padding: "16px 20px" }}>
+                               <span style={{
+                                   display: "inline-flex",
+                                   alignItems: "center",
+                                   gap: "6px",
+                                   padding: "4px 10px",
+                                   borderRadius: "8px",
+                                   fontSize: "12px",
+                                   fontWeight: 700,
+                                   background: u.is_active ? "#F0FDF4" : "#FEF2F2",
+                                   color: u.is_active ? "#166534" : "#991B1B",
+                                   border: `1px solid ${u.is_active ? "#BBF7D0" : "#FECACA"}`
+                               }}>
+                                  <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: u.is_active ? "#22C55E" : "#EF4444" }} />
+                                  {u.is_active ? 'Aktif' : 'Nonaktif'}
+                               </span>
+                            </td>
                            <td style={{ padding: "16px 20px", textAlign: "right" }}>
                               <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                                  <button 
@@ -196,6 +235,14 @@ export default function AdminUsersPage() {
                                     <Shield size={14} />
                                  </button>
                                  <button 
+                                   onClick={() => setConfirmToggleActiveTarget({ id: u.id, name: u.full_name || "Tanpa Nama", isActive: u.is_active })} 
+                                   disabled={processingId === u.id}
+                                   title={u.is_active ? "Nonaktifkan Akun" : "Aktifkan Akun"}
+                                   style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "32px", height: "32px", borderRadius: "8px", background: u.is_active ? "#FFFBEB" : "#F0FDF4", border: `1px solid ${u.is_active ? "#FDE68A" : "#BBF7D0"}`, color: u.is_active ? "#D97706" : "#16A34A", cursor: processingId ? "wait" : "pointer", transition: "0.2s" }}
+                                 >
+                                    {u.is_active ? <Ban size={14} /> : <UserCheck size={14} />}
+                                 </button>
+                                 <button 
                                    onClick={() => setConfirmDeleteTarget({ id: u.id, name: u.full_name || "Tanpa Nama" })} 
                                    disabled={processingId === u.id}
                                    title="Cabut & Hapus Akun"
@@ -210,6 +257,30 @@ export default function AdminUsersPage() {
                   </tbody>
                </table>
             </div>
+            {/* Pagination Controls */}
+            {filteredUsers.length > 8 && (
+               <div style={{ padding: "16px 24px", background: "#F8FAFC", borderTop: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <p style={{ fontSize: "12px", color: "#64748B", fontWeight: 600 }}>
+                    Menampilkan {((currentPage - 1) * 8) + 1} - {Math.min(currentPage * 8, filteredUsers.length)} dari {filteredUsers.length} Pengguna
+                  </p>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                      disabled={currentPage === 1}
+                      style={{ padding: "8px", borderRadius: "8px", background: "#fff", border: "1px solid #CBD5E1", display: "flex", alignItems: "center", color: currentPage === 1 ? "#94A3B8" : "#334155", cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button 
+                      onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredUsers.length / 8), p + 1))} 
+                      disabled={currentPage === Math.ceil(filteredUsers.length / 8)}
+                      style={{ padding: "8px", borderRadius: "8px", background: "#fff", border: "1px solid #CBD5E1", display: "flex", alignItems: "center", color: currentPage === Math.ceil(filteredUsers.length / 8) ? "#94A3B8" : "#334155", cursor: currentPage === Math.ceil(filteredUsers.length / 8) ? "not-allowed" : "pointer" }}
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+               </div>
+            )}
          </section>
       )}
 
@@ -256,6 +327,35 @@ export default function AdminUsersPage() {
                 style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "#DC2626", border: "none", color: "#fff", fontWeight: 700, fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
               >
                 Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {confirmToggleActiveTarget && createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }} onClick={() => setConfirmToggleActiveTarget(null)} />
+          <div style={{ position: "relative", background: "#fff", padding: "24px", borderRadius: "20px", width: "100%", maxWidth: "380px", boxShadow: "0 10px 40px rgba(0,0,0,0.1)", textAlign: "center" }}>
+            <div style={{ width: "56px", height: "56px", background: confirmToggleActiveTarget.isActive ? "#FFFBEB" : "#F0FDF4", color: confirmToggleActiveTarget.isActive ? "#D97706" : "#16A34A", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              {confirmToggleActiveTarget.isActive ? <Ban size={28} /> : <UserCheck size={28} />}
+            </div>
+            <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#0F172A", marginBottom: "8px" }}>
+              {confirmToggleActiveTarget.isActive ? "Nonaktifkan Akun?" : "Aktifkan Kembali Akun?"}
+            </h3>
+            <p style={{ fontSize: "14px", color: "#64748B", marginBottom: "24px", lineHeight: 1.5 }}>
+              {confirmToggleActiveTarget.isActive
+                ? <><strong>{confirmToggleActiveTarget.name}</strong> tidak akan bisa mengakses layanan hingga akun diaktifkan kembali. Data akun tetap tersimpan.</>
+                : <><strong>{confirmToggleActiveTarget.name}</strong> akan dapat kembali mengakses semua layanan.</>}
+            </p>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button onClick={() => setConfirmToggleActiveTarget(null)} style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "#F1F5F9", border: "none", color: "#475569", fontWeight: 700, fontSize: "14px", cursor: "pointer" }}>Batal</button>
+              <button 
+                onClick={() => executeToggleActive(confirmToggleActiveTarget.id, confirmToggleActiveTarget.isActive)} 
+                style={{ flex: 1, padding: "12px", borderRadius: "12px", background: confirmToggleActiveTarget.isActive ? "#D97706" : "#16A34A", border: "none", color: "#fff", fontWeight: 700, fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+              >
+                {confirmToggleActiveTarget.isActive ? "Ya, Nonaktifkan" : "Ya, Aktifkan"}
               </button>
             </div>
           </div>

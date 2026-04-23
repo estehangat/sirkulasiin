@@ -33,18 +33,26 @@ export async function loginWithEmail(
   }
 
   let role = 'user';
+  let isActive = true;
   try {
      const userReq = await supabase.auth.getUser();
      if (userReq.data?.user) {
          const uid = userReq.data.user.id;
-         const { data: p } = await supabase.from('profiles').select('role').eq('id', uid).single();
+         const { data: p } = await supabase.from('profiles').select('role, is_active').eq('id', uid).single();
          if (p?.role) role = p.role;
-         else {
-           const { data: u } = await supabase.from('users').select('role').eq('id', uid).single();
+         if (p?.is_active === false) isActive = false;
+         if (!p?.role) {
+           const { data: u } = await supabase.from('users').select('role, is_active').eq('id', uid).single();
            if (u?.role) role = u.role;
+           if (u?.is_active === false) isActive = false;
          }
      }
   } catch (e) {}
+
+  if (!isActive) {
+     await supabase.auth.signOut();
+     return { error: "Akun Anda telah dinonaktifkan oleh administrator. Hubungi admin untuk informasi lebih lanjut." };
+  }
   
   let finalNext = next;
   if (role === 'admin' && next === '/dashboard') {

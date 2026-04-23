@@ -92,6 +92,7 @@ type LoginMode = "phone" | "email";
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "";
+  const urlError = searchParams.get("error");
 
   const [mode, setMode] = useState<LoginMode>("phone");
   const [otpSent, setOtpSent] = useState(false);
@@ -148,6 +149,13 @@ export default function LoginForm() {
               <h2 className={styles.formTitle}>Selamat Datang</h2>
               <p className={styles.formSubtitle}>Masuk untuk melanjutkan perjalanan hijau Anda.</p>
             </div>
+
+            {urlError === "account_deactivated" && (
+              <div className={styles.errorMessage} style={{ marginBottom: "8px" }}>
+                <span className={styles.alertIcon}><IconAlertTriangle /></span>
+                Akun Anda telah dinonaktifkan oleh administrator. Hubungi admin untuk informasi lebih lanjut.
+              </div>
+            )}
 
             {/* Google */}
             <button type="button" className={styles.oauthButton} onClick={handleGoogleLogin} id="google-login-button">

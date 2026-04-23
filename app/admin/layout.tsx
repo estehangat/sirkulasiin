@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   LogOut,
   Loader2,
-  Map
+  Map,
+  Leaf
 } from "lucide-react";
 
 type AccountNavItem = {
@@ -37,6 +38,11 @@ const accountNavItems: AccountNavItem[] = [
     label: "Statistik Sistem",
     href: "/admin",
     icon: <LayoutDashboard size={iconSize} />,
+  },
+  {
+    label: "Dampak Lingkungan",
+    href: "/admin/eco-impact",
+    icon: <Leaf size={iconSize} />,
   },
   {
     label: "Manajemen Pengguna",
@@ -79,6 +85,10 @@ function getHeaderMeta(pathname: string) {
     "/admin": {
       title: "Control Panel Admin",
       subtitle: "Monitoring metrik utama dan memantau keseluruhan pertumbuhan sistem pengguna.",
+    },
+    "/admin/eco-impact": {
+      title: "Dampak Lingkungan",
+      subtitle: "Pantau kontribusi kolektif platform terhadap ekonomi sirkular dan kelestarian lingkungan.",
     },
     "/admin/users": {
       title: "Manajemen Pengguna",

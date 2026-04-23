@@ -415,14 +415,23 @@ export default function DashboardLayout({
 
     const checkAdminRedirect = async (userId: string) => {
       let isAdmin = false;
+      let isActive = true;
       try {
-        const { data: p } = await supabase.from('profiles').select('role').eq('id', userId).single();
+        const { data: p } = await supabase.from('profiles').select('role, is_active').eq('id', userId).single();
         if (p?.role === 'admin') isAdmin = true;
-        else {
-          const { data: u } = await supabase.from('users').select('role').eq('id', userId).single();
+        if (p?.is_active === false) isActive = false;
+        if (!p?.role) {
+          const { data: u } = await supabase.from('users').select('role, is_active').eq('id', userId).single();
           if (u?.role === 'admin') isAdmin = true;
+          if (u?.is_active === false) isActive = false;
         }
       } catch (e) {}
+
+      if (!isActive) {
+        await supabase.auth.signOut();
+        router.push('/login?error=account_deactivated');
+        return;
+      }
 
       if (isAdmin) {
         router.push('/admin');

@@ -12,14 +12,22 @@ export async function GET(request: Request) {
 
     if (!error && data?.session?.user) {
       let role = "user";
+      let isActive = true;
       try {
-        const { data: p } = await supabase.from('profiles').select('role').eq('id', data.session.user.id).single();
+        const { data: p } = await supabase.from('profiles').select('role, is_active').eq('id', data.session.user.id).single();
         if (p?.role) role = p.role;
-        else {
-          const { data: u } = await supabase.from('users').select('role').eq('id', data.session.user.id).single();
+        if (p?.is_active === false) isActive = false;
+        if (!p?.role) {
+          const { data: u } = await supabase.from('users').select('role, is_active').eq('id', data.session.user.id).single();
           if (u?.role) role = u.role;
+          if (u?.is_active === false) isActive = false;
         }
       } catch (e) {}
+
+      if (!isActive) {
+        await supabase.auth.signOut();
+        return NextResponse.redirect(`${origin}/login?error=account_deactivated`);
+      }
 
       if (role === "admin" && next === "/dashboard") {
         next = "/admin";
