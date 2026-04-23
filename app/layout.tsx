@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import AnalyticsTracker from "@/app/components/AnalyticsTracker";
 import "./globals.css";
 import ChatFab from "@/app/components/ChatFab";
+import { NotificationProvider } from "@/app/context/NotificationContext";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -24,9 +25,11 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${plusJakartaSans.variable} antialiased`}>
       <body className="min-h-screen" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
-        {children}
-        <ChatFab />
-        <AnalyticsTracker />
+        <NotificationProvider>
+          {children}
+          <ChatFab />
+          <AnalyticsTracker />
+        </NotificationProvider>
       </body>
     </html>
   );

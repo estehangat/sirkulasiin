@@ -19,7 +19,6 @@ import {
   LogOut,
   Loader2,
 } from "lucide-react";
-import { NotificationProvider } from "@/app/context/NotificationContext";
 import NotificationBell from "@/app/components/NotificationBell";
 
 type AccountNavItem = {
@@ -511,7 +510,6 @@ export default function DashboardLayout({
   }
 
   return (
-    <NotificationProvider>
       <div
         style={{
           minHeight: "100vh",
@@ -893,6 +891,5 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
-    </NotificationProvider>
   );
 }
