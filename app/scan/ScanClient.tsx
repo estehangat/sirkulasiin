@@ -128,6 +128,28 @@ export default function ScanClient({ riwayatScan }: { riwayatScan: Array<{ id: s
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showDisposeModal, setShowDisposeModal] = useState(false);
+  const [scanStatusText, setScanStatusText] = useState("Memulai analisis...");
+
+  /* ── Cycling scan status messages ── */
+  useEffect(() => {
+    if (!isLoading) return;
+    const messages = [
+      "Memulai analisis...",
+      "Mendeteksi objek...",
+      "Menganalisis material...",
+      "Memeriksa kondisi...",
+      "Mengevaluasi rekomendasi...",
+      "Mengkalkulasi dampak...",
+      "Menyiapkan hasil...",
+    ];
+    let idx = 0;
+    setScanStatusText(messages[0]);
+    const interval = setInterval(() => {
+      idx = (idx + 1) % messages.length;
+      setScanStatusText(messages[idx]);
+    }, 2200);
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   /* ── Handler: baca file → base64 (dengan resize) ── */
   const readFileAsBase64 = (file: File): Promise<string> =>
@@ -668,6 +690,64 @@ export default function ScanClient({ riwayatScan }: { riwayatScan: Array<{ id: s
           </div>
         </div>
       </div>
+
+      {/* ── AI Scanning Modal ── */}
+      {isLoading && (
+        <div className={styles.scanModalOverlay}>
+          <div className={styles.scanModalContent}>
+            {/* Decorative blobs */}
+            <div className={styles.scanModalBlob1} aria-hidden />
+            <div className={styles.scanModalBlob2} aria-hidden />
+
+            {/* Glassmorphism phone frame */}
+            <div className={styles.scanModalFrame}>
+              <div className={styles.scanModalImageWrap}>
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Gambar yang sedang dianalisis"
+                    className={styles.scanModalImage}
+                  />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1a2e1a, #0d1f0d)' }} />
+                )}
+
+                {/* Overlay effects */}
+                <div className={styles.scanModalVignette} />
+                <div className={styles.scanModalGrid} />
+
+                {/* Scan overlay */}
+                <div className={styles.scanModalScanOverlay}>
+                  <div className={styles.scanModalLine} />
+                  <div className={styles.scanModalCorners} />
+                  <div className={styles.scanModalCornersBottom} />
+                </div>
+              </div>
+
+              {/* Status chip */}
+              <div className={styles.scanModalStatus}>
+                <div className={styles.scanModalStatusDot} />
+                <span className={styles.scanModalStatusText}>{scanStatusText}</span>
+              </div>
+            </div>
+
+            {/* Info below frame */}
+            <div className={styles.scanModalInfo}>
+              <h3 className={styles.scanModalTitle}>AI Sedang Menganalisis</h3>
+              <p className={styles.scanModalDesc}>
+                Mohon tunggu sebentar, AI sedang memproses gambar dan menyusun rekomendasi terbaik untuk Anda.
+              </p>
+              <div className={styles.scanModalProgressWrap}>
+                <div className={styles.scanModalProgressBar} />
+              </div>
+              <div className={styles.scanModalTag}>
+                <BoltIcon />
+                Llama 4 Scout · Multimodal
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Modal Panduan Pembuangan ── */}
       {showDisposeModal && (
