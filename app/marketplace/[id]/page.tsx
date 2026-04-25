@@ -70,6 +70,9 @@ export default async function ProductDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  const isAvailable = listing.status === "published";
+  const isOwnListing = user?.id === listing.user_id;
+
   return (
     <main className={styles.pageShell}>
       <Navbar activeNav="marketplace" />
@@ -205,7 +208,7 @@ export default async function ProductDetailPage({
           </div>
 
           {/* Barter Section */}
-          {listing.barter_enabled && (
+          {listing.barter_enabled && isAvailable && (
             <div className={styles.barterSection}>
               <div className={styles.barterHeader}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -231,23 +234,43 @@ export default async function ProductDetailPage({
               <BarterOfferForm
                 listingId={listing.id}
                 isLoggedIn={!!user}
-                isOwnListing={user?.id === listing.user_id}
+                isOwnListing={isOwnListing}
               />
+            </div>
+          )}
+
+          {!isAvailable && (
+            <div
+              style={{
+                padding: "14px 16px",
+                borderRadius: "16px",
+                border: "1px solid #dbeafe",
+                background: "#eff6ff",
+                color: "#1d4ed8",
+                fontSize: "14px",
+                fontWeight: 700,
+              }}
+            >
+              {listing.status === "sold"
+                ? "Listing ini sudah selesai diproses dan tidak tersedia lagi untuk beli atau barter."
+                : listing.status === "reserved"
+                  ? "Listing ini sedang diproses oleh pembeli lain."
+                  : "Listing ini sedang tidak tersedia."}
             </div>
           )}
 
           {/* CTAs */}
           <div className={styles.ctaGroup}>
-            {user?.id !== listing.user_id ? (
+            {!isOwnListing && isAvailable ? (
               <Link href={`/marketplace/${listing.id}/checkout`} className={styles.buyBtn}>
                 Beli Sekarang
               </Link>
             ) : (
               <button className={styles.buyBtn} disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
-                Listing Anda Sendiri
+                {isOwnListing ? "Listing Anda Sendiri" : "Tidak Tersedia"}
               </button>
             )}
-            {user?.id !== listing.user_id && (
+            {!isOwnListing && (
               <ChatSellerButton
                 sellerId={listing.user_id}
                 listing={{

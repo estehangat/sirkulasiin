@@ -20,18 +20,12 @@ type RawProfile = {
 };
 
 type RawIncomingOffer = Omit<IncomingOffer, "marketplace_listings" | "profiles"> & {
-  marketplace_listings: RawListing[] | RawListing;
-  profiles: RawProfile[] | RawProfile | null;
+  offerer_id: string;
 };
 
 type RawOutgoingOffer = Omit<OutgoingOffer, "marketplace_listings"> & {
-  marketplace_listings: RawListing[] | RawListing;
+  listing_id: string;
 };
-
-function firstRelation<T>(value: T[] | T | null | undefined): T | null {
-  if (!value) return null;
-  return Array.isArray(value) ? (value[0] ?? null) : value;
-}
 
 export default async function BarterPage() {
   const supabase = await createServerSupabaseClient();
@@ -41,63 +35,82 @@ export default async function BarterPage() {
 
   if (!user) redirect("/login?next=/dashboard/barter");
 
-  // Tawaran masuk (saya sebagai penjual)
-  const { data: incoming } = await supabase
-    .from("barter_offers")
-    .select(`
-      id, created_at, status, offered_item_name, offered_item_description,
-      cash_addition, message, seller_response,
-      listing_id,
-      marketplace_listings!inner ( id, title, image_url, price ),
-      profiles!barter_offers_offerer_id_fkey ( id, full_name, username, avatar_url )
-    `)
-    .in(
-      "listing_id",
-      (
-        await supabase
-          .from("marketplace_listings")
-          .select("id")
-          .eq("user_id", user.id)
-      ).data?.map((l) => l.id) || []
-    )
-    .order("created_at", { ascending: false });
+  const { data: myListings } = await supabase
+    .from("marketplace_listings")
+    .select("id")
+    .eq("user_id", user.id);
 
-  // Tawaran keluar (saya sebagai pengaju)
-  const { data: outgoing } = await supabase
-    .from("barter_offers")
-    .select(`
-      id, created_at, status, offered_item_name, offered_item_description,
-      cash_addition, message, seller_response,
-      listing_id,
-      marketplace_listings!inner ( id, title, image_url, price )
-    `)
-    .eq("offerer_id", user.id)
-    .order("created_at", { ascending: false });
+  const myListingIds = (myListings || []).map((l) => l.id);
 
-  const normalizedIncoming: IncomingOffer[] = ((incoming as RawIncomingOffer[] | null) || [])
-    .map((offer) => {
-      const listing = firstRelation(offer.marketplace_listings);
-      if (!listing) return null;
+  const [{ data: incoming }, { data: outgoing }] = await Promise.all([
+    myListingIds.length
+      ? supabase
+          .from("barter_offers")
+          .select(
+            "id, created_at, status, offered_item_name, offered_item_description, cash_addition, message, seller_response, listing_id, offerer_id, accepted_at, owner_shipped_at, offerer_shipped_at, owner_completed_at, offerer_completed_at"
+          )
+          .in("listing_id", myListingIds)
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [] }),
+    supabase
+      .from("barter_offers")
+      .select(
+        "id, created_at, status, offered_item_name, offered_item_description, cash_addition, message, seller_response, listing_id, accepted_at, owner_shipped_at, offerer_shipped_at, owner_completed_at, offerer_completed_at"
+      )
+      .eq("offerer_id", user.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
-      return {
+  const allListingIds = [...new Set([...(incoming || []).map((o) => o.listing_id), ...(outgoing || []).map((o) => o.listing_id)])];
+  const offererIds = [...new Set((incoming || []).map((o) => o.offerer_id).filter(Boolean))];
+
+  const [{ data: listings }, { data: profiles }] = await Promise.all([
+    allListingIds.length
+      ? supabase.from("marketplace_listings").select("id, title, image_url, price").in("id", allListingIds)
+      : Promise.resolve({ data: [] }),
+    offererIds.length
+      ? supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", offererIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const listingMap = new Map((listings || []).map((listing) => [listing.id, listing]));
+  const profileMap = new Map((profiles || []).map((profile) => [profile.id, profile]));
+
+  const normalizedIncoming = ((incoming as RawIncomingOffer[] | null) || [])
+    .flatMap((offer): IncomingOffer[] => {
+      const listing = listingMap.get(offer.listing_id);
+      if (!listing) return [];
+
+      return [{
+        id: offer.id,
+        created_at: offer.created_at,
+        status: offer.status,
+        offered_item_name: offer.offered_item_name,
+        offered_item_description: offer.offered_item_description,
+        cash_addition: offer.cash_addition,
+        message: offer.message,
+        seller_response: offer.seller_response,
+        listing_id: offer.listing_id,
+        accepted_at: offer.accepted_at,
+        owner_shipped_at: offer.owner_shipped_at,
+        offerer_shipped_at: offer.offerer_shipped_at,
+        owner_completed_at: offer.owner_completed_at,
+        offerer_completed_at: offer.offerer_completed_at,
+        marketplace_listings: listing,
+        profiles: profileMap.get(offer.offerer_id) || null,
+      }];
+    });
+
+  const normalizedOutgoing = ((outgoing as RawOutgoingOffer[] | null) || [])
+    .flatMap((offer): OutgoingOffer[] => {
+      const listing = listingMap.get(offer.listing_id);
+      if (!listing) return [];
+
+      return [{
         ...offer,
         marketplace_listings: listing,
-        profiles: firstRelation(offer.profiles),
-      };
-    })
-    .filter((offer): offer is IncomingOffer => offer !== null);
-
-  const normalizedOutgoing: OutgoingOffer[] = ((outgoing as RawOutgoingOffer[] | null) || [])
-    .map((offer) => {
-      const listing = firstRelation(offer.marketplace_listings);
-      if (!listing) return null;
-
-      return {
-        ...offer,
-        marketplace_listings: listing,
-      };
-    })
-    .filter((offer): offer is OutgoingOffer => offer !== null);
+      }];
+    });
 
   return (
     <BarterDashboard

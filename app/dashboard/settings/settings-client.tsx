@@ -1412,6 +1412,9 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
           <p style={{ fontSize: "12px", color: "#737369", lineHeight: 1.5, margin: 0 }}>
             Catatan: Untuk sandbox IRIS, pastikan kode bank sesuai daftar Midtrans IRIS.
           </p>
+          <p style={{ fontSize: "12px", color: "#92400e", lineHeight: 1.5, margin: 0 }}>
+            Payout baru bisa diproses setelah fitur Midtrans IRIS aktif di akun Anda dan `MIDTRANS_IRIS_API_KEY` sudah diisi.
+          </p>
         </div>
       </Card>
 

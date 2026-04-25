@@ -332,7 +332,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 
     const { error: listingError } = await adminSupabase
       .from("marketplace_listings")
-      .update({ status: "sold" })
+      .update({ status: "sold", sold_via: "payment" })
       .eq("id", order.listing_id);
 
     if (listingError) {
