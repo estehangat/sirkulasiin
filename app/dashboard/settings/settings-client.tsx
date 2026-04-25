@@ -559,7 +559,7 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
               (p.province || p.name || "").toLowerCase() === normSaved
           );
           if (!match) return prev;
-          const apiId = String(match.province_id || match.id || "");
+          const apiId = String(match.province_id ?? match.id ?? "");
           return apiId && apiId !== prev.provinceId ? { ...prev, provinceId: apiId } : prev;
         });
       })
@@ -614,6 +614,7 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
   const saveProfile = async () => {
     setStatus(null);
     setSavingProfile(true);
+    try {
     const { error } = await supabase.auth.updateUser({
       data: {
         full_name: form.fullName.trim(),
@@ -627,12 +628,11 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
       },
     });
     if (error) {
-      setSavingProfile(false);
       setStatus({ type: "error", text: error.message });
       return;
     }
     if (userId) {
-      await supabase.from("profiles").upsert({
+      const { error: profileError } = await supabase.from("profiles").upsert({
         id: userId,
         full_name: form.fullName.trim(),
         username: form.username.trim(),
@@ -657,8 +657,11 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
         payout_account_number: form.payoutAccountNumber.trim() || null,
         payout_account_name: form.payoutAccountName.trim() || null,
       });
+      if (profileError) {
+        setStatus({ type: "error", text: `Gagal menyimpan profil: ${profileError.message}` });
+        return;
+      }
     }
-    setSavingProfile(false);
     const {
       data: { user: freshUser },
     } = await supabase.auth.getUser();
@@ -682,6 +685,11 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
       }),
     );
     setStatus({ type: "success", text: "Profil berhasil diperbarui." });
+    } catch (err) {
+      setStatus({ type: "error", text: `Gagal menyimpan: ${(err as Error).message}` });
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   const savePassword = async () => {
@@ -1061,7 +1069,7 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
                         return name === normGeo || name.includes(normGeo) || normGeo.includes(name);
                       }) as any;
                       if (matchedProv) {
-                        const provId = String(matchedProv.province_id || matchedProv.id || "");
+                        const provId = String(matchedProv.province_id ?? matchedProv.id ?? "");
                         const provName = matchedProv.province || matchedProv.name || "";
                         onChangeField("provinceId", provId);
                         onChangeField("provinceName", provName);
@@ -1082,7 +1090,7 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
                             return full === normCity || cName === normCity || full.includes(normCity) || normCity.includes(cName);
                           }) as any;
                           if (matchedCity) {
-                            const cityId = String(matchedCity.city_id || matchedCity.id || "");
+                            const cityId = String(matchedCity.city_id ?? matchedCity.id ?? "");
                             const cityName = `${matchedCity.type || ""} ${matchedCity.city_name || matchedCity.name || ""}`.trim();
                             onChangeField("cityId", cityId);
                             onChangeField("cityName", cityName);
@@ -1188,7 +1196,7 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
               value={form.provinceId}
               disabled={loadingProvinces}
               onChange={(e) => {
-                const prov = provinces.find((p: any) => (p.province_id || p.id) === e.target.value);
+                const prov = provinces.find((p: any) => String(p.province_id ?? p.id) === e.target.value);
                 onChangeField("provinceId", e.target.value);
                 onChangeField("provinceName", (prov as any)?.province || (prov as any)?.name || "");
                 onChangeField("cityId", "");
@@ -1228,7 +1236,7 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
               value={form.cityId}
               disabled={cities.length === 0 || loadingCities}
               onChange={(e) => {
-                const city = cities.find((c: any) => (c.city_id || c.id) === e.target.value);
+                const city = cities.find((c: any) => String(c.city_id ?? c.id) === e.target.value);
                 const cityFullName = city
                   ? `${(city as any).type || ""} ${(city as any).city_name || (city as any).name || ""}`.trim()
                   : "";

@@ -117,21 +117,56 @@ async function getCostForCourier(
       }),
     });
 
+    const json = await res.json();
+    console.log(`[ongkir/${courier}] status=${res.status}`, JSON.stringify(json).slice(0, 400));
+
     if (!res.ok) return [];
 
-    const json = await res.json();
-    const results = extractData<any[]>(json);
+    // Handle multiple Komerce response shapes:
+    // Shape A: { data: [ { code, costs: [...] } ] }           ← array at root
+    // Shape B: { data: { results: [ { code, costs: [...] } ] } } ← object with nested results
+    // Shape C: { rajaongkir: { results: [...] } }             ← old RajaOngkir format
+    let courierRows: any[] = [];
 
-    if (!results?.length) return [];
+    if (json.rajaongkir?.results) {
+      courierRows = json.rajaongkir.results;
+    } else if (Array.isArray(json.data)) {
+      courierRows = json.data;
+    } else if (Array.isArray(json.data?.results)) {
+      courierRows = json.data.results;
+    } else if (Array.isArray(json.data?.data)) {
+      courierRows = json.data.data;
+    }
 
-    const courierResult = results[0];
-    return courierResult.costs.map((c: any) => ({
-      courier,
-      service: c.service,
-      description: c.description,
-      cost: c.cost[0]?.value ?? 0,
-      etd: c.cost[0]?.etd ?? "-",
-    }));
+    if (!courierRows.length) return [];
+
+    const options: ShippingOption[] = [];
+    for (const row of courierRows) {
+      // Komerce flat format: { service, description, cost: 17000, etd: "8 day" }
+      if (typeof row.cost === "number") {
+        options.push({
+          courier,
+          service: row.service ?? "",
+          description: row.description ?? "",
+          cost: row.cost,
+          etd: (row.etd ?? "-").replace(/\s*day(s?)/, ""),
+        });
+        continue;
+      }
+      // Old RajaOngkir nested format: { costs: [{ service, cost: [{value, etd}] }] }
+      const costs: any[] = row.costs ?? [];
+      for (const c of costs) {
+        const costArr: any[] = Array.isArray(c.cost) ? c.cost : [];
+        options.push({
+          courier,
+          service: c.service ?? "",
+          description: c.description ?? "",
+          cost: costArr[0]?.value ?? 0,
+          etd: (costArr[0]?.etd ?? "-").replace(/\s*day(s?)/, ""),
+        });
+      }
+    }
+    return options;
   } catch (error) {
     console.error(`Gagal mengambil ongkir ${courier}:`, error);
     return [];

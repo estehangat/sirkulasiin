@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { placeOrder, CheckoutState } from "@/app/actions/checkout";
-import type { Province, City, ShippingOption } from "@/lib/rajaongkir";
+import type { ShippingOption } from "@/lib/rajaongkir";
 import styles from "./checkout.module.css";
 
 function formatRupiah(price: number) {
@@ -97,47 +97,30 @@ export default function CheckoutForm({
     null
   );
 
-  const [shippingName, setShippingName] = useState(buyerProfile?.full_name || "");
-  const [shippingPhone, setShippingPhone] = useState(buyerProfile?.phone || "");
-  const [shippingAddress, setShippingAddress] = useState(
-    buyerProfile?.full_address || buyerProfile?.address || buyerProfile?.location || ""
-  );
+  const shippingName = buyerProfile?.full_name || "";
+  const shippingPhone = buyerProfile?.phone || "";
+  const selectedCityId = buyerProfile?.city_id || "";
+
+  // Compose display address from all address fields
+  const addressLines = [
+    buyerProfile?.full_address,
+    [buyerProfile?.village_name, buyerProfile?.district_name ? `Kec. ${buyerProfile.district_name}` : null]
+      .filter(Boolean).join(", "),
+    [buyerProfile?.city_name, buyerProfile?.province_name, buyerProfile?.postal_code]
+      .filter(Boolean).join(", "),
+  ].filter(Boolean);
+  const shippingAddress = addressLines.join("\n");
+  const hasAddress = !!(buyerProfile?.city_id && buyerProfile?.full_address);
+
   const [shippingNotes, setShippingNotes] = useState("");
 
-  // ── Address cascading ──────────────────────────────────────────────────────
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
-  const [selectedProvinceId, setSelectedProvinceId] = useState(buyerProfile?.province_id ?? "");
-  const [selectedCityId, setSelectedCityId] = useState(buyerProfile?.city_id ?? "");
-  const [loadingProvinces, setLoadingProvinces] = useState(false);
-  const [loadingCities, setLoadingCities] = useState(false);
-
-  // ── Shipping ───────────────────────────────────────────────────────────────
+  // ── Shipping ──────────────────────────────────────────────
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
   const [shippingError, setShippingError] = useState("");
 
-  // Load provinces
-  useEffect(() => {
-    setLoadingProvinces(true);
-    fetch("/api/shipping/provinces")
-      .then((r) => r.json())
-      .then((d) => { if (d.provinces) setProvinces(d.provinces as Province[]); })
-      .catch(() => {})
-      .finally(() => setLoadingProvinces(false));
-  }, []);
-
-  // Pre-load cities if buyer already has province
-  useEffect(() => {
-    if (!buyerProfile?.province_id) return;
-    fetch(`/api/shipping/cities?province_id=${buyerProfile.province_id}`)
-      .then((r) => r.json())
-      .then((d) => { if (d.cities) setCities(d.cities as City[]); })
-      .catch(() => {});
-  }, [buyerProfile?.province_id]);
-
-  // Auto-fetch ongkir saat kota dipilih
+  // Auto-fetch ongkir saat mount (city sudah dari profile)
   useEffect(() => {
     if (!selectedCityId || !sellerCityId) return;
     setLoadingShipping(true);
@@ -164,7 +147,7 @@ export default function CheckoutForm({
 
   const shippingCost = selectedShipping?.cost ?? 0;
   const totalPrice = listing.price + shippingCost;
-  const canSubmit = !!selectedShipping && !isPending;
+  const canSubmit = !!selectedShipping && !isPending && hasAddress;
 
   return (
     <>
@@ -190,103 +173,84 @@ export default function CheckoutForm({
         <input type="hidden" name="shipping_service" value={selectedShipping?.service ?? ""} />
         <input type="hidden" name="shipping_etd" value={selectedShipping?.etd ?? ""} />
         <input type="hidden" name="destination_city_id" value={selectedCityId} />
+        <input type="hidden" name="shipping_name" value={shippingName} />
+        <input type="hidden" name="shipping_phone" value={shippingPhone} />
+        <input type="hidden" name="shipping_address" value={shippingAddress} />
 
         {/* Left: Shipping Form */}
         <div className={styles.leftColumn}>
           <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>Informasi Pengiriman</h2>
-              <p className={styles.cardSubtitle}>Pastikan data Anda benar agar barang sampai dengan aman.</p>
+            <div className={styles.cardHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <h2 className={styles.cardTitle}>Informasi Pengiriman</h2>
+                <p className={styles.cardSubtitle}>Data diambil dari profil Anda.</p>
+              </div>
+              <Link
+                href="/dashboard/settings"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#1E8449",
+                  textDecoration: "none",
+                  padding: "6px 14px",
+                  border: "1px solid rgba(39,174,96,0.35)",
+                  borderRadius: "10px",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                }}
+              >
+                ✏️ Ubah Data
+              </Link>
             </div>
 
+            {!hasAddress && (
+              <div style={{
+                margin: "12px 0",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                background: "#fef9c3",
+                border: "1px solid #fde047",
+                fontSize: "13px",
+                color: "#854d0e",
+              }}>
+                ⚠️ Alamat pengiriman belum lengkap.{" "}
+                <Link href="/dashboard/settings" style={{ color: "#854d0e", fontWeight: 700 }}>
+                  Lengkapi sekarang →
+                </Link>
+              </div>
+            )}
+
             <div className={styles.formFields}>
-              <label className={styles.fieldGroup}>
-                <span className={styles.fieldLabel}>Nama Lengkap Penerima</span>
-                <input
-                  type="text"
-                  name="shipping_name"
-                  className={styles.input}
-                  value={shippingName}
-                  onChange={(e) => setShippingName(e.target.value)}
-                  placeholder="Masukkan nama lengkap"
-                  required
-                />
-              </label>
-
-              <label className={styles.fieldGroup}>
-                <span className={styles.fieldLabel}>No. Telepon</span>
-                <input
-                  type="tel"
-                  name="shipping_phone"
-                  className={styles.input}
-                  value={shippingPhone}
-                  onChange={(e) => setShippingPhone(e.target.value)}
-                  placeholder="08xxxxxxxxxx"
-                  required
-                />
-              </label>
-
-              {/* Cascading address */}
+              {/* Read-only profile data */}
               <div className={styles.fieldGroup}>
-                <span className={styles.fieldLabel}>Provinsi & Kota Tujuan</span>
-                <div className={styles.selectRow}>
-                  <select
-                    className={styles.input}
-                    value={selectedProvinceId}
-                    disabled={loadingProvinces}
-                    style={{ cursor: "pointer" }}
-                    onChange={(e) => {
-                      setSelectedProvinceId(e.target.value);
-                      setSelectedCityId("");
-                      setCities([]);
-                      setShippingOptions([]);
-                      setSelectedShipping(null);
-                      if (e.target.value) {
-                        setLoadingCities(true);
-                        fetch(`/api/shipping/cities?province_id=${e.target.value}`)
-                          .then((r) => r.json())
-                          .then((d) => { if (d.cities) setCities(d.cities as City[]); })
-                          .catch(() => {})
-                          .finally(() => setLoadingCities(false));
-                      }
-                    }}
-                  >
-                    <option value="">{loadingProvinces ? "Memuat..." : "— Pilih Provinsi —"}</option>
-                    {provinces.map((p) => (
-                      <option key={p.province_id} value={p.province_id}>{p.province}</option>
-                    ))}
-                  </select>
-
-                  <select
-                    className={styles.input}
-                    value={selectedCityId}
-                    disabled={cities.length === 0}
-                    style={{ cursor: cities.length === 0 ? "not-allowed" : "pointer" }}
-                    onChange={(e) => {
-                      setSelectedCityId(e.target.value);
-                      setSelectedShipping(null);
-                    }}
-                  >
-                    <option value="">{cities.length === 0 ? "— Pilih provinsi dulu —" : "— Pilih Kota/Kab —"}</option>
-                    {cities.map((c) => (
-                      <option key={c.city_id} value={c.city_id}>{c.type} {c.city_name}</option>
-                    ))}
-                  </select>
+                <span className={styles.fieldLabel}>Nama Lengkap Penerima</span>
+                <div className={styles.input} style={{ background: "#f7f7f5", color: shippingName ? "#1a1a18" : "#A3A39B", cursor: "default" }}>
+                  {shippingName || <em style={{ fontStyle: "normal", color: "#A3A39B" }}>Belum diisi — ubah di profil</em>}
                 </div>
               </div>
 
-              <label className={styles.fieldGroup}>
-                <span className={styles.fieldLabel}>Alamat Lengkap</span>
-                <textarea
-                  name="shipping_address"
+              <div className={styles.fieldGroup}>
+                <span className={styles.fieldLabel}>No. Telepon</span>
+                <div className={styles.input} style={{ background: "#f7f7f5", color: shippingPhone ? "#1a1a18" : "#A3A39B", cursor: "default" }}>
+                  {shippingPhone || <em style={{ fontStyle: "normal", color: "#A3A39B" }}>Belum diisi — ubah di profil</em>}
+                </div>
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <span className={styles.fieldLabel}>Alamat Pengiriman</span>
+                <div
                   className={styles.textarea}
-                  value={shippingAddress}
-                  onChange={(e) => setShippingAddress(e.target.value)}
-                  placeholder="Jl. ..., RT/RW, Kelurahan, Kecamatan, Kode Pos"
-                  rows={3}
-                  required
-                />
-              </label>
+                  style={{ background: "#f7f7f5", cursor: "default", whiteSpace: "pre-line", minHeight: "72px", color: addressLines.length ? "#1a1a18" : "#A3A39B" }}
+                >
+                  {addressLines.length
+                    ? addressLines.map((line, i) => <span key={i}>{line}{i < addressLines.length - 1 && <br />}</span>)
+                    : <em style={{ fontStyle: "normal" }}>Belum diisi — ubah di profil</em>
+                  }
+                </div>
+              </div>
 
               {/* Shipping Options */}
               <div className={styles.fieldGroup}>
@@ -310,17 +274,22 @@ export default function CheckoutForm({
                         selectedShipping?.courier === opt.courier &&
                         selectedShipping?.service === opt.service;
                       return (
-                        <label
+                        <div
                           key={key}
+                          role="radio"
+                          aria-checked={isSelected}
+                          tabIndex={0}
                           className={`${styles.shippingOption} ${isSelected ? styles.shippingOptionSelected : ""}`}
+                          onClick={() => setSelectedShipping(opt)}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedShipping(opt); }}}
                         >
-                          <input
-                            type="radio"
-                            name="_shipping_pick"
-                            className={styles.shippingOptionRadio}
-                            checked={isSelected}
-                            onChange={() => setSelectedShipping(opt)}
-                          />
+                          <div className={isSelected ? styles.shippingCheckOn : styles.shippingCheckOff}>
+                            {isSelected && (
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20 6 9 17l-5-5" />
+                              </svg>
+                            )}
+                          </div>
                           <div className={styles.shippingOptionInfo}>
                             <p className={styles.shippingOptionLabel}>
                               {COURIER_LABELS[opt.courier] ?? opt.courier.toUpperCase()} {opt.service}
@@ -328,7 +297,7 @@ export default function CheckoutForm({
                             <p className={styles.shippingOptionEtd}>{opt.description} · Estimasi {opt.etd} hari</p>
                           </div>
                           <span className={styles.shippingOptionCost}>{formatRupiah(opt.cost)}</span>
-                        </label>
+                        </div>
                       );
                     })
                   )}
