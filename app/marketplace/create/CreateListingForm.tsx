@@ -84,6 +84,14 @@ export default function CreateListingForm({ scanData }: { scanData: ScanData | n
     const initial = aiPriceMin;
     return new Intl.NumberFormat("id-ID").format(initial);
   });
+  const [weightGrams, setWeightGrams] = useState(() => {
+    // Coba parse dari scan data (weight biasanya dalam format "500g" atau "1kg")
+    if (scanData?.weight) {
+      const parsed = parseInt(String(scanData.weight).replace(/[^0-9]/g, ""));
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    return 500;
+  });
   const [barterEnabled, setBarterEnabled] = useState(false);
   const [barterTags, setBarterTags] = useState<string[]>([]);
   const [barterTagInput, setBarterTagInput] = useState("");
@@ -176,6 +184,7 @@ export default function CreateListingForm({ scanData }: { scanData: ScanData | n
           <input type="hidden" name="barter_enabled" value={barterEnabled ? "on" : ""} />
           <input type="hidden" name="barter_with" value={barterTags.join(",")} />
           <input type="hidden" name="barter_notes" value={barterNotes} />
+          <input type="hidden" name="weight_grams" value={weightGrams} />
 
           {/* Price Range */}
           <section>
@@ -216,6 +225,44 @@ export default function CreateListingForm({ scanData }: { scanData: ScanData | n
                 </div>
               </div>
             </div>
+          </section>
+
+          {/* Weight */}
+          <section>
+            <label className={styles.sectionLabel}>
+              Berat Barang <span style={{ fontSize: "13px", fontWeight: 500, color: "#737369" }}>(gram)</span>
+            </label>
+            <div className={styles.priceInputs}>
+              <div className={styles.inputGroup}>
+                <span className={styles.inputLabel}>BERAT (GRAM)</span>
+                <div className={styles.inputWrapper}>
+                  <input
+                    type="number"
+                    className={styles.inputField}
+                    value={weightGrams}
+                    min={1}
+                    max={30000}
+                    step={1}
+                    required
+                    onChange={(e) => setWeightGrams(Math.max(1, parseInt(e.target.value) || 1))}
+                  />
+                </div>
+              </div>
+              <div className={styles.inputGroup}>
+                <span className={styles.inputLabel}>SETARA</span>
+                <div className={styles.inputWrapper}>
+                  <input
+                    type="text"
+                    className={`${styles.inputField} ${styles.inputFieldReadOnly}`}
+                    value={weightGrams >= 1000 ? `${(weightGrams / 1000).toFixed(1)} kg` : `${weightGrams} g`}
+                    readOnly
+                  />
+                </div>
+              </div>
+            </div>
+            <p style={{ fontSize: "12px", color: "#737369", marginTop: "8px" }}>
+              Digunakan untuk kalkulasi ongkos kirim. Contoh: 500 = setengah kilogram.
+            </p>
           </section>
 
           {/* Category */}

@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "Atur profil dan preferensi akun Anda.",
 };
 
-export default function SettingsPage() {
-  return <SettingsClientPage />;
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ alert?: string }>;
+}) {
+  const params = await searchParams;
+  return <SettingsClientPage alertParam={params.alert} />;
 }

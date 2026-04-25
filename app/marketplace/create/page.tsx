@@ -18,15 +18,24 @@ export default async function CreateListingPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Memastikan user sudah login
   if (!user) {
     redirect("/login?next=/marketplace/create");
+  }
+
+  // Guard: seller harus sudah mengisi alamat (city_id) sebelum bisa buat listing
+  const { data: sellerProfile } = await supabase
+    .from("profiles")
+    .select("city_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!sellerProfile?.city_id) {
+    redirect("/dashboard/settings?alert=address_required");
   }
 
   let scanData = null;
   const params = await searchParams;
 
-  // Mengambil data scan jika user datang dari hasil scan
   if (params.id) {
     const { data } = await supabase
       .from("scan_history")
@@ -48,3 +57,4 @@ export default async function CreateListingPage({
     </main>
   );
 }
+

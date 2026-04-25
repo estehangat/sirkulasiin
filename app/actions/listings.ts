@@ -43,10 +43,15 @@ export async function publishListing(
     ? barterWithRaw.split(",").map((s) => s.trim()).filter(Boolean)
     : null;
   const barterNotes = formData.get("barter_notes") as string;
+  const weightGrams = parseInt(formData.get("weight_grams") as string) || 0;
 
   // Validasi
   if (!title || !category) {
     return { error: "Nama item dan kategori wajib diisi." };
+  }
+
+  if (!weightGrams || weightGrams < 1) {
+    return { error: "Berat barang wajib diisi (minimal 1 gram)." };
   }
 
   // Parse harga - hapus titik pemisah ribuan
@@ -72,6 +77,7 @@ export async function publishListing(
     barter_enabled: barterEnabled,
     barter_with: barterWith,
     barter_notes: barterNotes || null,
+    weight_grams: weightGrams,
   });
 
   if (error) {
@@ -117,6 +123,7 @@ export async function saveDraft(
     ? barterWithRaw.split(",").map((s) => s.trim()).filter(Boolean)
     : null;
   const barterNotes = formData.get("barter_notes") as string;
+  const weightGrams = parseInt(formData.get("weight_grams") as string) || 500;
 
   const price = parseInt(priceStr?.replace(/\./g, "") || "0");
 
@@ -137,6 +144,7 @@ export async function saveDraft(
     barter_enabled: barterEnabled,
     barter_with: barterWith,
     barter_notes: barterNotes || null,
+    weight_grams: weightGrams,
   });
 
   if (error) {

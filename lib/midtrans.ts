@@ -43,6 +43,9 @@ type CreateMidtransTransactionInput = {
   customerEmail?: string | null;
   customerPhone: string;
   shippingAddress: string;
+  shippingCost?: number;
+  shippingCourier?: string;
+  shippingService?: string;
 };
 
 function getMidtransConfig() {
@@ -169,10 +172,16 @@ export async function createMidtransTransaction({
     item_details: [
       {
         id: listingId,
-        price: grossAmount,
+        price: grossAmount - (shippingCost ?? 0),
         quantity: 1,
         name: truncateItemName(itemName),
       },
+      ...((shippingCost && shippingCost > 0) ? [{
+        id: "SHIPPING",
+        price: shippingCost,
+        quantity: 1,
+        name: `Ongkir ${(shippingCourier ?? "").toUpperCase()} ${shippingService ?? ""}`.trim(),
+      }] : []),
     ],
     customer_details: {
       first_name: customerName,

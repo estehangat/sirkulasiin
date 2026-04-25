@@ -47,6 +47,10 @@ export async function placeOrder(
   const shippingAddress = (formData.get("shipping_address") as string)?.trim();
   const shippingNotes = (formData.get("shipping_notes") as string)?.trim();
   const totalPrice = parseInt(formData.get("total_price") as string) || 0;
+  const shippingCost = parseInt(formData.get("shipping_cost") as string) || 0;
+  const shippingCourier = (formData.get("shipping_courier") as string)?.trim();
+  const shippingService = (formData.get("shipping_service") as string)?.trim();
+  const shippingEtd = (formData.get("shipping_etd") as string)?.trim();
 
   if (!listingId || !sellerId) {
     return { error: "Data listing tidak valid." };
@@ -70,8 +74,12 @@ export async function placeOrder(
     return { error: "Listing ini sudah tidak tersedia." };
   }
 
-  if (!totalPrice || totalPrice <= 0 || totalPrice !== listing.price) {
+  if (!totalPrice || totalPrice <= 0 || totalPrice !== listing.price + shippingCost) {
     return { error: "Harga tidak valid." };
+  }
+
+  if (shippingCost > 0 && !shippingCourier) {
+    return { error: "Silakan pilih kurir pengiriman." };
   }
 
   const { data: orderId, error: rpcError } = await supabase.rpc("rpc_place_order", {
@@ -81,7 +89,11 @@ export async function placeOrder(
     p_shipping_phone: shippingPhone,
     p_shipping_address: shippingAddress,
     p_shipping_notes: shippingNotes || null,
-    p_total_price: listing.price,
+    p_total_price: totalPrice,
+    p_shipping_cost: shippingCost,
+    p_shipping_courier: shippingCourier || null,
+    p_shipping_service: shippingService || null,
+    p_shipping_etd: shippingEtd || null,
   });
 
   if (rpcError || !orderId) {
@@ -97,11 +109,14 @@ export async function placeOrder(
       paymentReference,
       listingId,
       itemName: listing.title,
-      grossAmount: listing.price,
+      grossAmount: totalPrice,
       customerName: shippingName,
       customerEmail: user.email,
       customerPhone: shippingPhone,
       shippingAddress,
+      shippingCost,
+      shippingCourier,
+      shippingService,
     });
 
     const adminSupabase = createAdminSupabaseClient();
