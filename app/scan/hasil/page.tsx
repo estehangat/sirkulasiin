@@ -692,17 +692,6 @@ function HasilScanPageContent() {
         </div>
       </section>
 
-      {/* ═══ FOOTER ═══ */}
-      <footer className={styles.footer}>
-        <p className={styles.footerLeft}>
-          © 2025 SirkulasiIn. Memupuk planet yang lebih bersih.
-        </p>
-        <nav className={styles.footerLinks}>
-          <a href="#" className={styles.footerLink}>Kebijakan Privasi</a>
-          <a href="#" className={styles.footerLink}>Laporan Keberlanjutan</a>
-          <a href="#" className={styles.footerLink}>Bantuan</a>
-        </nav>
-      </footer>
     </main>
   );
 }

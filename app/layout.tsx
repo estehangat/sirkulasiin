@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import AnalyticsTracker from "@/app/components/AnalyticsTracker";
+import Footer from "@/app/components/footer";
 import "./globals.css";
 import ChatFab from "@/app/components/ChatFab";
 import { NotificationProvider } from "@/app/context/NotificationContext";
@@ -27,6 +28,7 @@ export default function RootLayout({
       <body className="min-h-screen" style={{ fontFamily: "var(--font-plus-jakarta), 'Plus Jakarta Sans', sans-serif" }}>
         <NotificationProvider>
           {children}
+          <Footer />
           <ChatFab />
           <AnalyticsTracker />
         </NotificationProvider>

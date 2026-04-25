@@ -10,7 +10,7 @@
     radial-gradient(circle at 90% 10%, rgba(130,158,96,0.12) 0%, transparent 34%),
     #f4f4f0;
   color: var(--color-black);
-  padding: 24px 24px 0;
+  padding: 24px 24px 80px;
 }
 
 /* ─── Loading / Error ─── */

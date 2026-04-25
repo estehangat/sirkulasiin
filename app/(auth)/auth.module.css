@@ -77,13 +77,9 @@
 .brandIcon {
   width: 34px;
   height: 34px;
-  background: var(--color-primary);
-  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.35);
 }
 
 .brandName {
@@ -91,6 +87,10 @@
   font-weight: 700;
   color: var(--color-black);
   letter-spacing: -0.3px;
+}
+
+.brandNameHighlight {
+  color: var(--color-primary);
 }
 
 .heroContent {

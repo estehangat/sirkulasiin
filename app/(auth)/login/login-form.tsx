@@ -78,13 +78,14 @@ const IconGoogle = () => (
   </svg>
 );
 
-const IconBrandLogo = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2" />
-    <path d="M12 2a10 10 0 0 0 0 20" />
-    <path d="M12 2a10 10 0 0 1 3.44 1.66" />
-    <path d="m8 12 3 3 5-6" />
-  </svg>
+const BrandLogo = () => (
+  <Image
+    src="/logoSirkulasiInPolos.png"
+    alt="SirkulasiIn"
+    width={28}
+    height={28}
+    priority
+  />
 );
 
 type LoginMode = "phone" | "email";
@@ -122,8 +123,8 @@ export default function LoginForm() {
         {/* ===== LEFT HERO ===== */}
         <div className={styles.heroPanel}>
           <div className={styles.heroBrand}>
-            <div className={styles.brandIcon}><IconBrandLogo /></div>
-            <span className={styles.brandName}>SirkulasiIn</span>
+            <div className={styles.brandIcon}><BrandLogo /></div>
+            <span className={styles.brandName}>Sirkulasi<span className={styles.brandNameHighlight}>In</span></span>
           </div>
 
           <div className={styles.heroContent}>

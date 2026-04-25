@@ -38,20 +38,15 @@
 .brandMark {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
-  background: var(--color-primary);
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
 }
 
 @media (min-width: 768px) {
   .brandMark {
     width: 36px;
     height: 36px;
-    border-radius: 10px;
   }
 }
 
@@ -60,6 +55,10 @@
   font-weight: 800;
   letter-spacing: -0.4px;
   color: var(--color-black);
+}
+
+.brandNameHighlight {
+  color: var(--color-primary);
 }
 
 @media (min-width: 768px) {

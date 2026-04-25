@@ -460,19 +460,6 @@ export default async function TentangPage() {
         </div>
       </section>
 
-      {/* ───────── FOOTER ───────── */}
-      <footer className={styles.footer}>
-        <p className={styles.footerBrand}>SirkulasiIn</p>
-        <nav className={styles.footerNav}>
-          <Link href="/tentang" className={styles.footerLink}>Tentang</Link>
-          <Link href="/scan" className={styles.footerLink}>AI Scan</Link>
-          <Link href="/tutorial" className={styles.footerLink}>Tutorial</Link>
-          <Link href="/marketplace" className={styles.footerLink}>Marketplace</Link>
-        </nav>
-        <p className={styles.footerCopy}>
-          © 2025 SirkulasiIn. Setiap scan berarti untuk bumi yang lebih bersih.
-        </p>
-      </footer>
     </main>
   );
 }

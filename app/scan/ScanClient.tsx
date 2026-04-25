@@ -814,19 +814,6 @@ export default function ScanClient({ riwayatScan }: { riwayatScan: Array<{ id: s
         </div>
       )}
 
-      {/* ── Footer ── */}
-      <footer className={styles.footer}>
-        <p className={styles.footerBrand}>SirkulasiIn</p>
-        <nav className={styles.footerLinks} aria-label="Tautan kaki halaman">
-          <a href="#" className={styles.footerLink}>Kebijakan Privasi</a>
-          <a href="#" className={styles.footerLink}>Ketentuan Layanan</a>
-          <a href="#" className={styles.footerLink}>Metodologi Karbon</a>
-          <a href="#" className={styles.footerLink}>Pusat Bantuan</a>
-        </nav>
-        <p className={styles.footerCopy}>
-          © 2025 SirkulasiIn. Berakar pada keberlanjutan.
-        </p>
-      </footer>
     </main>
   );
 }

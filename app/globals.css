@@ -89,3 +89,8 @@ input, button, textarea, select {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-400);
 }
+
+/* Hide global footer on auth pages */
+body:has([data-hide-footer]) > * > footer {
+  display: none;
+}

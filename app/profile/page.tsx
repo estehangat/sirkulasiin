@@ -472,21 +472,6 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </section>
         </main>
 
-        {/* ═══ Footer ═══ */}
-        <footer className={styles.footer}>
-          <div className={styles.footerInner}>
-            <div className={styles.footerBrand}>SirkulasiIn Community</div>
-            <div className={styles.footerLinks}>
-              <Link className={styles.footerLink} href="#">Kebijakan Privasi</Link>
-              <Link className={styles.footerLink} href="#">Syarat Layanan</Link>
-              <Link className={styles.footerLink} href="#">Panduan Komunitas</Link>
-              <Link className={styles.footerLink} href="#">Kontak</Link>
-            </div>
-            <div className={styles.footerCopy}>
-              © 2024 SirkulasiIn Community. Menuai masa depan yang lebih hijau.
-            </div>
-          </div>
-        </footer>
       </div>
     </>
   );
