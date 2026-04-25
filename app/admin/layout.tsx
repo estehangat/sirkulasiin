@@ -16,7 +16,9 @@ import {
   LogOut,
   Loader2,
   Map,
-  Leaf
+  Leaf,
+  Receipt,
+  Store
 } from "lucide-react";
 
 type AccountNavItem = {
@@ -43,6 +45,16 @@ const accountNavItems: AccountNavItem[] = [
     label: "Dampak Lingkungan",
     href: "/admin/eco-impact",
     icon: <Leaf size={iconSize} />,
+  },
+  {
+    label: "Monitoring Transaksi",
+    href: "/admin/transactions",
+    icon: <Receipt size={iconSize} />,
+  },
+  {
+    label: "Moderasi Marketplace",
+    href: "/admin/marketplace",
+    icon: <Store size={iconSize} />,
   },
   {
     label: "Manajemen Pengguna",
@@ -89,6 +101,14 @@ function getHeaderMeta(pathname: string) {
     "/admin/eco-impact": {
       title: "Dampak Lingkungan",
       subtitle: "Pantau kontribusi kolektif platform terhadap ekonomi sirkular dan kelestarian lingkungan.",
+    },
+    "/admin/transactions": {
+      title: "Monitoring Transaksi",
+      subtitle: "Pantau seluruh alur transaksi, pembayaran, escrow, dan status pengiriman.",
+    },
+    "/admin/marketplace": {
+      title: "Moderasi Marketplace",
+      subtitle: "Tinjau, arsipkan, atau publikasikan ulang listing untuk menjaga kualitas platform.",
     },
     "/admin/users": {
       title: "Manajemen Pengguna",

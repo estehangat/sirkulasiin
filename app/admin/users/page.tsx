@@ -28,6 +28,7 @@ export default function AdminUsersPage() {
   const [feedback, setFeedback] = useState<{type: "success" | "error", msg: string} | null>(null);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user">("all");
   
   const [confirmRoleTarget, setConfirmRoleTarget] = useState<{ id: string; name: string; currentRole: string | null } | null>(null);
   const [confirmDeleteTarget, setConfirmDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -110,10 +111,11 @@ export default function AdminUsersPage() {
       }
   }
 
-  const filteredUsers = users.filter(u => 
-      (u.full_name?.toLowerCase() || "").includes(search.toLowerCase()) || 
-      (u.id.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredUsers = users.filter(u => {
+      const matchSearch = (u.full_name?.toLowerCase() || "").includes(search.toLowerCase()) || u.id.toLowerCase().includes(search.toLowerCase());
+      const matchRole = roleFilter === "all" ? true : u.role === roleFilter;
+      return matchSearch && matchRole;
+  });
 
   return (
     <div style={{ display: "grid", gap: "24px" }}>
@@ -144,6 +146,15 @@ export default function AdminUsersPage() {
            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
            style={{ flex: 1, padding: "12px 12px 12px 40px", borderRadius: "14px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", fontFamily: "inherit" }}
          />
+         <select
+           value={roleFilter}
+           onChange={e => { setRoleFilter(e.target.value as any); setCurrentPage(1); }}
+           style={{ padding: "12px 16px", borderRadius: "14px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", fontFamily: "inherit", background: "#fff", color: "#334155", cursor: "pointer" }}
+         >
+           <option value="all">Semua Role</option>
+           <option value="admin">Admin</option>
+           <option value="user">User</option>
+         </select>
          <div style={{ padding: "12px 18px", borderRadius: "14px", background: "#EFF6FF", border: "1px solid #BFDBFE", fontSize: "14px", fontWeight: 700, color: "#2563EB" }}>
            {users.length} Akun Terdaftar
          </div>
