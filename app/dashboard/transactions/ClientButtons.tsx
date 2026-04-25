@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateOrderStatus } from "@/app/actions/checkout";
 import { requestPayout } from "@/app/actions/payout";
@@ -15,28 +15,62 @@ type Props = {
 export default function TransactionButtons({ orderId, status, isBuyer, payoutStatus }: Props) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
   const handleUpdate = (newStatus: string) => {
     startTransition(async () => {
-      await updateOrderStatus(orderId, newStatus);
+      setMessage(null);
+      const result = await updateOrderStatus(orderId, newStatus);
+      if (!result.success) {
+        setMessage({ type: "error", text: result.error || "Aksi gagal diproses." });
+        return;
+      }
+
+      setMessage({
+        type: "success",
+        text: newStatus === "completed" ? "Pesanan diselesaikan." : "Status pesanan diperbarui.",
+      });
       router.refresh();
     });
   };
 
   const handleRequestPayout = () => {
     startTransition(async () => {
-      await requestPayout(orderId);
+      setMessage(null);
+      const result = await requestPayout(orderId);
+      if (!result.success) {
+        setMessage({ type: "error", text: result.error || "Gagal mengajukan payout." });
+        return;
+      }
+
+      setMessage({ type: "success", text: "Pengajuan pencairan berhasil dibuat." });
       router.refresh();
     });
   };
 
-  if (isPending) {
-    return (
-      <span style={{ fontSize: "13px", color: "#6b7280", fontWeight: 700 }}>
-        Memproses...
-      </span>
-    );
-  }
+  const withFeedback = (node: React.ReactNode) => (
+    <div style={{ display: "grid", gap: "8px", justifyItems: "end" }}>
+      {message ? (
+        <span
+          style={{
+            maxWidth: "260px",
+            fontSize: "12px",
+            lineHeight: 1.4,
+            fontWeight: 700,
+            textAlign: "right",
+            color: message.type === "error" ? "#991b1b" : "#166534",
+          }}
+        >
+          {message.text}
+        </span>
+      ) : null}
+      {isPending ? (
+        <span style={{ fontSize: "13px", color: "#6b7280", fontWeight: 700 }}>Memproses...</span>
+      ) : (
+        node
+      )}
+    </div>
+  );
 
   const badgeStyle = {
     fontSize: "12px",
@@ -73,7 +107,7 @@ export default function TransactionButtons({ orderId, status, isBuyer, payoutSta
   // Action pembeli
   if (isBuyer) {
     if (status === "pending_payment") {
-      return (
+      return withFeedback(
         <button
           onClick={() => router.push(`/marketplace/order/${orderId}/payment`)}
           style={{
@@ -91,11 +125,11 @@ export default function TransactionButtons({ orderId, status, isBuyer, payoutSta
     }
 
     if (status === "paid_escrow") {
-      return <span style={badgeStyle}>Dana Ditahan Aman</span>;
+      return withFeedback(<span style={badgeStyle}>Dana Ditahan Aman</span>);
     }
     
     if (status === "shipped") {
-      return (
+      return withFeedback(
         <button
           onClick={() => handleUpdate("completed")}
           style={{
@@ -116,7 +150,7 @@ export default function TransactionButtons({ orderId, status, isBuyer, payoutSta
   // Action penjual
   if (!isBuyer) {
     if (status === "paid_escrow") {
-      return (
+      return withFeedback(
         <button
           onClick={() => handleUpdate("shipped")}
           style={{
@@ -134,7 +168,7 @@ export default function TransactionButtons({ orderId, status, isBuyer, payoutSta
     }
 
     if (status === "completed" && payoutStatus === "ready_for_payout") {
-      return (
+      return withFeedback(
         <button
           onClick={handleRequestPayout}
           style={{
@@ -152,7 +186,7 @@ export default function TransactionButtons({ orderId, status, isBuyer, payoutSta
     }
 
     if (status === "completed") {
-      return (
+      return withFeedback(
         <span style={badgeStyle}>
           {payoutStatus ? `Payout: ${payoutStatus}` : "Payout: -"}
         </span>
@@ -160,7 +194,7 @@ export default function TransactionButtons({ orderId, status, isBuyer, payoutSta
     }
 
     if (status === "paid_out") {
-      return <span style={badgeStyle}>Dana Dicairkan</span>;
+      return withFeedback(<span style={badgeStyle}>Dana Dicairkan</span>);
     }
   }
 

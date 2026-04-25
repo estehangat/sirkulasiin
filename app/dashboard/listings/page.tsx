@@ -37,6 +37,12 @@ type ListingRow = {
   eco_points: number;
   status: "draft" | "published" | "reserved" | "sold" | "archived";
   location: string | null;
+  barter_enabled?: boolean | null;
+};
+
+type BarterListingStat = {
+  pendingCount: number;
+  acceptedCount: number;
 };
 
 // ─── Data Fetching ───────────────────────────────────────────────────────────
@@ -69,7 +75,7 @@ async function getPaginatedListings(page: number) {
   const { data, error, count } = await supabase
     .from("marketplace_listings")
     .select(
-      "id, created_at, title, description, image_url, price, currency, category, carbon_saved, eco_points, status, location",
+      "id, created_at, title, description, image_url, price, currency, category, carbon_saved, eco_points, status, location, barter_enabled",
       { count: "exact" }
     )
     .eq("user_id", user.id)
@@ -78,6 +84,28 @@ async function getPaginatedListings(page: number) {
 
   if (error || !data) return { rows: [] as ListingRow[], count: 0, error: true };
   return { rows: data as ListingRow[], count: count || 0, error: false };
+}
+
+async function getBarterStatsForListings(listingIds: string[]) {
+  if (!listingIds.length) return new Map<string, BarterListingStat>();
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("barter_offers")
+    .select("listing_id, status")
+    .in("listing_id", listingIds);
+
+  if (error || !data) return new Map<string, BarterListingStat>();
+
+  const map = new Map<string, BarterListingStat>();
+  for (const row of data) {
+    const current = map.get(row.listing_id) || { pendingCount: 0, acceptedCount: 0 };
+    if (row.status === "pending") current.pendingCount += 1;
+    if (row.status === "accepted") current.acceptedCount += 1;
+    map.set(row.listing_id, current);
+  }
+
+  return map;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -165,6 +193,7 @@ export default async function ListingsPage({
 
   const { data: statsData } = statsRes;
   const { rows, count, error } = listRes;
+  const barterStatsMap = await getBarterStatsForListings(rows.map((row) => row.id));
 
   const totalPages = Math.ceil(count / ITEMS_PER_PAGE);
 
@@ -409,6 +438,60 @@ export default async function ListingsPage({
                         <span style={{ fontSize: "11px", color: "#A3A39B" }}>
                           Dibuat {formatTimeAgo(row.created_at)}
                         </span>
+                        {row.barter_enabled && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              fontSize: "11px",
+                              fontWeight: 800,
+                              color: "#7c3aed",
+                              background: "#f5f3ff",
+                              border: "1px solid #ddd6fe",
+                              borderRadius: "999px",
+                              padding: "4px 8px",
+                            }}
+                          >
+                            <Tag size={11} /> Barter aktif
+                          </span>
+                        )}
+                        {(barterStatsMap.get(row.id)?.pendingCount || 0) > 0 && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              fontSize: "11px",
+                              fontWeight: 800,
+                              color: "#1d4ed8",
+                              background: "#eff6ff",
+                              border: "1px solid #bfdbfe",
+                              borderRadius: "999px",
+                              padding: "4px 8px",
+                            }}
+                          >
+                            {barterStatsMap.get(row.id)?.pendingCount} tawaran barter
+                          </span>
+                        )}
+                        {(barterStatsMap.get(row.id)?.acceptedCount || 0) > 0 && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              fontSize: "11px",
+                              fontWeight: 800,
+                              color: "#166534",
+                              background: "#ecfdf3",
+                              border: "1px solid #bbf7d0",
+                              borderRadius: "999px",
+                              padding: "4px 8px",
+                            }}
+                          >
+                            Barter berhasil
+                          </span>
+                        )}
                         {(row.eco_points > 0 || row.carbon_saved) && (
                           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                             <span style={{ width: "4px", height: "4px", background: "#EFEFEB", borderRadius: "50%" }} />

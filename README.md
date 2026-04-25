@@ -15,6 +15,12 @@ Run in Supabase SQL Editor (in order, if you haven't yet):
 
 -- Midtrans IRIS payout fields
 -- supabase/payouts_migration.sql
+
+-- Internal marker: sold via payment or barter
+-- supabase/listing_sale_source_migration.sql
+
+-- Barter post-agreement lifecycle timestamps
+-- supabase/barter_lifecycle_migration.sql
 ```
 
 ## Getting Started

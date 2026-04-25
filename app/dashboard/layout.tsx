@@ -13,6 +13,7 @@ import {
   ArrowLeftRight,
   Gift,
   ReceiptText,
+  Wallet,
   Settings,
   ArrowLeft,
   Leaf,
@@ -65,6 +66,11 @@ const accountNavItems: AccountNavItem[] = [
     label: "Transaksi",
     href: "/dashboard/transactions",
     icon: <ReceiptText size={iconSize} />,
+  },
+  {
+    label: "Payout Admin",
+    href: "/dashboard/payouts",
+    icon: <Wallet size={iconSize} />,
   },
   // Admin gate is enforced on the page.
   {
