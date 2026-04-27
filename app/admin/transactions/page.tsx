@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
-import { Loader2, CheckCircle2, AlertCircle, Search, Eye, XCircle, Package, DollarSign, Clock, Truck, Ban } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Search, Eye, XCircle, Package, DollarSign, Clock, Truck, Ban, ChevronLeft, ChevronRight } from "lucide-react";
 import { createPortal } from "react-dom";
 
 type Order = {
@@ -59,6 +59,7 @@ export default function TransactionMonitorPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [detailTarget, setDetailTarget] = useState<Order | null>(null);
@@ -70,7 +71,6 @@ export default function TransactionMonitorPage() {
 
   async function fetchOrders() {
     setLoading(true);
-    // 1. Fetch orders (tanpa join FK karena FK mengarah ke auth.users, bukan profiles)
     const { data: rawOrders } = await supabase
       .from("orders")
       .select("id, created_at, status, total_price, shipping_name, shipping_phone, shipping_address, shipping_notes, payment_method, payment_status, escrow_status, payout_status, payout_amount, paid_at, shipped_at, completed_at, buyer_id, seller_id, listing_id")
@@ -78,7 +78,6 @@ export default function TransactionMonitorPage() {
 
     if (!rawOrders || rawOrders.length === 0) { setOrders([]); setLoading(false); return; }
 
-    // 2. Batch fetch profiles & listings
     const userIds = [...new Set(rawOrders.flatMap(o => [o.buyer_id, o.seller_id]))];
     const listingIds = [...new Set(rawOrders.map(o => o.listing_id).filter(Boolean))];
 
@@ -95,7 +94,6 @@ export default function TransactionMonitorPage() {
     const listingMap: Record<string, { title: string; image_url: string | null }> = {};
     (listingsRes.data || []).forEach(l => { listingMap[l.id] = { title: l.title, image_url: l.image_url }; });
 
-    // 3. Map ke Order type
     const mapped: Order[] = rawOrders.map(o => ({
       ...o,
       buyer: { full_name: profileMap[o.buyer_id] || null },
@@ -136,7 +134,10 @@ export default function TransactionMonitorPage() {
     return true;
   });
 
-  // Summary stats
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedData = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   const totalGMV = orders.filter(o => ["paid", "shipped", "completed"].includes(o.status)).reduce((s, o) => s + o.total_price, 0);
   const pendingCount = orders.filter(o => o.status === "pending_payment").length;
   const completedCount = orders.filter(o => o.status === "completed").length;
@@ -176,10 +177,10 @@ export default function TransactionMonitorPage() {
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
           <Search size={16} color="#94A3B8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
-          <input type="text" placeholder="Cari pembeli, penjual, atau listing..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: "100%", padding: "12px 12px 12px 40px", borderRadius: "14px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", fontFamily: "inherit" }} />
+          <input type="text" placeholder="Cari pembeli, penjual, atau listing..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} style={{ width: "100%", padding: "12px 12px 12px 40px", borderRadius: "14px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", fontFamily: "inherit" }} />
         </div>
         {["all", "pending_payment", "paid", "shipped", "completed", "cancelled"].map(s => (
-          <button key={s} onClick={() => setFilter(s)} style={{ padding: "8px 14px", borderRadius: "10px", fontSize: "12px", fontWeight: 700, border: filter === s ? "1px solid #2563EB" : "1px solid #E2E8F0", background: filter === s ? "#EFF6FF" : "#fff", color: filter === s ? "#2563EB" : "#64748B", cursor: "pointer" }}>
+          <button key={s} onClick={() => { setFilter(s); setCurrentPage(1); }} style={{ padding: "8px 14px", borderRadius: "10px", fontSize: "12px", fontWeight: 700, border: filter === s ? "1px solid #2563EB" : "1px solid #E2E8F0", background: filter === s ? "#EFF6FF" : "#fff", color: filter === s ? "#2563EB" : "#64748B", cursor: "pointer" }}>
             {s === "all" ? "Semua" : (STATUS_MAP[s]?.label || s)}
           </button>
         ))}
@@ -202,7 +203,7 @@ export default function TransactionMonitorPage() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr><td colSpan={6} style={{ padding: "40px", textAlign: "center", color: "#64748B", fontSize: "14px" }}>Tidak ada transaksi ditemukan.</td></tr>
-                ) : filtered.map(o => (
+                ) : paginatedData.map(o => (
                   <tr key={o.id} style={{ borderBottom: "1px solid #F1F5F9" }}>
                     <td style={{ padding: "14px 18px", maxWidth: "220px" }}>
                       <p style={{ fontSize: "13px", fontWeight: 700, color: "#0F172A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.listing?.title || "Listing Dihapus"}</p>
@@ -230,6 +231,30 @@ export default function TransactionMonitorPage() {
               </tbody>
             </table>
           </div>
+          {/* Pagination Controls */}
+          {filtered.length > ITEMS_PER_PAGE && (
+            <div style={{ padding: "14px 18px", background: "#F8FAFC", borderTop: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <p style={{ fontSize: "12px", color: "#64748B", fontWeight: 600 }}>
+                Menampilkan {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} dari {filtered.length} Transaksi
+              </p>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                  disabled={currentPage === 1}
+                  style={{ padding: "6px", borderRadius: "8px", background: "#fff", border: "1px solid #CBD5E1", display: "flex", alignItems: "center", color: currentPage === 1 ? "#94A3B8" : "#334155", cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                  disabled={currentPage === totalPages}
+                  style={{ padding: "6px", borderRadius: "8px", background: "#fff", border: "1px solid #CBD5E1", display: "flex", alignItems: "center", color: currentPage === totalPages ? "#94A3B8" : "#334155", cursor: currentPage === totalPages ? "not-allowed" : "pointer" }}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       )}
 

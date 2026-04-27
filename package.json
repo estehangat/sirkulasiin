@@ -11,7 +11,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
-    "framer-motion": "12.38.0",
+    "framer-motion": "^12.38.0",
     "lucide-react": "^1.8.0",
     "midtrans-client": "^1.4.3",
     "next": "16.2.2",

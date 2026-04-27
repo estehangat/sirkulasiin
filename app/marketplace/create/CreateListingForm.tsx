@@ -61,6 +61,7 @@ type ScanData = {
   carbon_saved?: string | null;
   eco_points?: number | null;
   item_name?: string | null;
+  weight?: string | number | null;
 };
 
 export default function CreateListingForm({ scanData }: { scanData: ScanData | null }) {

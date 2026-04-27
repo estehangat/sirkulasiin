@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase";
+import { createPortal } from "react-dom";
 import { logout } from "@/app/actions/auth";
-import { Home, Store, Camera, Recycle, HelpCircle, User, LayoutDashboard, LogOut } from "lucide-react";
+import { Home, Store, Camera, Recycle, HelpCircle, User, LayoutDashboard, LogOut, Loader2, XCircle } from "lucide-react";
 import styles from "./navbar.module.css";
 import NotificationBell from "./NotificationBell";
 
@@ -111,6 +112,8 @@ function getInitials(name: string) {
 export default function Navbar({ activeNav }: NavbarProps) {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   /* ── Fetch user session ── */
@@ -146,8 +149,13 @@ export default function Navbar({ activeNav }: NavbarProps) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setDropdownOpen(false);
+    setShowLogoutConfirm(true);
+  };
+
+  const executeLogout = async () => {
+    setIsLoggingOut(true);
     await logout();
   };
 
@@ -306,6 +314,39 @@ export default function Navbar({ activeNav }: NavbarProps) {
           <span>Tentang</span>
        </Link>
     </nav>
+
+    {/* ── Logout Confirm Modal ── */}
+    {showLogoutConfirm && createPortal(
+      <div style={{ position: "fixed", inset: 0, zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }} onClick={() => !isLoggingOut && setShowLogoutConfirm(false)} />
+        <div style={{ position: "relative", background: "#fff", padding: "28px", borderRadius: "24px", width: "100%", maxWidth: "400px", boxShadow: "0 10px 40px rgba(0,0,0,0.15)", textAlign: "center", animation: "modalIn 0.2s ease-out" }}>
+          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#FEF2F2", color: "#DC2626", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+            <LogOut size={32} />
+          </div>
+          <h3 style={{ fontSize: "20px", fontWeight: 800, color: "#0F172A", marginBottom: "8px" }}>Keluar dari Akun?</h3>
+          <p style={{ fontSize: "14px", color: "#64748B", marginBottom: "28px", lineHeight: 1.5 }}>
+            Anda harus masuk kembali untuk bisa mengakses fitur seperti Marketplace, Barter, dan Scan AI.
+          </p>
+          <div style={{ display: "flex", gap: "12px" }}>
+            <button
+              onClick={() => setShowLogoutConfirm(false)}
+              disabled={isLoggingOut}
+              style={{ flex: 1, padding: "12px", borderRadius: "14px", background: "#F1F5F9", border: "none", color: "#475569", fontWeight: 700, fontSize: "14px", cursor: isLoggingOut ? "not-allowed" : "pointer", transition: "0.2s" }}
+            >
+              Batal
+            </button>
+            <button
+              onClick={executeLogout}
+              disabled={isLoggingOut}
+              style={{ flex: 1, padding: "12px", borderRadius: "14px", background: "#DC2626", border: "none", color: "#fff", fontWeight: 700, fontSize: "14px", cursor: isLoggingOut ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "0.2s" }}
+            >
+              {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : "Ya, Keluar"}
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
     </>
   );
 }

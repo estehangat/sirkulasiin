@@ -43,6 +43,7 @@ async function getEcoData() {
     barterAllRes,
     pointsRes,
     tutorialSubsRes,
+    ordersRes,
   ] = await Promise.all([
     // All scans with eco-relevant fields
     supabase.from("scan_history").select("material, carbon_offset, carbon_saved, circular_potential, grade, created_at"),
@@ -58,6 +59,8 @@ async function getEcoData() {
     supabase.from("point_transactions").select("points, source_type"),
     // Tutorial submissions
     supabase.from("tutorial_submissions").select("eco_points_earned"),
+    // Orders for GMV
+    supabase.from("orders").select("total_price").in("status", ["paid", "shipped", "completed"]),
   ]);
 
   const scans = scansRes.data || [];
@@ -67,6 +70,7 @@ async function getEcoData() {
   const barterAll = barterAllRes.data || [];
   const pointTxns = pointsRes.data || [];
   const tutorialSubs = tutorialSubsRes.data || [];
+  const ordersData = ordersRes.data || [];
 
   // ── Carbon Metrics ──
   let totalCarbonOffset = 0;
@@ -107,7 +111,7 @@ async function getEcoData() {
     : 0;
 
   // ── GMV from sold ──
-  const totalGMV = soldListings.reduce((s, l) => s + (l.price || 0), 0);
+  const totalGMV = ordersData.reduce((s, o) => s + (o.total_price || 0), 0);
 
   // ── Points ──
   const totalPointsDistributed = pointTxns
