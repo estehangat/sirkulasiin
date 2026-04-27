@@ -46,11 +46,11 @@ export default function PaymentForm({
         <div className={styles.statusBox}>
           Pembayaran terverifikasi. Dana ditahan aman sampai barang diterima pembeli.
         </div>
-        <button type="button" onClick={handleRefresh} disabled={isPending} className={styles.secondaryButton}>
-          {isPending ? "Memeriksa..." : "Cek Ulang Status"}
-        </button>
-        <Link href="/dashboard/transactions" className={styles.cancelLink}>
-          Lihat Transaksi
+        <Link href="/dashboard/transactions" className={styles.payButtonLink}>
+          <span className={styles.payButton}>Lihat Transaksi</span>
+        </Link>
+        <Link href="/marketplace" className={styles.secondaryButton}>
+          Belanja Lagi
         </Link>
       </div>
     );

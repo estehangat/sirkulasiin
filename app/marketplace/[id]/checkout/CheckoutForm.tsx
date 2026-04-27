@@ -4,8 +4,16 @@ import { useActionState, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { placeOrder, CheckoutState } from "@/app/actions/checkout";
-import type { ShippingOption } from "@/lib/rajaongkir";
 import styles from "./checkout.module.css";
+
+type ShippingOption = {
+  courier: string;
+  service: string;
+  service_name?: string;
+  description: string;
+  cost: number;
+  etd: string;
+};
 
 function formatRupiah(price: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -20,13 +28,9 @@ type BuyerProfile = {
   phone: string | null;
   location: string | null;
   address: string | null;
-  province_id: string | null;
-  province_name: string | null;
-  city_id: string | null;
-  city_name: string | null;
-  district_name: string | null;
-  village_name: string | null;
-  postal_code: string | null;
+  shipping_area_id: string | null;
+  shipping_area_name: string | null;
+  shipping_postal: string | null;
   full_address: string | null;
 } | null;
 
@@ -43,7 +47,8 @@ type Props = {
   };
   sellerName: string;
   sellerAvatar: string | null;
-  sellerCityId: string;
+  sellerAreaId: string;
+  sellerPostal: string;
   weightGrams: number;
   buyerProfile: BuyerProfile;
 };
@@ -80,15 +85,22 @@ const TruckIcon = () => (
 
 const COURIER_LABELS: Record<string, string> = {
   jne: "JNE",
-  tiki: "TIKI",
+  jnt: "J&T Express",
+  sicepat: "SiCepat",
+  anteraja: "AnterAja",
   pos: "POS Indonesia",
+  ninja: "Ninja Xpress",
+  tiki: "TIKI",
+  gosend: "GoSend",
+  grab: "GrabExpress",
 };
 
 export default function CheckoutForm({
   listing,
   sellerName,
   sellerAvatar,
-  sellerCityId,
+  sellerAreaId,
+  sellerPostal,
   weightGrams,
   buyerProfile,
 }: Props) {
@@ -99,30 +111,28 @@ export default function CheckoutForm({
 
   const shippingName = buyerProfile?.full_name || "";
   const shippingPhone = buyerProfile?.phone || "";
-  const selectedCityId = buyerProfile?.city_id || "";
+  const buyerAreaId = buyerProfile?.shipping_area_id || "";
+  const buyerPostal = buyerProfile?.shipping_postal || "";
 
-  // Compose display address from all address fields
+  // Compose display address
   const addressLines = [
     buyerProfile?.full_address,
-    [buyerProfile?.village_name, buyerProfile?.district_name ? `Kec. ${buyerProfile.district_name}` : null]
-      .filter(Boolean).join(", "),
-    [buyerProfile?.city_name, buyerProfile?.province_name, buyerProfile?.postal_code]
-      .filter(Boolean).join(", "),
+    [buyerProfile?.shipping_area_name, buyerProfile?.shipping_postal].filter(Boolean).join(", "),
   ].filter(Boolean);
   const shippingAddress = addressLines.join("\n");
-  const hasAddress = !!(buyerProfile?.city_id && buyerProfile?.full_address);
+  const hasAddress = !!(buyerAreaId && buyerProfile?.full_address);
 
   const [shippingNotes, setShippingNotes] = useState("");
 
-  // ── Shipping ──────────────────────────────────────────────
+  // ── Shipping ─────────────────────────────────────
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
   const [shippingError, setShippingError] = useState("");
 
-  // Auto-fetch ongkir saat mount (city sudah dari profile)
+  // Auto-fetch ongkir Biteship saat mount
   useEffect(() => {
-    if (!selectedCityId || !sellerCityId) return;
+    if (!buyerAreaId || !sellerAreaId) return;
     setLoadingShipping(true);
     setShippingError("");
     setSelectedShipping(null);
@@ -131,19 +141,20 @@ export default function CheckoutForm({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        origin_city_id: sellerCityId,
-        dest_city_id: selectedCityId,
+        origin_area_id: sellerAreaId,
+        destination_area_id: buyerAreaId,
         weight_grams: weightGrams,
+        item_value: listing.price,
       }),
     })
       .then((r) => r.json())
       .then((d) => {
-        if (d.results) setShippingOptions(d.results as ShippingOption[]);
-        else setShippingError("Gagal memuat pilihan ongkir.");
+        if (Array.isArray(d.results)) setShippingOptions(d.results as ShippingOption[]);
+        else setShippingError(d.error || "Gagal memuat pilihan ongkir.");
       })
       .catch(() => setShippingError("Gagal memuat ongkir. Coba lagi."))
       .finally(() => setLoadingShipping(false));
-  }, [selectedCityId, sellerCityId, weightGrams]);
+  }, [buyerAreaId, sellerAreaId, weightGrams, listing.price]);
 
   const shippingCost = selectedShipping?.cost ?? 0;
   const totalPrice = listing.price + shippingCost;
@@ -172,7 +183,10 @@ export default function CheckoutForm({
         <input type="hidden" name="shipping_courier" value={selectedShipping?.courier ?? ""} />
         <input type="hidden" name="shipping_service" value={selectedShipping?.service ?? ""} />
         <input type="hidden" name="shipping_etd" value={selectedShipping?.etd ?? ""} />
-        <input type="hidden" name="destination_city_id" value={selectedCityId} />
+        <input type="hidden" name="shipping_origin_area_id" value={sellerAreaId} />
+        <input type="hidden" name="shipping_origin_postal" value={sellerPostal} />
+        <input type="hidden" name="shipping_destination_area_id" value={buyerAreaId} />
+        <input type="hidden" name="shipping_destination_postal" value={buyerPostal} />
         <input type="hidden" name="shipping_name" value={shippingName} />
         <input type="hidden" name="shipping_phone" value={shippingPhone} />
         <input type="hidden" name="shipping_address" value={shippingAddress} />
@@ -259,7 +273,7 @@ export default function CheckoutForm({
                   Pilih Layanan Pengiriman
                 </span>
                 <div className={styles.shippingSection}>
-                  {!selectedCityId ? (
+                  {!buyerAreaId ? (
                     <p className={styles.shippingPendingText}>Pilih kota tujuan untuk melihat opsi pengiriman.</p>
                   ) : loadingShipping ? (
                     <p className={styles.shippingLoadingText}>⏳ Menghitung ongkir...</p>
@@ -292,9 +306,9 @@ export default function CheckoutForm({
                           </div>
                           <div className={styles.shippingOptionInfo}>
                             <p className={styles.shippingOptionLabel}>
-                              {COURIER_LABELS[opt.courier] ?? opt.courier.toUpperCase()} {opt.service}
+                              {COURIER_LABELS[opt.courier] ?? opt.courier.toUpperCase()} {opt.service_name ?? opt.service.toUpperCase()}
                             </p>
-                            <p className={styles.shippingOptionEtd}>{opt.description} · Estimasi {opt.etd} hari</p>
+                            <p className={styles.shippingOptionEtd}>{opt.description} · Estimasi {opt.etd}</p>
                           </div>
                           <span className={styles.shippingOptionCost}>{formatRupiah(opt.cost)}</span>
                         </div>

@@ -601,7 +601,7 @@ function HasilScanPageContent() {
                   <span className={styles.featuredTag}>Panduan Lengkap</span>
                 </div>
               </div>
-              <Link href="#" className={styles.featuredBtn} style={{ background: "#e74c3c" }}>
+              <Link href={`/scan/hasil/pembuangan-aman?id=${d.id}`} className={styles.featuredBtn} style={{ background: "#e74c3c" }}>
                 Lihat<br />Panduan
               </Link>
             </div>

@@ -51,6 +51,10 @@ export async function placeOrder(
   const shippingCourier = (formData.get("shipping_courier") as string)?.trim();
   const shippingService = (formData.get("shipping_service") as string)?.trim();
   const shippingEtd = (formData.get("shipping_etd") as string)?.trim();
+  const shippingOriginAreaId = (formData.get("shipping_origin_area_id") as string)?.trim();
+  const shippingOriginPostal = (formData.get("shipping_origin_postal") as string)?.trim();
+  const shippingDestAreaId = (formData.get("shipping_destination_area_id") as string)?.trim();
+  const shippingDestPostal = (formData.get("shipping_destination_postal") as string)?.trim();
 
   if (!listingId || !sellerId) {
     return { error: "Data listing tidak valid." };
@@ -94,6 +98,10 @@ export async function placeOrder(
     p_shipping_courier: shippingCourier || null,
     p_shipping_service: shippingService || null,
     p_shipping_etd: shippingEtd || null,
+    p_shipping_origin_area_id: shippingOriginAreaId || null,
+    p_shipping_origin_postal: shippingOriginPostal || null,
+    p_shipping_destination_area_id: shippingDestAreaId || null,
+    p_shipping_destination_postal: shippingDestPostal || null,
   });
 
   if (rpcError || !orderId) {

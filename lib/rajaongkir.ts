@@ -93,7 +93,9 @@ export async function getCities(provinceId: string): Promise<City[]> {
 
 // ─── Get Shipping Costs (semua 3 kurir paralel) ───────────────────────────────
 
-const COURIERS = ["jne", "tiki", "pos"] as const;
+// TIKI dinonaktifkan: tidak tersedia di Biteship sandbox dan menyebabkan
+// "Courier service type does not exist" saat create order.
+const COURIERS = ["jne", "pos"] as const;
 type Courier = (typeof COURIERS)[number];
 
 async function getCostForCourier(

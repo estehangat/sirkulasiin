@@ -3,8 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase";
-import type { Province, City } from "@/lib/rajaongkir";
-import type { District, Village } from "@/lib/wilayah";
+import AddressAutocomplete from "@/app/components/AddressAutocomplete";
 import {
   User,
   Bell,
@@ -40,15 +39,10 @@ type ProfileForm = {
   phone: string;
   bio: string;
   location: string;
-  provinceId: string;
-  provinceName: string;
-  cityId: string;
-  cityName: string;
-  districtId: string;
-  districtName: string;
-  villageId: string;
-  villageName: string;
-  postalCode: string;
+  // Biteship area (single search, replaces cascading province/city/district/village)
+  shippingAreaId: string;
+  shippingAreaName: string;
+  shippingPostal: string;
   fullAddress: string;
   website: string;
   avatarUrl: string;
@@ -70,15 +64,9 @@ const DEFAULT_FORM: ProfileForm = {
   phone: "",
   bio: "",
   location: "",
-  provinceId: "",
-  provinceName: "",
-  cityId: "",
-  cityName: "",
-  districtId: "",
-  districtName: "",
-  villageId: "",
-  villageName: "",
-  postalCode: "",
+  shippingAreaId: "",
+  shippingAreaName: "",
+  shippingPostal: "",
   fullAddress: "",
   website: "",
   avatarUrl: "",
@@ -436,15 +424,7 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
     text: string;
   } | null>(null);
 
-  // ─── Address cascading state ─────────────────────────────────────────────
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [villages, setVillages] = useState<Village[]>([]);
-  const [loadingProvinces, setLoadingProvinces] = useState(false);
-  const [loadingCities, setLoadingCities] = useState(false);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
-  const [loadingVillages, setLoadingVillages] = useState(false);
+  // ─── Geolocation state ───────────────────────────────────────────────────
   const [geolocating, setGeolocating] = useState(false);
 
   useEffect(() => {
@@ -492,7 +472,7 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("payout_channel, payout_bank_code, payout_account_number, payout_account_name, province_id, province_name, city_id, city_name, district_id, district_name, village_id, village_name, postal_code, full_address")
+        .select("payout_channel, payout_bank_code, payout_account_number, payout_account_name, shipping_area_id, shipping_area_name, shipping_postal, full_address")
         .eq("id", session.user.id)
         .single();
 
@@ -504,68 +484,16 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
           payoutBankCode: profile.payout_bank_code || "",
           payoutAccountNumber: profile.payout_account_number || "",
           payoutAccountName: profile.payout_account_name || "",
-          provinceId: String(profile.province_id || ""),
-          provinceName: profile.province_name || "",
-          cityId: String(profile.city_id || ""),
-          cityName: profile.city_name || "",
-          districtId: String(profile.district_id || ""),
-          districtName: profile.district_name || "",
-          villageId: String(profile.village_id || ""),
-          villageName: profile.village_name || "",
-          postalCode: profile.postal_code || "",
+          shippingAreaId: profile.shipping_area_id || "",
+          shippingAreaName: profile.shipping_area_name || "",
+          shippingPostal: profile.shipping_postal || "",
           fullAddress: profile.full_address || "",
         }));
-        // Jika ada provinsi tersimpan, pre-load daftar kotanya
-        if (profile.province_id) {
-          fetch(`/api/shipping/cities?province_id=${profile.province_id}`)
-            .then((r) => r.json())
-            .then((d) => { if (d.cities) setCities(d.cities as City[]); })
-            .catch(() => {});
-        }
-        // Pre-load kecamatan & kelurahan jika tersimpan
-        if (profile.province_name && profile.city_name) {
-          fetch(`/api/address/districts?province_name=${encodeURIComponent(profile.province_name)}&city_name=${encodeURIComponent(profile.city_name)}`)
-            .then((r) => r.json())
-            .then((d) => { if (d.districts) setDistricts(d.districts as District[]); })
-            .catch(() => {});
-        }
-        if (profile.district_id) {
-          fetch(`/api/address/villages?district_id=${profile.district_id}`)
-            .then((r) => r.json())
-            .then((d) => { if (d.villages) setVillages(d.villages as Village[]); })
-            .catch(() => {});
-        }
       }
       setLoading(false);
     }
     bootstrap();
   }, [supabase]);
-
-  // ─── Load provinces once on mount ────────────────────────────────────────
-  useEffect(() => {
-    setLoadingProvinces(true);
-    fetch("/api/shipping/provinces")
-      .then((r) => r.json())
-      .then((d) => {
-        if (!d.provinces) return;
-        const list = d.provinces as any[];
-        setProvinces(list as Province[]);
-        // Re-sync: match saved provinceName → correct provinceId from API
-        setForm((prev) => {
-          if (!prev.provinceName) return prev;
-          const normSaved = prev.provinceName.toLowerCase();
-          const match = list.find(
-            (p) =>
-              (p.province || p.name || "").toLowerCase() === normSaved
-          );
-          if (!match) return prev;
-          const apiId = String(match.province_id ?? match.id ?? "");
-          return apiId && apiId !== prev.provinceId ? { ...prev, provinceId: apiId } : prev;
-        });
-      })
-      .catch(() => {})
-      .finally(() => setLoadingProvinces(false));
-  }, []);
 
   const profileName = form.fullName || email || "Pengguna";
 
@@ -638,19 +566,11 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
         username: form.username.trim(),
         avatar_url: form.avatarUrl.trim(),
         phone: form.phone.trim(),
-        location: form.cityName && form.provinceName
-          ? `${form.cityName}, ${form.provinceName}`
-          : form.location.trim(),
+        location: form.shippingAreaName || form.location.trim(),
         bio: form.bio.trim(),
-        province_id: form.provinceId ? Number(form.provinceId) : null,
-        province_name: form.provinceName || null,
-        city_id: form.cityId ? Number(form.cityId) : null,
-        city_name: form.cityName || null,
-        district_id: form.districtId || null,
-        district_name: form.districtName || null,
-        village_id: form.villageId || null,
-        village_name: form.villageName || null,
-        postal_code: form.postalCode.trim() || null,
+        shipping_area_id: form.shippingAreaId || null,
+        shipping_area_name: form.shippingAreaName || null,
+        shipping_postal: form.shippingPostal || null,
         full_address: form.fullAddress.trim() || null,
         payout_channel: form.payoutChannel,
         payout_bank_code: form.payoutBankCode.trim() || null,
@@ -1034,15 +954,15 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
         <SectionHeader
           icon={<Home size={18} />}
           title="Alamat Pengiriman"
-          subtitle="Alamat ini digunakan sebagai asal pengiriman saat berjualan di marketplace."
+          subtitle="Cari kelurahan/kota Anda. Alamat ini dipakai sebagai asal pengiriman saat berjualan & tujuan saat berbelanja di marketplace."
         />
 
-        {/* Gunakan Lokasi Sekarang */}
+        {/* Gunakan Lokasi Sekarang — auto-search via reverse geocode */}
         <div style={{ marginBottom: "18px" }}>
           <button
             type="button"
             disabled={geolocating}
-            onClick={async () => {
+            onClick={() => {
               if (!navigator.geolocation) {
                 setStatus({ type: "error", text: "Browser Anda tidak mendukung geolokasi." });
                 return;
@@ -1053,96 +973,28 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
                 async (pos) => {
                   try {
                     const { latitude, longitude } = pos.coords;
-                    const res = await fetch(
-                      `/api/address/reverse-geocode?lat=${latitude}&lon=${longitude}`
-                    );
+                    const res = await fetch(`/api/address/reverse-geocode?lat=${latitude}&lon=${longitude}`);
                     if (!res.ok) throw new Error(`Geocode error: ${res.status}`);
                     const geo = await res.json();
                     const addr = geo.address || {};
 
-                    // Match province
-                    const geoProvName = (addr.state || "").trim();
-                    if (geoProvName && provinces.length > 0) {
-                      const normGeo = geoProvName.toLowerCase();
-                      const matchedProv = provinces.find((p: any) => {
-                        const name = (p.province || p.name || "").toLowerCase();
-                        return name === normGeo || name.includes(normGeo) || normGeo.includes(name);
-                      }) as any;
-                      if (matchedProv) {
-                        const provId = String(matchedProv.province_id ?? matchedProv.id ?? "");
-                        const provName = matchedProv.province || matchedProv.name || "";
-                        onChangeField("provinceId", provId);
-                        onChangeField("provinceName", provName);
-
-                        // Fetch cities for matched province
-                        const cityRes = await fetch(`/api/shipping/cities?province_id=${provId}`);
-                        const cityData = await cityRes.json();
-                        const fetchedCities: any[] = cityData.cities || [];
-                        setCities(fetchedCities as City[]);
-
-                        // Match city
-                        const geoCityRaw = (addr.city || addr.county || addr.town || addr.municipality || "").trim();
-                        if (geoCityRaw && fetchedCities.length > 0) {
-                          const normCity = geoCityRaw.toLowerCase();
-                          const matchedCity = fetchedCities.find((c: any) => {
-                            const cName = (c.city_name || c.name || "").toLowerCase();
-                            const full = `${c.type || ""} ${cName}`.toLowerCase().trim();
-                            return full === normCity || cName === normCity || full.includes(normCity) || normCity.includes(cName);
-                          }) as any;
-                          if (matchedCity) {
-                            const cityId = String(matchedCity.city_id ?? matchedCity.id ?? "");
-                            const cityName = `${matchedCity.type || ""} ${matchedCity.city_name || matchedCity.name || ""}`.trim();
-                            onChangeField("cityId", cityId);
-                            onChangeField("cityName", cityName);
-
-                            // Fetch districts
-                            const distRes = await fetch(`/api/address/districts?province_name=${encodeURIComponent(provName)}&city_name=${encodeURIComponent(cityName)}`);
-                            const distData = await distRes.json();
-                            const fetchedDistricts: District[] = distData.districts || [];
-                            setDistricts(fetchedDistricts);
-
-                            // Match district (kecamatan)
-                            const geoDistrict = (addr.suburb || addr.city_district || addr.quarter || addr.neighbourhood || "").trim();
-                            if (geoDistrict && fetchedDistricts.length > 0) {
-                              const normDist = geoDistrict.toLowerCase();
-                              const matchedDist = fetchedDistricts.find(
-                                (d) => d.name.toLowerCase() === normDist || d.name.toLowerCase().includes(normDist) || normDist.includes(d.name.toLowerCase())
-                              );
-                              if (matchedDist) {
-                                onChangeField("districtId", matchedDist.id);
-                                onChangeField("districtName", matchedDist.name);
-
-                                // Fetch villages
-                                const vilRes = await fetch(`/api/address/villages?district_id=${matchedDist.id}`);
-                                const vilData = await vilRes.json();
-                                const fetchedVillages: Village[] = vilData.villages || [];
-                                setVillages(fetchedVillages);
-
-                                // Match village (kelurahan)
-                                const geoVillage = (addr.village || addr.hamlet || addr.neighbourhood || "").trim();
-                                if (geoVillage && fetchedVillages.length > 0) {
-                                  const normVil = geoVillage.toLowerCase();
-                                  const matchedVil = fetchedVillages.find(
-                                    (v) => v.name.toLowerCase() === normVil || v.name.toLowerCase().includes(normVil) || normVil.includes(v.name.toLowerCase())
-                                  );
-                                  if (matchedVil) {
-                                    onChangeField("villageId", matchedVil.id);
-                                    onChangeField("villageName", matchedVil.name);
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
+                    // Cari area Biteship dari postal code atau village/suburb name
+                    const searchKey = addr.postcode || addr.village || addr.suburb || addr.city_district || addr.city || "";
+                    if (searchKey) {
+                      const areasRes = await fetch(`/api/maps/areas?input=${encodeURIComponent(String(searchKey))}`);
+                      const areasData = await areasRes.json();
+                      const firstArea = areasData.areas?.[0];
+                      if (firstArea) {
+                        onChangeField("shippingAreaId", firstArea.id);
+                        onChangeField("shippingAreaName", firstArea.name);
+                        onChangeField("shippingPostal", firstArea.postal_code != null ? String(firstArea.postal_code) : (addr.postcode || ""));
+                      } else if (addr.postcode) {
+                        onChangeField("shippingPostal", addr.postcode);
                       }
                     }
 
-                    // Fill postal code & full address
-                    if (addr.postcode) onChangeField("postalCode", addr.postcode);
-                    const displayAddr = geo.display_name || "";
-                    if (displayAddr) onChangeField("fullAddress", displayAddr);
-
-                    setStatus({ type: "success", text: "Lokasi berhasil terdeteksi! Periksa & lengkapi jika perlu." });
+                    if (geo.display_name) onChangeField("fullAddress", geo.display_name);
+                    setStatus({ type: "success", text: "Lokasi terdeteksi! Periksa hasil pencarian area." });
                   } catch {
                     setStatus({ type: "error", text: "Gagal mendapatkan detail alamat dari koordinat." });
                   } finally {
@@ -1190,139 +1042,27 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
             marginBottom: "20px",
           }}
         >
-          <Field label="Provinsi" icon={<MapPin size={12} />}>
-            <select
-              style={{ ...inputStyle, cursor: "pointer" }}
-              value={form.provinceId}
-              disabled={loadingProvinces}
-              onChange={(e) => {
-                const prov = provinces.find((p: any) => String(p.province_id ?? p.id) === e.target.value);
-                onChangeField("provinceId", e.target.value);
-                onChangeField("provinceName", (prov as any)?.province || (prov as any)?.name || "");
-                onChangeField("cityId", "");
-                onChangeField("cityName", "");
-                onChangeField("districtId", "");
-                onChangeField("districtName", "");
-                onChangeField("villageId", "");
-                onChangeField("villageName", "");
-                setCities([]);
-                setDistricts([]);
-                setVillages([]);
-                if (e.target.value) {
-                  setLoadingCities(true);
-                  fetch(`/api/shipping/cities?province_id=${e.target.value}`)
-                    .then((r) => r.json())
-                    .then((d) => { if (d.cities) setCities(d.cities as City[]); })
-                    .catch(() => {})
-                    .finally(() => setLoadingCities(false));
-                }
+          <Field label="Cari Kelurahan / Kota" icon={<MapPin size={12} />} fullWidth>
+            <AddressAutocomplete
+              value={
+                form.shippingAreaId
+                  ? { id: form.shippingAreaId, name: form.shippingAreaName, postal: form.shippingPostal }
+                  : null
+              }
+              onChange={(val) => {
+                onChangeField("shippingAreaId", val?.id ?? "");
+                onChangeField("shippingAreaName", val?.name ?? "");
+                onChangeField("shippingPostal", val?.postal ?? "");
               }}
-            >
-              <option value="">{loadingProvinces ? "Memuat provinsi..." : "— Pilih Provinsi —"}</option>
-              {provinces.length === 0 && form.provinceId && (
-                <option value={form.provinceId}>{form.provinceName || form.provinceId}</option>
-              )}
-              {provinces.map((p: any, i) => (
-                <option key={`prov-${p.province_id || p.id}-${i}`} value={p.province_id || p.id}>
-                  {p.province || p.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Kota / Kabupaten" icon={<MapPin size={12} />}>
-            <select
-              style={{ ...inputStyle, cursor: cities.length === 0 ? "not-allowed" : "pointer" }}
-              value={form.cityId}
-              disabled={cities.length === 0 || loadingCities}
-              onChange={(e) => {
-                const city = cities.find((c: any) => String(c.city_id ?? c.id) === e.target.value);
-                const cityFullName = city
-                  ? `${(city as any).type || ""} ${(city as any).city_name || (city as any).name || ""}`.trim()
-                  : "";
-                onChangeField("cityId", e.target.value);
-                onChangeField("cityName", cityFullName);
-                onChangeField("districtId", "");
-                onChangeField("districtName", "");
-                onChangeField("villageId", "");
-                onChangeField("villageName", "");
-                setDistricts([]);
-                setVillages([]);
-                if (e.target.value && form.provinceName) {
-                  setLoadingDistricts(true);
-                  fetch(`/api/address/districts?province_name=${encodeURIComponent(form.provinceName)}&city_name=${encodeURIComponent(cityFullName)}`)
-                    .then((r) => r.json())
-                    .then((d) => { if (d.districts) setDistricts(d.districts as District[]); })
-                    .catch(() => {})
-                    .finally(() => setLoadingDistricts(false));
-                }
-              }}
-            >
-              <option value="">{loadingCities ? "Memuat kota..." : cities.length === 0 ? "— Pilih provinsi dulu —" : "— Pilih Kota/Kab —"}</option>
-              {cities.length === 0 && form.cityId && (
-                <option value={form.cityId}>{form.cityName || form.cityId}</option>
-              )}
-              {cities.map((c: any, i) => (
-                <option key={`city-${c.city_id || c.id}-${i}`} value={c.city_id || c.id}>
-                  {c.type || ""} {c.city_name || c.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Kecamatan" icon={<MapPin size={12} />}>
-            <select
-              style={{ ...inputStyle, cursor: districts.length === 0 ? "not-allowed" : "pointer" }}
-              value={form.districtId}
-              disabled={districts.length === 0 || loadingDistricts}
-              onChange={(e) => {
-                const dist = districts.find((d) => d.id === e.target.value);
-                onChangeField("districtId", e.target.value);
-                onChangeField("districtName", dist?.name || "");
-                onChangeField("villageId", "");
-                onChangeField("villageName", "");
-                setVillages([]);
-                if (e.target.value) {
-                  setLoadingVillages(true);
-                  fetch(`/api/address/villages?district_id=${e.target.value}`)
-                    .then((r) => r.json())
-                    .then((d) => { if (d.villages) setVillages(d.villages as Village[]); })
-                    .catch(() => {})
-                    .finally(() => setLoadingVillages(false));
-                }
-              }}
-            >
-              <option value="">{loadingDistricts ? "Memuat kecamatan..." : districts.length === 0 ? "— Pilih kota dulu —" : "— Pilih Kecamatan —"}</option>
-              {districts.map((d, i) => (
-                <option key={`dist-${d.id}-${i}`} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Kelurahan / Desa" icon={<MapPin size={12} />}>
-            <select
-              style={{ ...inputStyle, cursor: villages.length === 0 ? "not-allowed" : "pointer" }}
-              value={form.villageId}
-              disabled={villages.length === 0 || loadingVillages}
-              onChange={(e) => {
-                const vil = villages.find((v) => v.id === e.target.value);
-                onChangeField("villageId", e.target.value);
-                onChangeField("villageName", vil?.name || "");
-              }}
-            >
-              <option value="">{loadingVillages ? "Memuat kelurahan..." : villages.length === 0 ? "— Pilih kecamatan dulu —" : "— Pilih Kelurahan/Desa —"}</option>
-              {villages.map((v, i) => (
-                <option key={`vil-${v.id}-${i}`} value={v.id}>{v.name}</option>
-              ))}
-            </select>
+            />
           </Field>
 
           <Field label="Kode Pos">
             <input
               style={inputStyle}
-              value={form.postalCode}
-              onChange={(e) => onChangeField("postalCode", e.target.value)}
-              placeholder="Kode pos"
+              value={form.shippingPostal}
+              onChange={(e) => onChangeField("shippingPostal", e.target.value)}
+              placeholder="Otomatis dari area"
               maxLength={5}
             />
           </Field>

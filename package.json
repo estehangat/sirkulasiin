@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
-    "framer-motion": "12.38.0",
+    "bwip-js": "^4.10.1",
+    "framer-motion": "^12.38.0",
     "lucide-react": "^1.8.0",
     "midtrans-client": "^1.4.3",
     "next": "16.2.2",

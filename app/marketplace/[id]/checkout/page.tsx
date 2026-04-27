@@ -36,13 +36,13 @@ export default async function CheckoutPage({
 
   const { data: sellerProfile } = await supabase
     .from("profiles")
-    .select("full_name, username, avatar_url, location, city_id, city_name, province_name")
+    .select("full_name, username, avatar_url, location, shipping_area_id, shipping_area_name, shipping_postal")
     .eq("id", listing.user_id)
     .single();
 
   const { data: buyerProfile } = await supabase
     .from("profiles")
-    .select("full_name, phone, location, address, province_id, province_name, city_id, city_name, district_name, village_name, postal_code, full_address")
+    .select("full_name, phone, location, address, shipping_area_id, shipping_area_name, shipping_postal, full_address")
     .eq("id", user.id)
     .single();
 
@@ -50,7 +50,7 @@ export default async function CheckoutPage({
     sellerProfile?.full_name || sellerProfile?.username || "Penjual";
 
   // Guard: seller belum mengisi alamat terstruktur → block checkout
-  if (!sellerProfile?.city_id) {
+  if (!sellerProfile?.shipping_area_id) {
     return (
       <main className={styles.pageShell}>
         <Navbar activeNav="marketplace" />
@@ -88,7 +88,8 @@ export default async function CheckoutPage({
           listing={listing}
           sellerName={sellerName}
           sellerAvatar={sellerProfile?.avatar_url || null}
-          sellerCityId={String(sellerProfile.city_id)}
+          sellerAreaId={sellerProfile.shipping_area_id}
+          sellerPostal={sellerProfile.shipping_postal || ""}
           weightGrams={listing.weight_grams || 1000}
           buyerProfile={buyerProfile}
         />

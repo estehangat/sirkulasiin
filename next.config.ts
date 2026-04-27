@@ -1,10 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["*.trycloudflare.com", "*.ngrok-free.dev"],
+  allowedDevOrigins: [
+    "*.trycloudflare.com",
+    "*.ngrok-free.app",
+    "*.ngrok.io",
+    "*.ngrok.app",
+  ],
   experimental: {
     serverActions: {
-      allowedOrigins: ["*.trycloudflare.com", "*.ngrok-free.dev"],
+      allowedOrigins: [
+        "*.trycloudflare.com",
+        "*.ngrok-free.app",
+        "*.ngrok.io",
+        "*.ngrok.app",
+      ],
     },
   },
   images: {

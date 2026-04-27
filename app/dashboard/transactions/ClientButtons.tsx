@@ -2,17 +2,32 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { CheckCircle2, FileDown, Package, RefreshCw, XCircle } from "lucide-react";
 import { updateOrderStatus } from "@/app/actions/checkout";
 import { requestPayout } from "@/app/actions/payout";
+import {
+  cancelShippingAction,
+  createShippingOrderAction,
+  syncTrackingAction,
+} from "@/app/actions/shipping";
 
 type Props = {
   orderId: string;
   status: string;
   isBuyer: boolean;
   payoutStatus?: string | null;
+  shippingOrderId?: string | null;
+  pickupStatus?: string | null;
 };
 
-export default function TransactionButtons({ orderId, status, isBuyer, payoutStatus }: Props) {
+export default function TransactionButtons({
+  orderId,
+  status,
+  isBuyer,
+  payoutStatus,
+  shippingOrderId,
+  pickupStatus,
+}: Props) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -46,6 +61,24 @@ export default function TransactionButtons({ orderId, status, isBuyer, payoutSta
       setMessage({ type: "success", text: "Pengajuan pencairan berhasil dibuat." });
       router.refresh();
     });
+  };
+
+  const handleShippingAction = (action: () => Promise<{ success: boolean; message?: string; error?: string }>) => {
+    startTransition(async () => {
+      setMessage(null);
+      const result = await action();
+      if (!result.success) {
+        setMessage({ type: "error", text: result.error || "Aksi pengiriman gagal." });
+        return;
+      }
+      setMessage({ type: "success", text: result.message || "Berhasil." });
+      router.refresh();
+    });
+  };
+
+  const handleCancelShipping = () => {
+    if (!confirm("Batalkan order pengiriman ini?")) return;
+    handleShippingAction(() => cancelShippingAction(orderId));
   };
 
   const withFeedback = (node: React.ReactNode) => (
@@ -125,9 +158,9 @@ export default function TransactionButtons({ orderId, status, isBuyer, payoutSta
     }
 
     if (status === "paid_escrow") {
-      return withFeedback(<span style={badgeStyle}>Dana Ditahan Aman</span>);
+      return withFeedback(<span style={badgeStyle}>Menunggu Penjual Mengirim</span>);
     }
-    
+
     if (status === "shipped") {
       return withFeedback(
         <button
@@ -137,33 +170,116 @@ export default function TransactionButtons({ orderId, status, isBuyer, payoutSta
             background: "linear-gradient(135deg, #27AE60 0%, #1E8449 100%)",
             color: "#fff",
             borderColor: "rgba(255,255,255,0.18)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
           }}
           onMouseEnter={btnHoverIn}
           onMouseLeave={btnHoverOut}
         >
-          Pesanan Diterima
+          <CheckCircle2 size={14} /> Pesanan Diterima
         </button>
       );
     }
+
+    return null;
   }
 
   // Action penjual
   if (!isBuyer) {
-    if (status === "paid_escrow") {
+    // Belum ada order pengiriman → tombol create
+    if (status === "paid_escrow" && !shippingOrderId) {
       return withFeedback(
         <button
-          onClick={() => handleUpdate("shipped")}
+          onClick={() => handleShippingAction(() => createShippingOrderAction(orderId))}
           style={{
             ...btnBase,
-            background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
+            background: "linear-gradient(135deg, #27AE60 0%, #1E8449 100%)",
             color: "#fff",
             borderColor: "rgba(255,255,255,0.18)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
           }}
           onMouseEnter={btnHoverIn}
           onMouseLeave={btnHoverOut}
         >
-          Tandai Dikirim
+          <Package size={14} /> Buat Resi & Kirim
         </button>
+      );
+    }
+
+    // Sudah ada shipping order — tampilkan tombol refresh + cancel saat masih bisa
+    if (shippingOrderId && (status === "paid_escrow" || status === "shipped")) {
+      const canCancel = pickupStatus !== "picked_up" && pickupStatus !== "cancelled" && status !== "shipped";
+      return withFeedback(
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "flex-end" }}>
+          <a
+            href={`/api/shipping/label/${orderId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              ...btnBase,
+              fontSize: "12px",
+              padding: "8px 12px",
+              background: "linear-gradient(135deg, #1E8449 0%, #166534 100%)",
+              color: "#fff",
+              borderColor: "rgba(255,255,255,0.18)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+              textDecoration: "none",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow = "0 10px 20px rgba(17, 24, 39, 0.12)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = btnBase.boxShadow as string;
+            }}
+          >
+            <FileDown size={13} /> Download Label
+          </a>
+          <button
+            onClick={() => handleShippingAction(() => syncTrackingAction(orderId))}
+            style={{
+              ...btnBase,
+              fontSize: "12px",
+              padding: "8px 12px",
+              background: "#fff",
+              color: "#374151",
+              borderColor: "#e5e7eb",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+            }}
+            onMouseEnter={btnHoverIn}
+            onMouseLeave={btnHoverOut}
+          >
+            <RefreshCw size={13} /> Refresh Status
+          </button>
+          {canCancel && (
+            <button
+              onClick={handleCancelShipping}
+              style={{
+                ...btnBase,
+                fontSize: "12px",
+                padding: "8px 12px",
+                background: "#fff",
+                color: "#c0392b",
+                borderColor: "#fecaca",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+              onMouseEnter={btnHoverIn}
+              onMouseLeave={btnHoverOut}
+            >
+              <XCircle size={13} /> Batalkan Resi
+            </button>
+          )}
+        </div>
       );
     }
 

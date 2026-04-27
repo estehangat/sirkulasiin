@@ -18,7 +18,9 @@ import {
   Map,
   Leaf,
   Receipt,
-  Store
+  Store,
+  ArrowLeftRight,
+  Bell
 } from "lucide-react";
 
 type AccountNavItem = {
@@ -55,6 +57,16 @@ const accountNavItems: AccountNavItem[] = [
     label: "Moderasi Marketplace",
     href: "/admin/marketplace",
     icon: <Store size={iconSize} />,
+  },
+  {
+    label: "Monitor Barter",
+    href: "/admin/barter",
+    icon: <ArrowLeftRight size={iconSize} />,
+  },
+  {
+    label: "Manajemen Notifikasi",
+    href: "/admin/notifications",
+    icon: <Bell size={iconSize} />,
   },
   {
     label: "Manajemen Pengguna",
@@ -109,6 +121,14 @@ function getHeaderMeta(pathname: string) {
     "/admin/marketplace": {
       title: "Moderasi Marketplace",
       subtitle: "Tinjau, arsipkan, atau publikasikan ulang listing untuk menjaga kualitas platform.",
+    },
+    "/admin/barter": {
+      title: "Monitor Barter",
+      subtitle: "Pantau seluruh tawaran barter, status negosiasi, dan tingkat penerimaan.",
+    },
+    "/admin/notifications": {
+      title: "Manajemen Notifikasi",
+      subtitle: "Kirim pengumuman, peringatan, atau notifikasi langsung ke pengguna.",
     },
     "/admin/users": {
       title: "Manajemen Pengguna",
