@@ -111,6 +111,9 @@
 }
 
 .secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 48px;
   background: #f4f4f0;
@@ -120,6 +123,13 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.secondaryButton:hover {
+  background: #ebebe5;
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 .statusBox {
@@ -160,4 +170,227 @@
 
 .cancelLink:hover {
   color: var(--color-black);
+}
+
+/* ═══════════════ Shipping Panel ═══════════════ */
+.shippingPanel {
+  margin-top: 20px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  text-align: left;
+}
+
+.shippingHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-primary);
+}
+
+.shippingTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.shippingInfoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13.5px;
+}
+
+.shippingInfoLabel {
+  color: var(--color-gray-500);
+}
+
+.shippingInfoValue {
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.shippingAwb {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  background: rgba(39, 174, 96, 0.08);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+.shippingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-gray-700, #374151);
+}
+
+.shippingBadge_in_transit { background: rgba(59, 130, 246, 0.12); color: #1d4ed8; }
+.shippingBadge_picked_up { background: rgba(168, 159, 141, 0.18); color: #6b5e44; }
+.shippingBadge_delivered { background: rgba(39, 174, 96, 0.14); color: var(--color-primary-dark); }
+.shippingBadge_returned, .shippingBadge_failed { background: rgba(231, 76, 60, 0.12); color: #c0392b; }
+.shippingBadge_cancelled { background: rgba(0, 0, 0, 0.08); color: #6b7280; }
+
+.shippingEmpty {
+  padding: 14px;
+  background: var(--color-gray-50, #fafafa);
+  border-radius: 12px;
+  font-size: 13.5px;
+  color: var(--color-gray-500);
+  text-align: center;
+}
+
+/* Timeline */
+.shippingTimeline {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.timelineTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--color-gray-500);
+  margin-bottom: 10px;
+}
+
+.timelineList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.timelineDot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  margin-top: 6px;
+}
+
+.timelineBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.timelineDesc {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-black);
+  line-height: 1.5;
+}
+
+.timelineDate {
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--color-gray-400);
+}
+
+.shippingMessage {
+  padding: 10px 12px;
+  background: rgba(39, 174, 96, 0.08);
+  color: var(--color-primary-dark);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.shippingError {
+  padding: 10px 12px;
+  background: rgba(231, 76, 60, 0.08);
+  color: #c0392b;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.shippingActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.shippingBtnPrimary,
+.shippingBtnSecondary,
+.shippingBtnDanger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.1s, opacity 0.2s;
+  border: 1px solid transparent;
+}
+
+.shippingBtnPrimary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.shippingBtnPrimary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.shippingBtnSecondary {
+  background: #fff;
+  color: var(--color-black);
+  border-color: rgba(0, 0, 0, 0.10);
+}
+
+.shippingBtnSecondary:hover:not(:disabled) {
+  background: var(--color-gray-50, #fafafa);
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+.shippingBtnDanger {
+  background: #fff;
+  color: #c0392b;
+  border-color: rgba(231, 76, 60, 0.30);
+}
+
+.shippingBtnDanger:hover:not(:disabled) {
+  background: rgba(231, 76, 60, 0.06);
+}
+
+.shippingBtnPrimary:disabled,
+.shippingBtnSecondary:disabled,
+.shippingBtnDanger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

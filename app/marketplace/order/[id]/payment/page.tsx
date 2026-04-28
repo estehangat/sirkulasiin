@@ -45,7 +45,7 @@ export default async function PaymentPage({
       }
     : order;
 
-  // Hanya pembeli yang bisa melihat halaman ini
+  // Hanya pembeli yang bisa melihat halaman ini (shipping flow di dashboard)
   if (currentOrder.buyer_id !== user.id) {
     redirect("/dashboard/transactions");
   }
@@ -97,6 +97,7 @@ export default async function PaymentPage({
             paymentUrl={currentOrder.payment_redirect_url}
             paymentExpiredAt={currentOrder.payment_expired_at}
           />
+
         </div>
       </div>
     </main>

@@ -28,6 +28,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const supabase = createClient();
 
   const fetchNotifications = useCallback(async () => {
@@ -36,10 +37,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setIsLoading(false);
       return;
     }
+    setUserId(session.user.id);
 
     const { data, error } = await supabase
       .from("notifications")
       .select("*")
+      .eq("user_id", session.user.id)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -51,16 +54,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     fetchNotifications();
+  }, [fetchNotifications]);
 
-    // Subscribe to real-time notifications
+  useEffect(() => {
+    if (!userId) return;
+
+    // Subscribe to real-time notifications for this specific user
     const channel = supabase
-      .channel("realtime_notifications")
+      .channel(`realtime_notifs_${userId}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "notifications",
+          filter: `user_id=eq.${userId}`,
         },
         (payload) => {
           console.log("[Realtime] Notifikasi baru diterima!", payload.new);
@@ -79,6 +87,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           event: "UPDATE",
           schema: "public",
           table: "notifications",
+          filter: `user_id=eq.${userId}`,
         },
         (payload) => {
           const updatedNotif = payload.new as AppNotification;
@@ -94,7 +103,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, fetchNotifications]);
+  }, [supabase, userId]);
 
   const markAsRead = async (id: string) => {
     const { error } = await supabase

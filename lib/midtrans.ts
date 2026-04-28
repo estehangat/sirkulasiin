@@ -158,6 +158,9 @@ export async function createMidtransTransaction({
   customerEmail,
   customerPhone,
   shippingAddress,
+  shippingCost,
+  shippingCourier,
+  shippingService,
 }: CreateMidtransTransactionInput) {
   const snap = getMidtransSnap();
 

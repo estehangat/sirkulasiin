@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
-import { Loader2, CheckCircle2, AlertCircle, Search, Eye, XCircle, ShoppingBag, Archive, RotateCcw, ImageOff } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Search, Eye, XCircle, ShoppingBag, Archive, RotateCcw, ImageOff, ChevronLeft, ChevronRight } from "lucide-react";
 import { createPortal } from "react-dom";
 
 type Listing = {
@@ -52,6 +52,7 @@ export default function MarketplaceModerationPage() {
   const [filter, setFilter] = useState("all");
   const [catFilter, setCatFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [detailTarget, setDetailTarget] = useState<Listing | null>(null);
@@ -114,6 +115,10 @@ export default function MarketplaceModerationPage() {
     return true;
   });
 
+  const ITEMS_PER_PAGE = 12;
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedData = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   // Stats
   const publishedCount = listings.filter(l => l.status === "published").length;
   const soldCount = listings.filter(l => l.status === "sold").length;
@@ -154,15 +159,15 @@ export default function MarketplaceModerationPage() {
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
           <Search size={16} color="#94A3B8" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
-          <input type="text" placeholder="Cari listing atau penjual..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: "100%", padding: "12px 12px 12px 40px", borderRadius: "14px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", fontFamily: "inherit" }} />
+          <input type="text" placeholder="Cari listing atau penjual..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} style={{ width: "100%", padding: "12px 12px 12px 40px", borderRadius: "14px", border: "1px solid #CBD5E1", fontSize: "14px", outline: "none", fontFamily: "inherit" }} />
         </div>
         {["all", "published", "draft", "sold", "reserved", "archived"].map(s => (
-          <button key={s} onClick={() => setFilter(s)} style={{ padding: "8px 12px", borderRadius: "10px", fontSize: "12px", fontWeight: 700, border: filter === s ? "1px solid #2563EB" : "1px solid #E2E8F0", background: filter === s ? "#EFF6FF" : "#fff", color: filter === s ? "#2563EB" : "#64748B", cursor: "pointer" }}>
+          <button key={s} onClick={() => { setFilter(s); setCurrentPage(1); }} style={{ padding: "8px 12px", borderRadius: "10px", fontSize: "12px", fontWeight: 700, border: filter === s ? "1px solid #2563EB" : "1px solid #E2E8F0", background: filter === s ? "#EFF6FF" : "#fff", color: filter === s ? "#2563EB" : "#64748B", cursor: "pointer" }}>
             {s === "all" ? "Semua" : (STATUS_MAP[s]?.label || s)}
           </button>
         ))}
         {categories.length > 1 && (
-          <select value={catFilter} onChange={e => setCatFilter(e.target.value)} style={{ padding: "8px 12px", borderRadius: "10px", fontSize: "12px", fontWeight: 700, border: "1px solid #E2E8F0", background: "#fff", color: "#475569", cursor: "pointer", fontFamily: "inherit" }}>
+          <select value={catFilter} onChange={e => { setCatFilter(e.target.value); setCurrentPage(1); }} style={{ padding: "8px 12px", borderRadius: "10px", fontSize: "12px", fontWeight: 700, border: "1px solid #E2E8F0", background: "#fff", color: "#475569", cursor: "pointer", fontFamily: "inherit" }}>
             <option value="all">Semua Kategori</option>
             {categories.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] || c}</option>)}
           </select>
@@ -175,44 +180,70 @@ export default function MarketplaceModerationPage() {
       ) : filtered.length === 0 ? (
         <div style={{ padding: "60px", textAlign: "center", color: "#94A3B8", fontSize: "14px", background: "#fff", borderRadius: "24px", border: "1px solid #E2E8F0" }}>Tidak ada listing ditemukan.</div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
-          {filtered.map(l => (
-            <article key={l.id} style={{ borderRadius: "20px", border: "1px solid #E2E8F0", background: "#fff", overflow: "hidden", boxShadow: "0 1px 4px rgba(15,23,42,0.03)", display: "flex", flexDirection: "column" }}>
-              {/* Image */}
-              <div style={{ height: "140px", background: "#F1F5F9", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {l.image_url ? (
-                  <img src={l.image_url} alt={l.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                ) : (
-                  <ImageOff size={32} color="#CBD5E1" />
-                )}
-                <div style={{ position: "absolute", top: "10px", left: "10px" }}><StatusBadge status={l.status} /></div>
-                <div style={{ position: "absolute", top: "10px", right: "10px", padding: "3px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: "10px", fontWeight: 700 }}>{CATEGORY_LABELS[l.category] || l.category}</div>
-              </div>
-              {/* Body */}
-              <div style={{ padding: "16px", flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
-                <h3 style={{ fontSize: "14px", fontWeight: 800, color: "#0F172A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.title}</h3>
-                <p style={{ fontSize: "16px", fontWeight: 800, color: "#16A34A" }}>Rp {fmt(l.price)}</p>
-                <p style={{ fontSize: "12px", color: "#64748B" }}>oleh <strong>{l.owner?.full_name || "?"}</strong> · {l.location || "-"}</p>
-              </div>
-              {/* Actions */}
-              <div style={{ padding: "12px 16px", borderTop: "1px solid #F1F5F9", display: "flex", gap: "8px" }}>
-                <button onClick={() => setDetailTarget(l)} style={{ flex: 1, padding: "8px", borderRadius: "10px", background: "#F1F5F9", border: "1px solid #E2E8F0", color: "#475569", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                  <Eye size={13} /> Detail
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
+            {paginatedData.map(l => (
+              <article key={l.id} style={{ borderRadius: "20px", border: "1px solid #E2E8F0", background: "#fff", overflow: "hidden", boxShadow: "0 1px 4px rgba(15,23,42,0.03)", display: "flex", flexDirection: "column" }}>
+                {/* Image */}
+                <div style={{ height: "140px", background: "#F1F5F9", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {l.image_url ? (
+                    <img src={l.image_url} alt={l.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <ImageOff size={32} color="#CBD5E1" />
+                  )}
+                  <div style={{ position: "absolute", top: "10px", left: "10px" }}><StatusBadge status={l.status} /></div>
+                  <div style={{ position: "absolute", top: "10px", right: "10px", padding: "3px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: "10px", fontWeight: 700 }}>{CATEGORY_LABELS[l.category] || l.category}</div>
+                </div>
+                {/* Body */}
+                <div style={{ padding: "16px", flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <h3 style={{ fontSize: "14px", fontWeight: 800, color: "#0F172A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.title}</h3>
+                  <p style={{ fontSize: "16px", fontWeight: 800, color: "#16A34A" }}>Rp {fmt(l.price)}</p>
+                  <p style={{ fontSize: "12px", color: "#64748B" }}>oleh <strong>{l.owner?.full_name || "?"}</strong> · {l.location || "-"}</p>
+                </div>
+                {/* Actions */}
+                <div style={{ padding: "12px 16px", borderTop: "1px solid #F1F5F9", display: "flex", gap: "8px" }}>
+                  <button onClick={() => setDetailTarget(l)} style={{ flex: 1, padding: "8px", borderRadius: "10px", background: "#F1F5F9", border: "1px solid #E2E8F0", color: "#475569", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                    <Eye size={13} /> Detail
+                  </button>
+                  {l.status === "published" && (
+                    <button onClick={() => setConfirmAction({ listing: l, action: "archive" })} disabled={processingId === l.id} style={{ flex: 1, padding: "8px", borderRadius: "10px", background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                      <Archive size={13} /> Arsipkan
+                    </button>
+                  )}
+                  {(l.status === "archived" || l.status === "draft") && (
+                    <button onClick={() => setConfirmAction({ listing: l, action: "publish" })} disabled={processingId === l.id} style={{ flex: 1, padding: "8px", borderRadius: "10px", background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#16A34A", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                      <RotateCcw size={13} /> Publikasi
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+          {/* Pagination Controls */}
+          {filtered.length > ITEMS_PER_PAGE && (
+            <div style={{ padding: "14px 18px", background: "#fff", borderRadius: "20px", border: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <p style={{ fontSize: "12px", color: "#64748B", fontWeight: 600 }}>
+                Menampilkan {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} dari {filtered.length} Listing
+              </p>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                  disabled={currentPage === 1}
+                  style={{ padding: "6px", borderRadius: "8px", background: "#fff", border: "1px solid #CBD5E1", display: "flex", alignItems: "center", color: currentPage === 1 ? "#94A3B8" : "#334155", cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
+                >
+                  <ChevronLeft size={16} />
                 </button>
-                {l.status === "published" && (
-                  <button onClick={() => setConfirmAction({ listing: l, action: "archive" })} disabled={processingId === l.id} style={{ flex: 1, padding: "8px", borderRadius: "10px", background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                    <Archive size={13} /> Arsipkan
-                  </button>
-                )}
-                {(l.status === "archived" || l.status === "draft") && (
-                  <button onClick={() => setConfirmAction({ listing: l, action: "publish" })} disabled={processingId === l.id} style={{ flex: 1, padding: "8px", borderRadius: "10px", background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#16A34A", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                    <RotateCcw size={13} /> Publikasi
-                  </button>
-                )}
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                  disabled={currentPage === totalPages}
+                  style={{ padding: "6px", borderRadius: "8px", background: "#fff", border: "1px solid #CBD5E1", display: "flex", alignItems: "center", color: currentPage === totalPages ? "#94A3B8" : "#334155", cursor: currentPage === totalPages ? "not-allowed" : "pointer" }}
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
-            </article>
-          ))}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Detail Modal */}

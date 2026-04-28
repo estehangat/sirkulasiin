@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import TransactionButtons from "./ClientButtons";
-import { ShoppingBag, Box, ArrowDownRight, ArrowUpRight, Clock, CheckCircle2, AlertCircle, AlertTriangle, Package, ShieldCheck, Wallet } from "lucide-react";
+import Image from "next/image";
+import { ShoppingBag, Box, Clock, CheckCircle2, AlertCircle, AlertTriangle, Package, ShieldCheck, Wallet, Truck, ExternalLink, ImageIcon } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Transaksi — SirkulasiIn",
@@ -22,6 +24,39 @@ const statusMap: Record<string, string> = {
 
 function formatOrderChip(id: string) {
   return `#${id.slice(0, 8).toUpperCase()}`;
+}
+
+const COURIER_LABELS: Record<string, string> = {
+  jne: "JNE",
+  pos: "POS Indonesia",
+  jnt: "J&T Express",
+  sicepat: "SiCepat",
+  tiki: "TIKI",
+  anteraja: "AnterAja",
+  ninja: "Ninja Xpress",
+  gosend: "GoSend",
+  grab: "GrabExpress",
+};
+
+const DELIVERY_STATUS_LABELS: Record<string, { label: string; bg: string; border: string; text: string }> = {
+  pending: { label: "Menunggu Pickup", bg: "#fff7ed", border: "#fed7aa", text: "#9a3412" },
+  picked_up: { label: "Sudah Diambil Kurir", bg: "#eff6ff", border: "#bfdbfe", text: "#1d4ed8" },
+  in_transit: { label: "Dalam Perjalanan", bg: "#eff6ff", border: "#bfdbfe", text: "#1d4ed8" },
+  out_for_delivery: { label: "Pengiriman Akhir", bg: "#fef9c3", border: "#fde047", text: "#854d0e" },
+  delivered: { label: "Sudah Sampai", bg: "#ecfdf3", border: "#bbf7d0", text: "#166534" },
+  returned: { label: "Dikembalikan", bg: "#fef2f2", border: "#fecaca", text: "#991b1b" },
+  cancelled: { label: "Dibatalkan", bg: "#f3f4f6", border: "#e5e7eb", text: "#374151" },
+};
+
+function getDeliveryDesign(status?: string | null) {
+  if (!status || status === "unknown") return null;
+  return DELIVERY_STATUS_LABELS[status] || { label: status.replace(/_/g, " "), bg: "#eff6ff", border: "#bfdbfe", text: "#1d4ed8" };
+}
+
+function formatCourierLabel(courier?: string | null, service?: string | null) {
+  if (!courier) return null;
+  const name = COURIER_LABELS[courier.toLowerCase()] || courier.toUpperCase();
+  return service ? `${name} ${service.toUpperCase()}` : name;
 }
 
 function getStatusDesign(status: string) {
@@ -70,18 +105,24 @@ export default async function TransactionsPage() {
     redirect("/login");
   }
 
+  // Pakai admin client untuk bypass RLS pada join marketplace_listings.
+  // Setelah order paid, listing status berubah jadi reserved/sold sehingga
+  // user-context RLS memblokir join dan menyembabkan listing tampak null.
+  // Filter buyer_id/seller_id eksplisit menjaga keamanan akses.
+  const adminSupabase = createAdminSupabaseClient();
+
   // Fetch Pembelian
-  const { data: purchasesQuery } = await supabase
+  const { data: purchasesQuery } = await adminSupabase
     .from("orders")
-    .select("*, marketplace_listings(id, title)")
+    .select("*, marketplace_listings(id, title, image_url)")
     .eq("buyer_id", user.id)
     .order("created_at", { ascending: false })
     .limit(100);
 
   // Fetch Penjualan
-  const { data: salesQuery } = await supabase
+  const { data: salesQuery } = await adminSupabase
     .from("orders")
-    .select("*, marketplace_listings(id, title)")
+    .select("*, marketplace_listings(id, title, image_url)")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -109,6 +150,9 @@ export default async function TransactionsPage() {
   const renderTransactionCard = (item: any, isBuyer: boolean) => {
     const sDesign = getStatusDesign(item.status);
     const pDesign = getPayoutDesign(item.payout_status);
+    const dDesign = getDeliveryDesign(item.delivery_status);
+    const courierLabel = formatCourierLabel(item.shipping_courier, item.shipping_service);
+    const hasShipping = !!item.shipping_order_id;
 
     return (
       <article
@@ -124,14 +168,25 @@ export default async function TransactionsPage() {
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-            <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: isBuyer ? "#f0fdf4" : "#eff6ff", border: `1px solid ${isBuyer ? "#bbf7d0" : "#bfdbfe"}`, display: "flex", alignItems: "center", justifyContent: "center", color: isBuyer ? "#16a34a" : "#2563eb", flexShrink: 0 }}>
-              {isBuyer ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
+          <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", minWidth: 0, flex: 1 }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "12px", overflow: "hidden", background: "#f5f5f4", border: "1px solid #EFEFEB", display: "flex", alignItems: "center", justifyContent: "center", color: "#A3A39B", flexShrink: 0, position: "relative" }}>
+              {item.marketplace_listings?.image_url ? (
+                <Image
+                  src={item.marketplace_listings.image_url}
+                  alt={item.marketplace_listings?.title || "Produk"}
+                  fill
+                  sizes="56px"
+                  style={{ objectFit: "cover" }}
+                  unoptimized
+                />
+              ) : (
+                <ImageIcon size={20} />
+              )}
             </div>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
                 <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A" }}>
-                  {item.marketplace_listings?.title || "Produk Preloved"}
+                  {item.marketplace_listings?.title || "Listing telah dihapus"}
                 </h3>
                 <span style={{ fontSize: "11px", fontWeight: 700, color: "#737369", background: "#f5f5f4", padding: "2px 8px", borderRadius: "6px" }}>
                   {formatOrderChip(item.id)}
@@ -155,28 +210,102 @@ export default async function TransactionsPage() {
             <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, background: sDesign.bg, color: sDesign.text, border: `1px solid ${sDesign.border}`, padding: "6px 12px", borderRadius: "99px" }}>
               {sDesign.icon} {statusMap[item.status] || item.status}
             </span>
-            
-            {item.status === "paid_escrow" && item.escrow_status && (
+
+            {item.status === "paid_escrow" && item.escrow_status && !isBuyer && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, background: "#ecfdf3", color: "#166534", border: "1px solid #bbf7d0", padding: "6px 12px", borderRadius: "99px" }}>
-                <ShieldCheck size={14} /> Escrow: {item.escrow_status}
+                <ShieldCheck size={14} /> Escrow Aman
               </span>
             )}
-            
-            {pDesign && (
+
+            {pDesign && !isBuyer && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, background: pDesign.bg, color: pDesign.text, border: `1px solid ${pDesign.border}`, padding: "6px 12px", borderRadius: "99px" }}>
                 <Wallet size={14} /> Payout: {item.payout_status}
               </span>
             )}
           </div>
+        </div>
 
-          <div>
-            <TransactionButtons
-              orderId={item.id}
-              status={item.status}
-              isBuyer={isBuyer}
-              payoutStatus={item.payout_status}
-            />
+        {/* ── Shipping Info Card (muncul saat order sudah punya resi) ── */}
+        {hasShipping && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              padding: "14px 16px",
+              borderRadius: "14px",
+              background: "linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)",
+              border: "1px solid #bbf7d0",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#fff", border: "1px solid #bbf7d0", display: "flex", alignItems: "center", justifyContent: "center", color: "#1E8449", flexShrink: 0 }}>
+                <Truck size={16} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#737369", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  Informasi Pengiriman
+                </span>
+                {courierLabel && (
+                  <span style={{ fontSize: "13px", fontWeight: 800, color: "#1A1A1A" }}>
+                    {courierLabel}
+                  </span>
+                )}
+              </div>
+              {dDesign && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "11px", fontWeight: 800, background: dDesign.bg, color: dDesign.text, border: `1px solid ${dDesign.border}`, padding: "5px 10px", borderRadius: "999px", whiteSpace: "nowrap" }}>
+                  {dDesign.label}
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#737369", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  Nomor Resi
+                </span>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: item.awb ? "#1A1A1A" : "#9a3412", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", letterSpacing: "0.5px" }}>
+                  {item.awb || "Menunggu kurir..."}
+                </span>
+              </div>
+
+              {item.public_tracking_url && (
+                <a
+                  href={item.public_tracking_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    marginLeft: "auto",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "12px",
+                    fontWeight: 800,
+                    color: "#1d4ed8",
+                    background: "#fff",
+                    border: "1px solid #bfdbfe",
+                    padding: "8px 14px",
+                    borderRadius: "10px",
+                    textDecoration: "none",
+                  }}
+                >
+                  <Truck size={13} /> Lacak Resi <ExternalLink size={11} />
+                </a>
+              )}
+            </div>
           </div>
+        )}
+
+        {/* ── Action Row ── */}
+        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+          <TransactionButtons
+            orderId={item.id}
+            status={item.status}
+            isBuyer={isBuyer}
+            payoutStatus={item.payout_status}
+            shippingOrderId={item.shipping_order_id}
+            pickupStatus={item.pickup_status}
+          />
         </div>
       </article>
     );
