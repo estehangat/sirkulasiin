@@ -267,40 +267,60 @@ export default async function MarketplacePage({
           )}
         </div>
 
-        {items.length === 0 ? (
-          <div className={styles.emptyState}>
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-            <h3>
-              {sort === "favorites"
-                ? user
-                  ? "Belum ada favorit"
-                  : "Silakan login"
-                : hasFilters
-                  ? "Tidak ditemukan"
-                  : "Belum ada listing"}
-            </h3>
-            <p>
-              {sort === "favorites"
-                ? user
-                  ? "Jelajahi marketplace dan tambahkan barang ke favorit!"
-                  : "Anda perlu login untuk melihat favorit."
-                : hasFilters
-                  ? "Coba ubah filter pencarian Anda."
-                  : "Jadilah yang pertama menjual barang preloved-mu!"}
-            </p>
-            {sort === "favorites" && !user ? (
-              <Link href="/login?next=/marketplace?sort=favorites" className={styles.listItemBtn}>
-                Login
-              </Link>
-            ) : !hasFilters && sort !== "favorites" && (
-              <Link href="/scan" className={styles.listItemBtn}>
-                Mulai Scan Barangmu
-              </Link>
-            )}
-          </div>
-        ) : (
+        {items.length === 0 ? (() => {
+          const emptyVariant =
+            sort === "favorites"
+              ? user
+                ? { src: "/siku-hati.png", alt: "Siku memeluk hati kosong", tone: "hati" as const }
+                : { src: "/siku-gembok.png", alt: "Siku memegang gembok", tone: "gembok" as const }
+              : hasFilters
+                ? { src: "/siku-search.png", alt: "Siku mencari dengan kaca pembesar", tone: "search" as const }
+                : { src: "/siku-search.png", alt: "Siku menunggu listing pertama", tone: "search" as const };
+
+          return (
+            <div className={styles.emptyState}>
+              <div className={`${styles.emptyMascotWrap} ${styles[`emptyTone_${emptyVariant.tone}`]}`}>
+                <span className={styles.emptyMascotGlow} aria-hidden />
+                <span className={styles.emptyMascotRing} aria-hidden />
+                <Image
+                  src={emptyVariant.src}
+                  alt={emptyVariant.alt}
+                  fill
+                  sizes="(max-width: 640px) 200px, 240px"
+                  className={styles.emptyMascotImg}
+                />
+              </div>
+
+              <h3>
+                {sort === "favorites"
+                  ? user
+                    ? "Belum ada favorit"
+                    : "Silakan login dulu"
+                  : hasFilters
+                    ? "Hmm, nggak ketemu"
+                    : "Belum ada listing"}
+              </h3>
+              <p>
+                {sort === "favorites"
+                  ? user
+                    ? "Jelajahi marketplace dan tambahkan barang favoritmu — Siku siap simpan semuanya di sini!"
+                    : "Login dulu yuk, biar Siku bisa ingat barang-barang favoritmu."
+                  : hasFilters
+                    ? "Siku sudah cari ke mana-mana, tapi belum ada yang cocok. Coba ubah filternya."
+                    : "Jadilah yang pertama menjual barang preloved-mu — Siku akan bantu pajang!"}
+              </p>
+              {sort === "favorites" && !user ? (
+                <Link href="/login?next=/marketplace?sort=favorites" className={styles.listItemBtn}>
+                  Login Sekarang
+                </Link>
+              ) : !hasFilters && sort !== "favorites" && (
+                <Link href="/scan" className={styles.listItemBtn}>
+                  Mulai Scan Barangmu
+                </Link>
+              )}
+            </div>
+          );
+        })() : (
           <>
             <div className={styles.productGrid}>
               {items.map((item) => {

@@ -36,38 +36,30 @@ function formatRupiah(price: number) {
 const langkahSirkular = [
   {
     nomor: "01",
-    judul: "Scan Sampah",
+    judul: "Scan dengan AI",
     deskripsi:
-      "Arahkan kamera ke material sampah, lalu AI akan mengenali jenis, tingkat kebersihan, dan nilai daurnya dalam hitungan detik.",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-        <circle cx="12" cy="13" r="3" />
-      </svg>
-    ),
+      "Arahkan kamera ke barang atau sampahmu. AI SirkulasiIn langsung mengenali jenis material, kondisi, dan nilai sirkularnya hanya dalam hitungan detik.",
+    mascot: "/siku-scan.png",
+    alt: "Siku sedang memindai barang dengan smartphone",
+    tone: "scan" as const,
   },
   {
     nomor: "02",
-    judul: "Dapatkan Insight",
+    judul: "Pilih Rekomendasi Terbaik",
     deskripsi:
-      "Lihat rekomendasi aksi paling efektif, estimasi dampak lingkungan, dan potensi insentif dari setiap item yang Anda kelola.",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z" />
-      </svg>
-    ),
+      "Dapatkan tiga jalur cerdas dari AI: daur ulang jadi barang baru, jual di marketplace, atau buang aman bila tergolong limbah berbahaya — semua sesuai kondisi barangmu.",
+    mascot: "/siku-pilih.png",
+    alt: "Siku menampilkan tiga pilihan rekomendasi",
+    tone: "pilih" as const,
   },
   {
     nomor: "03",
-    judul: "Terhubung Ekosistem",
+    judul: "Tuntaskan Aksi Sirkular",
     deskripsi:
-      "Hubungkan hasil scan ke mitra drop point, pengepul lokal, atau marketplace sirkular untuk menuntaskan alur sampah rumah.",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-      </svg>
-    ),
+      "Ikuti tutorial daur ulang, pasang listing di marketplace, atau temukan titik pembuangan B3 terdekat. Setiap aksimu menutup loop sampah dan menambah jejak hijau yang nyata.",
+    mascot: "/siku-tuntas.png",
+    alt: "Siku merayakan loop sirkular yang tertutup",
+    tone: "tuntas" as const,
   },
 ];
 
@@ -275,22 +267,13 @@ export default async function HomePage() {
             sizes="(max-width: 900px) 100vw, 480px"
           />
           <div className={styles.chipGroup}>
-            <div className={styles.scanChip}>
-              <span className={`${styles.chipIcon} ${styles.chipIconGreen}`}>AI</span>
-              <div>
-                <p className={styles.chipTitle}>Scan terbaru: Botol PET</p>
-                <p className={styles.chipText}>Daur ulang 100%</p>
+            <div className={styles.sikuChip}>
+              <div className={styles.sikuChipImg}>
+                <Image src="/siku-chip.png" alt="" fill sizes="56px" />
               </div>
-            </div>
-            <div className={styles.carbonChip}>
-              <span className={`${styles.chipIcon} ${styles.chipIconLeaf}`}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z" />
-                </svg>
-              </span>
               <div>
-                <p className={styles.chipTitle}>-2.4 kg CO₂</p>
-                <p className={styles.chipText}>Dampak minggu ini</p>
+                <p className={styles.chipTitle}>Halo, aku Siku!</p>
+                <p className={styles.chipText}>Asisten AI sirkular kamu</p>
               </div>
             </div>
           </div>
@@ -300,19 +283,37 @@ export default async function HomePage() {
       {/* ═══════════════ STEPS ═══════════════ */}
       <section className={styles.stepsSection} id="scan">
         <div className={styles.stepsHeader}>
-          <span className={styles.sectionLabel}>Alur SirkulasiIn</span>
+          <span className={styles.sectionLabel}>Cara Kerja SirkulasiIn</span>
           <h2 className={styles.sectionTitle}>
-            Circular lifecycle dalam 3 langkah sederhana
+            Dari sampah jadi solusi, hanya dalam 3 langkah
           </h2>
         </div>
 
         <div className={styles.stepGrid}>
           {langkahSirkular.map((langkah) => (
-            <article key={langkah.nomor} className={styles.stepCard}>
-              <div className={styles.stepIconWrap}>{langkah.icon}</div>
-              <span className={styles.stepNumber}>Langkah {langkah.nomor}</span>
-              <h3 className={styles.stepTitle}>{langkah.judul}</h3>
-              <p className={styles.stepText}>{langkah.deskripsi}</p>
+            <article
+              key={langkah.nomor}
+              className={`${styles.stepCard} ${styles[`stepTone_${langkah.tone}`]}`}
+            >
+              <div className={styles.stepCardGlow} aria-hidden />
+              <div className={styles.stepMascotWrap}>
+                <span className={styles.stepMascotRing} aria-hidden />
+                <span className={styles.stepMascotRingOuter} aria-hidden />
+                <div className={styles.stepMascotImgWrap}>
+                  <Image
+                    src={langkah.mascot}
+                    alt={langkah.alt}
+                    fill
+                    sizes="(max-width: 820px) 220px, 260px"
+                    className={styles.stepMascotImg}
+                  />
+                </div>
+              </div>
+              <div className={styles.stepCardBody}>
+                <span className={styles.stepNumber}>Langkah {langkah.nomor}</span>
+                <h3 className={styles.stepTitle}>{langkah.judul}</h3>
+                <p className={styles.stepText}>{langkah.deskripsi}</p>
+              </div>
             </article>
           ))}
         </div>
@@ -499,28 +500,58 @@ export default async function HomePage() {
       <section className={styles.ctaSection}>
         <div className={styles.ctaGlow1} aria-hidden />
         <div className={styles.ctaGlow2} aria-hidden />
-        <h2 className={styles.ctaTitle}>
-          Gabung {totalUsers > 0 ? `${totalUsers.toLocaleString("id-ID")}+` : "ribuan"} Green Guardian bersama SirkulasiIn
-        </h2>
-        <p className={styles.ctaText}>
-          Daftar sekarang untuk mulai tracking sampah rumah, dapatkan insight
-          AI, dan buka peluang insentif dari setiap aksi kecil Anda.
-        </p>
-        <div className={styles.ctaActions}>
-          <Link href="/signup" className={styles.ctaPrimary}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <line x1="19" y1="8" x2="19" y2="14" />
-              <line x1="22" y1="11" x2="16" y2="11" />
-            </svg>
-            Buat Akun Gratis
-          </Link>
-          <Link href="/login" className={styles.ctaGhost}>
-            Sudah punya akun? Login
-          </Link>
+        <div className={styles.ctaDotGrid} aria-hidden />
+
+        <div className={styles.ctaMascotWrap}>
+          <span className={styles.ctaMascotGlow} aria-hidden />
+          <span className={styles.ctaMascotRing} aria-hidden />
+          <Image
+            src="/siku-join.png"
+            alt="Siku menyambut Green Guardian baru"
+            fill
+            sizes="(max-width: 820px) 240px, 360px"
+            className={styles.ctaMascotImg}
+          />
+
+          <span className={`${styles.ctaSparkle} ${styles.ctaSparkleA}`} aria-hidden>✨</span>
+          <span className={`${styles.ctaSparkle} ${styles.ctaSparkleB}`} aria-hidden>🌿</span>
+          <span className={`${styles.ctaSparkle} ${styles.ctaSparkleC}`} aria-hidden>♻️</span>
         </div>
-        <p className={styles.ctaTrust}>Gratis selamanya · Tanpa kartu kredit · Batal kapan saja</p>
+
+        <div className={styles.ctaContent}>
+          <span className={styles.ctaEyebrow}>
+            <span className={styles.ctaEyebrowDot} />
+            Komunitas Green Guardian
+          </span>
+
+          <h2 className={styles.ctaTitle}>
+            Yuk gabung bareng{" "}
+            <span className={styles.ctaTitleAccent}>
+              {totalUsers > 0 ? `${totalUsers.toLocaleString("id-ID")}+` : "ribuan"}
+            </span>{" "}
+            sahabat sirkular!
+          </h2>
+          <p className={styles.ctaText}>
+            Daftar gratis untuk mulai tracking sampah rumah, dapatkan insight
+            AI, dan buka peluang insentif dari setiap aksi kecil kamu — Siku siap nemenin.
+          </p>
+
+          <div className={styles.ctaActions}>
+            <Link href="/signup" className={styles.ctaPrimary}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
+              Buat Akun Gratis
+            </Link>
+            <Link href="/login" className={styles.ctaGhost}>
+              Sudah punya akun? Login
+            </Link>
+          </div>
+          <p className={styles.ctaTrust}>Gratis selamanya · Tanpa kartu kredit · Batal kapan saja</p>
+        </div>
       </section>
     </main>
   );

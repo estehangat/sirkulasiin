@@ -147,7 +147,7 @@
   width: 300px;
   height: 540px;
   border-radius: 40px;
-  background: rgba(255,255,255,.45);
+  background: rgba(255,255,255);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255,255,255,.6);
@@ -266,6 +266,25 @@
   animation: pulseGlow 6s ease-in-out infinite 1s;
   z-index: 0;
 }
+
+/* Siku peeking dari kanan phone mockup */
+.phonePeekMascot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 392px;
+  transform: translate(97px, -52%);
+  z-index: 3; 
+  pointer-events: none;
+  filter: drop-shadow(-8px 18px 22px rgba(0,0,0,.18));
+}
+
+.phonePeekImage {
+  object-fit: contain;
+  object-position: left center;
+}
+
 
 /* ===== VISION & MISSION ===== */
 .visionMission {
@@ -860,6 +879,296 @@
   color: rgba(255,255,255,.7);
 }
 
+/* ===== MASCOT — KENALAN DENGAN SIKU ===== */
+.mascotSection {
+  max-width: 1180px;
+  margin: 90px auto 0;
+  padding: 60px 56px;
+  border-radius: 36px;
+  background:
+    linear-gradient(135deg, #f0fbf2 0%, #e8f5e9 50%, #fff8e1 100%);
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 32px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(39,174,96,.10);
+  box-shadow: 0 12px 40px rgba(39,174,96,.08);
+}
+
+.mascotGridBg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(39,174,96,.18) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  opacity: .55;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 25%, transparent 75%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 25%, transparent 75%);
+}
+
+.mascotBlob1 {
+  position: absolute;
+  top: -90px;
+  left: -70px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(39,174,96,.22);
+  filter: blur(70px);
+  animation: pulseGlow 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mascotBlob2 {
+  position: absolute;
+  bottom: -110px;
+  right: -70px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: rgba(245, 197, 24, .22);
+  filter: blur(80px);
+  animation: pulseGlow 8s ease-in-out infinite 2s;
+  pointer-events: none;
+}
+
+/* Visual side */
+.mascotVisual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 480px;
+}
+
+.mascotImageWrap {
+  position: relative;
+  width: clamp(260px, 32vw, 400px);
+  aspect-ratio: 4 / 5;
+  z-index: 2;
+  animation: float 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 28px 36px rgba(39,174,96,.32));
+}
+
+.mascotImage {
+  object-fit: contain;
+}
+
+.mascotGlow {
+  position: absolute;
+  width: 60%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(39,174,96,.42) 0%, transparent 65%);
+  filter: blur(50px);
+  animation: pulseGlow 4s ease-in-out infinite;
+  z-index: 0;
+}
+
+/* Concentric dashed rings */
+.mascotRings {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.mascotRings span {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(39,174,96,.32);
+}
+
+.ring1 { width: 320px; height: 320px; animation: spinSlow 38s linear infinite; }
+.ring2 { width: 400px; height: 400px; animation: spinSlow 60s linear infinite reverse; opacity: .55; }
+.ring3 { width: 480px; height: 480px; animation: spinSlow 80s linear infinite; opacity: .3; }
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Speech bubble */
+.mascotBubble {
+  position: absolute;
+  top: 12%;
+  right: 4%;
+  background: #fff;
+  border-radius: 20px 20px 20px 4px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-700);
+  box-shadow: 0 14px 28px rgba(0,0,0,.10);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 4;
+  animation:
+    bubblePop .8s ease-out .4s both,
+    float 3.6s ease-in-out 1.2s infinite;
+}
+
+.mascotBubble strong {
+  color: var(--color-primary-dark);
+  font-weight: 800;
+}
+
+.mascotBubbleDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(39,174,96,.22);
+}
+
+@keyframes bubblePop {
+  0%   { opacity: 0; transform: scale(.6) translateY(10px); }
+  60%  { opacity: 1; transform: scale(1.05) translateY(0); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Floating decorative chips */
+.floatChip {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  color: var(--color-primary);
+  box-shadow: 0 12px 24px rgba(0,0,0,.10);
+  z-index: 3;
+}
+
+.floatChipA {
+  top: 22%;
+  left: 4%;
+  animation: float 4s ease-in-out infinite;
+}
+
+.floatChipB {
+  bottom: 16%;
+  left: 8%;
+  width: 54px;
+  height: 54px;
+  color: var(--color-tertiary);
+  animation: float 5s ease-in-out infinite .5s;
+}
+
+.floatChipC {
+  top: 4%;
+  right: 22%;
+  width: 40px;
+  height: 40px;
+  color: #f59e0b;
+  animation: float 4.5s ease-in-out infinite 1s;
+}
+
+/* Content side */
+.mascotContent {
+  position: relative;
+  z-index: 2;
+}
+.mascotTitle {
+  margin-top: 20px;
+  font-size: clamp(28px, 3.4vw, 46px);
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+}
+
+.mascotTitleAccent {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-tertiary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mascotDesc {
+  margin-top: 18px;
+  font-size: 16px;
+  color: var(--color-gray-600);
+  line-height: 1.7;
+  max-width: 50ch;
+}
+
+.mascotTraits {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.traitCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.6);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.traitCard:hover {
+  transform: translateX(4px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.06);
+}
+
+.traitDot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 8px;
+}
+
+.traitDotGreen { background: var(--color-primary);   box-shadow: 0 0 0 5px rgba(39,174,96,.22); }
+.traitDotSage  { background: var(--color-tertiary);  box-shadow: 0 0 0 5px rgba(130,158,96,.28); }
+.traitDotAmber { background: #f59e0b;                box-shadow: 0 0 0 5px rgba(245,158,11,.22); }
+
+.traitTitle {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-black);
+}
+
+.traitText {
+  margin-top: 2px;
+  font-size: 13.5px;
+  color: var(--color-gray-600);
+  line-height: 1.55;
+}
+
+/* CTA peek-mascot */
+.ctaMascot {
+  position: absolute;
+  left: -28px;
+  bottom: -24px;
+  width: 200px;
+  height: 240px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .95;
+  transform: rotate(-10deg);
+  animation: float 5s ease-in-out infinite;
+  filter: drop-shadow(0 18px 24px rgba(0,0,0,.25));
+}
+
+.ctaMascotImg {
+  object-fit: contain;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1100px) {
   .hero {
@@ -879,6 +1188,12 @@
 
   .phoneMockupInner {
     border-radius: 24px;
+  }
+
+  .phonePeekMascot {
+    width: 160px;
+    height: 314px;
+    transform: translate(75px, -52%);
   }
 
   .visionMission {
@@ -904,6 +1219,17 @@
 
   .impactCard:nth-child(2) { margin-top: 0; }
   .impactCard:nth-child(3) { margin-top: 0; }
+
+  .mascotSection {
+    grid-template-columns: 1fr;
+    padding: 48px 32px;
+    gap: 12px;
+  }
+  .mascotVisual { min-height: 420px; order: -1; }
+  .ring1 { width: 280px; height: 280px; }
+  .ring2 { width: 360px; height: 360px; }
+  .ring3 { width: 420px; height: 420px; }
+  .ctaMascot { display: none; }
 }
 
 @media (max-width: 780px) {
@@ -921,6 +1247,13 @@
     height: 380px;
     border-radius: 28px;
   }
+
+  .phonePeekMascot {
+    width: 130px;
+    height: 255px;
+    transform: translate(65px, -52%);
+  }
+
 
   .bentoGrid {
     grid-template-columns: 1fr;
@@ -964,4 +1297,26 @@
     border-radius: 32px 32px 0 0;
     padding: 36px 18px 28px;
   }
+
+  .mascotSection {
+    padding: 36px 20px;
+    border-radius: 28px;
+    margin-top: 60px;
+  }
+  .mascotVisual { min-height: 340px; }
+  .mascotImageWrap { width: clamp(220px, 60vw, 280px); }
+  .ring1 { width: 220px; height: 220px; }
+  .ring2 { width: 280px; height: 280px; }
+  .ring3 { width: 340px; height: 340px; }
+  .floatChipA { left: 0; }
+  .floatChipB { left: 2%; width: 46px; height: 46px; }
+  .floatChipC { right: 4%; }
+  .mascotBubble {
+    top: 6%;
+    right: 0;
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+  .mascotTitle { font-size: clamp(26px, 7vw, 34px); }
+  .traitCard { padding: 12px 14px; }
 }

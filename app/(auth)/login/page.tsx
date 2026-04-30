@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 import LoginForm from "./login-form";
 
 export const metadata: Metadata = {
@@ -8,10 +9,15 @@ export const metadata: Metadata = {
     "Masuk ke akun SirkulasiIn Anda dan lanjutkan perjalanan hijau Anda.",
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const supabase = await createServerSupabaseClient();
+  const { count } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact", head: true });
+
   return (
     <Suspense>
-      <LoginForm />
+      <LoginForm userCount={count ?? 0} />
     </Suspense>
   );
 }

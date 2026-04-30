@@ -14,16 +14,12 @@ import {
 import styles from "../auth.module.css";
 
 /* ===== SVG ICON COMPONENTS ===== */
-const IconRecycle = () => (
+const IconUsers = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5" />
-    <path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12" />
-    <path d="m14 16-3 3 3 3" />
-    <path d="M8.293 13.596 4.875 7.97l5.088.023" />
-    <path d="m9.5 5.5 4-7" />
-    <path d="M13.5 5.5 12 2" />
-    <path d="m16 13 5.5-9.5" />
-    <path d="M5.607 6.196 2.857 1.5h7.5" />
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
   </svg>
 );
 
@@ -88,9 +84,15 @@ const BrandLogo = () => (
   />
 );
 
+function formatUserCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}jt+`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}rb+`;
+  return `${n}`;
+}
+
 type LoginMode = "phone" | "email";
 
-export default function LoginForm() {
+export default function LoginForm({ userCount }: { userCount: number }) {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "";
   const urlError = searchParams.get("error");
@@ -122,24 +124,35 @@ export default function LoginForm() {
       <div className={styles.authCard}>
         {/* ===== LEFT HERO ===== */}
         <div className={styles.heroPanel}>
+          <span className={styles.heroOrb1} aria-hidden />
+          <span className={styles.heroOrb2} aria-hidden />
+
           <div className={styles.heroBrand}>
             <div className={styles.brandIcon}><BrandLogo /></div>
             <span className={styles.brandName}>Sirkulasi<span className={styles.brandNameHighlight}>In</span></span>
           </div>
 
-          <div className={styles.heroContent}>
-            <h1 className={styles.heroTitle}>
-              AI companion<br />
-              untuk gaya hidup{" "}
-              <span className={styles.heroTitleAccent}>sirkular.</span>
-            </h1>
-            <p className={styles.heroSubtitle}>
-              Bergabung dengan komunitas global yang mengubah limbah menjadi kebijaksanaan dan kebiasaan menjadi dampak.
-            </p>
+          <div className={styles.heroMascotZone}>
+            <span className={styles.heroMascotGlow} aria-hidden />
+            <span className={styles.heroMascotRing} aria-hidden />
+            <Image src="/siku-join.png" alt="Siku maskot SirkulasiIn" width={200} height={240} className={styles.heroMascotImg} priority />
           </div>
 
-          <div className={styles.heroImageWrapper}>
-            <Image src="/login-hero.png" alt="Tangan memegang tanaman hijau" fill className={styles.heroImage} priority sizes="(max-width: 900px) 100vw, 480px" />
+          <div className={styles.heroBottom}>
+            <h1 className={styles.heroTitle}>
+              AI companion untuk<br />
+              gaya hidup <span className={styles.heroTitleAccent}>sirkular.</span>
+            </h1>
+            <p className={styles.heroSubtitle}>
+              Ubah limbah jadi kebijaksanaan dan kebiasaan jadi dampak nyata.
+            </p>
+            <div className={styles.heroBadge}>
+              <div className={styles.badgeIcon}><IconUsers /></div>
+              <div className={styles.badgeContent}>
+                <span className={styles.badgeTitle}>{formatUserCount(userCount)} Eco-Guardian</span>
+                <span className={styles.badgeSubtitle}>Aktif Melindungi Bumi</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -277,15 +290,6 @@ export default function LoginForm() {
               <a href="#" className={styles.footerLink}>Terms of Service</a>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Floating Badge */}
-      <div className={styles.floatingBadge}>
-        <div className={styles.floatingBadgeIcon}><IconRecycle /></div>
-        <div className={styles.floatingBadgeContent}>
-          <span className={styles.floatingBadgeTitle}>2.4M Ton</span>
-          <span className={styles.floatingBadgeSubtitle}>Limbah didaur ulang bulan ini</span>
         </div>
       </div>
     </div>

@@ -28,39 +28,47 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 40px;
-  background: linear-gradient(
-    165deg,
-    rgba(39, 174, 96, 0.04) 0%,
-    rgba(39, 174, 96, 0.12) 40%,
-    rgba(130, 158, 96, 0.08) 100%
-  );
+  padding: 32px;
+  background: linear-gradient(160deg, #0a6b35 0%, #128a49 45%, #1a9555 100%);
   position: relative;
   overflow: hidden;
   max-width: 480px;
+  color: #fff;
 }
 
+/* Dot-grid texture */
 .heroPanel::before {
   content: '';
   position: absolute;
-  top: -80px;
-  right: -80px;
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle, rgba(39, 174, 96, 0.1) 0%, transparent 70%);
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.10) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse at 60% 40%, #000 10%, transparent 70%);
+  mask-image: radial-gradient(ellipse at 60% 40%, #000 10%, transparent 70%);
+  opacity: .5;
+}
+
+/* Glow orb top-right */
+.heroOrb1 {
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(110,231,183,.25), transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
 
-.heroPanel::after {
-  content: '';
+/* Glow orb bottom-left */
+.heroOrb2 {
   position: absolute;
-  bottom: -60px;
-  left: -60px;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(130, 158, 96, 0.08) 0%, transparent 70%);
+  bottom: -50px;
+  left: -50px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(245,197,24,.15), transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -69,9 +77,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 32px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .brandIcon {
@@ -80,73 +87,124 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255,255,255,.15);
+  border-radius: 10px;
+  padding: 3px;
 }
 
 .brandName {
   font-size: 17px;
   font-weight: 700;
-  color: var(--color-black);
+  color: #fff;
   letter-spacing: -0.3px;
 }
 
 .brandNameHighlight {
-  color: var(--color-primary);
+  color: #6ee7b7;
 }
 
-.heroContent {
+/* ── Mascot Zone ── */
+.heroMascotZone {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 240px;
   z-index: 1;
 }
 
+.heroMascotGlow {
+  position: absolute;
+  width: 65%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,197,24,.28) 0%, transparent 65%);
+  filter: blur(36px);
+  animation: authMascotPulse 4s ease-in-out infinite;
+}
+
+.heroMascotRing {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255,255,255,.20);
+  animation: authRingSpin 35s linear infinite;
+}
+
+.heroMascotImg {
+  position: relative;
+  width: 200px;
+  height: auto;
+  filter: drop-shadow(0 16px 32px rgba(0,0,0,.35));
+  animation: authMascotFloat 4.5s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes authMascotFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+@keyframes authMascotPulse {
+  0%, 100% { opacity: .5; transform: scale(1); }
+  50%      { opacity: .85; transform: scale(1.05); }
+}
+
+@keyframes authRingSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Bottom content ── */
+.heroBottom {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+}
+
 .heroTitle {
-  font-size: 40px;
+  font-size: 28px;
   font-weight: 800;
-  line-height: 1.08;
-  color: var(--color-black);
-  letter-spacing: -1.5px;
-  margin-bottom: 16px;
+  line-height: 1.15;
+  color: #fff;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
 }
 
 .heroTitleAccent {
-  color: var(--color-primary);
+  color: #6ee7b7;
 }
 
 .heroSubtitle {
-  font-size: 15px;
+  font-size: 13.5px;
   line-height: 1.65;
-  color: var(--color-gray-500);
+  color: rgba(255,255,255,.72);
   max-width: 340px;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
 
 .heroBadge {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  gap: 10px;
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,.18);
   border-radius: var(--radius-full);
-  padding: 10px 20px 10px 12px;
+  padding: 8px 18px 8px 10px;
   width: fit-content;
-  margin-bottom: 32px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .badgeIcon {
-  width: 38px;
-  height: 38px;
-  background: rgba(39, 174, 96, 0.1);
+  width: 34px;
+  height: 34px;
+  background: rgba(110,231,183,.20);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary);
+  color: #6ee7b7;
 }
 
 .badgeContent {
@@ -155,34 +213,18 @@
 }
 
 .badgeTitle {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--color-black);
+  color: #fff;
   letter-spacing: -0.2px;
 }
 
 .badgeSubtitle {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
-  color: var(--color-gray-400);
+  color: rgba(255,255,255,.55);
   text-transform: uppercase;
   letter-spacing: 0.8px;
-}
-
-.heroImageWrapper {
-  position: relative;
-  width: 100%;
-  border-radius: 20px;
-  overflow: hidden;
-  aspect-ratio: 16 / 10;
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.04);
-  z-index: 1;
-}
-
-.heroImage {
-  object-fit: cover;
 }
 
 /* ===== RIGHT FORM PANEL ===== */
@@ -736,15 +778,41 @@
 
   .heroPanel {
     max-width: 100%;
-    padding: 32px;
-    min-height: auto;
+    padding: 28px 28px 24px;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .heroMascotZone {
+    min-height: 140px;
+    width: 140px;
+    flex-shrink: 0;
+  }
+
+  .heroMascotImg {
+    width: 120px;
+    height: 120px;
+  }
+
+  .heroMascotRing {
+    width: 140px;
+    height: 140px;
   }
 
   .heroTitle {
-    font-size: 30px;
+    font-size: 22px;
   }
 
-  .heroImageWrapper {
+  .heroSubtitle {
+    display: none;
+  }
+
+  .heroBottom {
+    flex: 1;
+  }
+
+  .heroBrand {
     display: none;
   }
 
@@ -763,11 +831,27 @@
   }
 
   .heroPanel {
-    padding: 24px;
+    padding: 20px;
+    gap: 14px;
+  }
+
+  .heroMascotZone {
+    min-height: 110px;
+    width: 110px;
+  }
+
+  .heroMascotImg {
+    width: 96px;
+    height: 96px;
+  }
+
+  .heroMascotRing {
+    width: 110px;
+    height: 110px;
   }
 
   .heroTitle {
-    font-size: 26px;
+    font-size: 20px;
   }
 
   .formTitle {

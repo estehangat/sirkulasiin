@@ -246,6 +246,37 @@
   animation: floatUp 3.5s ease-in-out 0.5s infinite;
 }
 
+/* Siku chip — hero */
+.sikuChip {
+  position: absolute;
+  right: 14px;
+  bottom: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 999px;
+  padding: 8px 16px 8px 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(39, 174, 96, 0.18);
+  animation: floatUp 4s ease-in-out 0.8s infinite;
+  border: 1.5px solid rgba(39, 174, 96, 0.16);
+}
+
+.sikuChipImg {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.sikuChipImg img {
+  object-fit: contain;
+}
+
 @keyframes floatUp {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
@@ -310,28 +341,108 @@
 .stepCard {
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 24px;
-  padding: 28px 24px;
+  border-radius: 28px;
+  padding: 0 0 32px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s ease;
   position: relative;
+  overflow: hidden;
 }
 
 .stepCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 36px rgba(39, 174, 96, 0.12);
-  border-color: rgba(39, 174, 96, 0.2);
+  transform: translateY(-6px);
+  box-shadow: 0 18px 44px rgba(39, 174, 96, 0.16);
+  border-color: rgba(39, 174, 96, 0.22);
 }
 
-.stepIconWrap {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(39, 174, 96, 0.12), rgba(130, 158, 96, 0.08));
+/* ── Mascot zone ── */
+.stepMascotWrap {
+  position: relative;
+  height: 260px;
   display: grid;
   place-items: center;
-  color: var(--color-primary-dark);
-  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.stepMascotRing,
+.stepMascotRingOuter {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(0, 0, 0, 0.16);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.stepMascotRing {
+  width: 200px;
+  height: 200px;
+  animation: stepRingSpin 28s linear infinite;
+}
+
+.stepMascotRingOuter {
+  width: 280px;
+  height: 280px;
+  opacity: 0.45;
+  animation: stepRingSpin 60s linear infinite reverse;
+}
+
+.stepCardGlow {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.stepCard:hover .stepCardGlow {
+  opacity: 0.85;
+  transform: translateX(-50%) scale(1.05);
+}
+
+.stepMascotImgWrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  z-index: 1;
+  animation: stepMascotFloat 4s ease-in-out infinite;
+  transition: transform 0.4s ease;
+}
+
+.stepCard:nth-child(2) .stepMascotImgWrap { animation-delay: 0.4s; }
+.stepCard:nth-child(3) .stepMascotImgWrap { animation-delay: 0.8s; }
+
+.stepCard:hover .stepMascotImgWrap {
+  transform: scale(1.04);
+}
+
+.stepMascotImg {
+  object-fit: contain;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.14));
+}
+
+@keyframes stepMascotFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+@keyframes stepRingSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Card body ── */
+.stepCardBody {
+  position: relative;
+  z-index: 2;
+  padding: 0 28px;
 }
 
 .stepNumber {
@@ -341,22 +452,63 @@
   color: var(--color-primary-dark);
   background: rgba(39, 174, 96, 0.10);
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   letter-spacing: 0.5px;
 }
 
 .stepTitle {
-  margin-top: 12px;
-  font-size: 20px;
-  font-weight: 700;
+  margin-top: 14px;
+  font-size: 22px;
+  font-weight: 800;
   letter-spacing: -0.4px;
+  line-height: 1.25;
 }
 
 .stepText {
-  margin-top: 8px;
-  font-size: 13.5px;
+  margin-top: 10px;
+  font-size: 14px;
   color: var(--color-gray-500);
   line-height: 1.65;
+}
+
+/* ── Tones (per-step accent) ── */
+.stepTone_scan {
+  background: linear-gradient(180deg, #e6f4ff 0%, #fff 60%);
+}
+.stepTone_scan .stepCardGlow {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.55) 0%, transparent 70%);
+}
+.stepTone_scan .stepMascotRing { border-color: rgba(56, 189, 248, 0.42); }
+.stepTone_scan .stepMascotRingOuter { border-color: rgba(56, 189, 248, 0.28); }
+.stepTone_scan .stepNumber {
+  color: #0369a1;
+  background: rgba(56, 189, 248, 0.18);
+}
+
+.stepTone_pilih {
+  background: linear-gradient(180deg, #fff7df 0%, #fff 60%);
+}
+.stepTone_pilih .stepCardGlow {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.50) 0%, transparent 70%);
+}
+.stepTone_pilih .stepMascotRing { border-color: rgba(245, 158, 11, 0.42); }
+.stepTone_pilih .stepMascotRingOuter { border-color: rgba(245, 158, 11, 0.28); }
+.stepTone_pilih .stepNumber {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.20);
+}
+
+.stepTone_tuntas {
+  background: linear-gradient(180deg, #def6e1 0%, #fff 60%);
+}
+.stepTone_tuntas .stepCardGlow {
+  background: radial-gradient(circle, rgba(39, 174, 96, 0.50) 0%, transparent 70%);
+}
+.stepTone_tuntas .stepMascotRing { border-color: rgba(39, 174, 96, 0.42); }
+.stepTone_tuntas .stepMascotRingOuter { border-color: rgba(39, 174, 96, 0.28); }
+.stepTone_tuntas .stepNumber {
+  color: var(--color-primary-dark);
+  background: rgba(39, 174, 96, 0.16);
 }
 
 /* ═══════════════ IMPACT ═══════════════ */
@@ -763,8 +915,11 @@
   background: linear-gradient(135deg, #0a6b35 0%, #128a49 50%, #1a9555 100%);
   color: #fff;
   border-radius: 32px;
-  padding: 64px 48px;
-  text-align: center;
+  padding: 56px 56px;
+  display: grid;
+  grid-template-columns: 0.75fr 1fr;
+  gap: 40px;
+  align-items: center;
 }
 
 .ctaGlow1,
@@ -790,20 +945,148 @@
   background: radial-gradient(circle, rgba(255,255,255,0.06), transparent);
 }
 
+/* Dot grid overlay */
+.ctaDotGrid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.12) 1px, transparent 1.4px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle at 30% 50%, #000 20%, transparent 65%);
+  mask-image: radial-gradient(circle at 30% 50%, #000 20%, transparent 65%);
+  opacity: .6;
+}
+
+/* ── CTA Mascot (left column) ── */
+.ctaMascotWrap {
+  position: relative;
+  width: 100%;
+  min-height: 380px;
+  display: grid;
+  place-items: center;
+  z-index: 1;
+}
+
+.ctaMascotGlow {
+  position: absolute;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 197, 24, .30) 0%, transparent 65%);
+  filter: blur(40px);
+  z-index: 0;
+  animation: ctaMascotPulse 4s ease-in-out infinite;
+}
+
+.ctaMascotRing {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, .25);
+  animation: ctaRingSpin 30s linear infinite;
+  z-index: 0;
+}
+
+.ctaMascotImg {
+  object-fit: contain;
+  z-index: 1;
+  filter: drop-shadow(0 20px 32px rgba(0, 0, 0, .35));
+  animation: ctaMascotFloat 4.5s ease-in-out infinite;
+}
+
+/* Floating emoji sparkles */
+.ctaSparkle {
+  position: absolute;
+  font-size: 22px;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.15));
+}
+
+.ctaSparkleA {
+  top: 8%;
+  left: 12%;
+  animation: floatUp 3.5s ease-in-out infinite;
+}
+
+.ctaSparkleB {
+  bottom: 14%;
+  left: 6%;
+  font-size: 26px;
+  animation: floatUp 4.2s ease-in-out 0.6s infinite;
+}
+
+.ctaSparkleC {
+  top: 16%;
+  right: 8%;
+  font-size: 20px;
+  animation: floatUp 3.8s ease-in-out 1.2s infinite;
+}
+
+@keyframes ctaMascotFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+@keyframes ctaMascotPulse {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50%      { opacity: .9;  transform: scale(1.06); }
+}
+
+@keyframes ctaRingSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── CTA Content (right column) ── */
+.ctaContent {
+  position: relative;
+  z-index: 1;
+}
+
+.ctaEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.ctaEyebrowDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6ee7b7;
+  box-shadow: 0 0 0 4px rgba(110, 231, 183, .30);
+  animation: pulse 2s ease-in-out infinite;
+}
+
 .ctaTitle {
   position: relative;
   z-index: 1;
-  font-size: clamp(30px, 3.2vw, 48px);
+  margin-top: 20px;
+  font-size: clamp(28px, 3vw, 44px);
   letter-spacing: -1.2px;
-  line-height: 1.1;
+  line-height: 1.15;
   font-weight: 800;
+}
+
+.ctaTitleAccent {
+  color: #6ee7b7;
+  font-weight: 900;
 }
 
 .ctaText {
   position: relative;
   z-index: 1;
-  max-width: 56ch;
-  margin: 16px auto 0;
+  max-width: 48ch;
+  margin: 16px 0 0;
   font-size: 15.5px;
   color: rgba(255, 255, 255, 0.82);
   line-height: 1.7;
@@ -814,7 +1097,7 @@
   z-index: 1;
   margin-top: 28px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -897,6 +1180,38 @@
   .impactStats {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  .ctaSection {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 48px 36px;
+  }
+
+  .ctaMascotWrap {
+    min-height: 300px;
+    order: -1;
+  }
+
+  .ctaMascotRing {
+    width: 240px;
+    height: 240px;
+  }
+
+  .ctaContent {
+    text-align: center;
+  }
+
+  .ctaEyebrow {
+    margin: 0 auto;
+  }
+
+  .ctaText {
+    margin: 16px auto 0;
+  }
+
+  .ctaActions {
+    justify-content: center;
+  }
 }
 
 @media (max-width: 780px) {
@@ -932,6 +1247,11 @@
     grid-template-columns: 1fr;
   }
 
+  .stepMascotWrap { height: 220px; }
+  .stepMascotImgWrap { width: 190px; height: 190px; }
+  .stepMascotRing { width: 170px; height: 170px; }
+  .stepMascotRingOuter { width: 240px; height: 240px; }
+
   .marketGrid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -953,10 +1273,29 @@
   .ctaSection {
     padding: 36px 20px;
     border-radius: 26px;
+    gap: 24px;
+  }
+
+  .ctaMascotWrap {
+    min-height: 260px;
+  }
+
+  .ctaMascotRing {
+    width: 200px;
+    height: 200px;
+  }
+
+  .sikuChip {
+    display: none;
   }
 
   .carbonChip {
     display: none;
+  }
+
+  .scanChip {
+    left: 10px;
+    bottom: 10px;
   }
 }
 

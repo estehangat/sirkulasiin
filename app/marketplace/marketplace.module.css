@@ -690,6 +690,78 @@
   margin-top: 8px;
 }
 
+/* ─── Empty State — Mascot ─── */
+.emptyMascotWrap {
+  position: relative;
+  width: clamp(200px, 30vw, 260px);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+}
+
+.emptyMascotGlow {
+  position: absolute;
+  inset: 12% 10%;
+  border-radius: 50%;
+  filter: blur(36px);
+  z-index: 0;
+  animation: emptyGlow 4s ease-in-out infinite;
+}
+
+.emptyMascotRing {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(39,174,96,.32);
+  animation: emptySpin 28s linear infinite;
+  z-index: 0;
+}
+
+.emptyMascotImg {
+  position: relative;
+  z-index: 1;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 22px rgba(39,174,96,.22));
+  animation: emptyFloat 4.2s ease-in-out infinite;
+}
+
+/* Tone variants — change glow + ring color per mascot */
+.emptyTone_hati .emptyMascotGlow {
+  background: radial-gradient(circle, rgba(244, 114, 182, .35) 0%, transparent 65%);
+}
+.emptyTone_hati .emptyMascotRing {
+  border-color: rgba(244, 114, 182, .35);
+}
+
+.emptyTone_gembok .emptyMascotGlow {
+  background: radial-gradient(circle, rgba(245, 158, 11, .32) 0%, transparent 65%);
+}
+.emptyTone_gembok .emptyMascotRing {
+  border-color: rgba(245, 158, 11, .35);
+}
+
+.emptyTone_search .emptyMascotGlow {
+  background: radial-gradient(circle, rgba(39, 174, 96, .32) 0%, transparent 65%);
+}
+.emptyTone_search .emptyMascotRing {
+  border-color: rgba(39, 174, 96, .35);
+}
+
+@keyframes emptyFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+@keyframes emptyGlow {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50%      { opacity: .9;  transform: scale(1.08); }
+}
+
+@keyframes emptySpin {
+  to { transform: rotate(360deg); }
+}
+
 .loadMoreWrap {
   display: flex;
   justify-content: center;

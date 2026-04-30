@@ -97,9 +97,15 @@ const BrandLogo = () => (
   />
 );
 
+function formatUserCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}jt+`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}rb+`;
+  return `${n}`;
+}
+
 type SignupMode = "email" | "phone";
 
-export default function SignupForm() {
+export default function SignupForm({ userCount }: { userCount: number }) {
   const [mode, setMode] = useState<SignupMode>("email");
   const [agreed, setAgreed] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -128,30 +134,35 @@ export default function SignupForm() {
       <div className={styles.authCard}>
         {/* ===== LEFT HERO ===== */}
         <div className={styles.heroPanel}>
+          <span className={styles.heroOrb1} aria-hidden />
+          <span className={styles.heroOrb2} aria-hidden />
+
           <div className={styles.heroBrand}>
             <div className={styles.brandIcon}><BrandLogo /></div>
             <span className={styles.brandName}>Sirkulasi<span className={styles.brandNameHighlight}>In</span></span>
           </div>
 
-          <div className={styles.heroContent}>
+          <div className={styles.heroMascotZone}>
+            <span className={styles.heroMascotGlow} aria-hidden />
+            <span className={styles.heroMascotRing} aria-hidden />
+            <Image src="/siku-join.png" alt="Siku maskot SirkulasiIn" width={200} height={240} className={styles.heroMascotImg} priority />
+          </div>
+
+          <div className={styles.heroBottom}>
             <h1 className={styles.heroTitle}>
-              Bergabung di<br />
+              Bergabung di{" "}
               <span className={styles.heroTitleAccent}>Ekosistem.</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Ubah jejak lingkungan Anda menjadi gaya hidup berkelanjutan yang terkurasi.
+              Ubah jejak lingkungan jadi gaya hidup berkelanjutan yang terkurasi.
             </p>
             <div className={styles.heroBadge}>
               <div className={styles.badgeIcon}><IconUsers /></div>
               <div className={styles.badgeContent}>
-                <span className={styles.badgeTitle}>12rb+ Eco-Guardian</span>
+                <span className={styles.badgeTitle}>{formatUserCount(userCount)} Eco-Guardian</span>
                 <span className={styles.badgeSubtitle}>Aktif Melindungi Bumi</span>
               </div>
             </div>
-          </div>
-
-          <div className={styles.heroImageWrapper}>
-            <Image src="/signup-hero.png" alt="Ilustrasi tanaman hijau bertumbuh" fill className={styles.heroImage} priority sizes="(max-width: 900px) 100vw, 480px" />
           </div>
         </div>
 

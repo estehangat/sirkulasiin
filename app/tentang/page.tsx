@@ -242,6 +242,17 @@ export default async function TentangPage() {
           <div className={styles.heroBlob1} aria-hidden />
           <div className={styles.heroBlob2} aria-hidden />
 
+          {/* Siku peeking dari kanan phone */}
+          <div className={styles.phonePeekMascot} aria-hidden>
+            <Image
+              src="/siku-peeking.png"
+              alt=""
+              fill
+              className={styles.phonePeekImage}
+              sizes="(max-width: 780px) 130px, (max-width: 1100px) 160px, 200px"
+            />
+          </div>
+
           {/* Glassmorphism Phone Mockup */}
           <div className={styles.phoneMockup}>
             <div className={styles.phoneMockupInner}>
@@ -302,6 +313,92 @@ export default async function TentangPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ───────── KENALAN DENGAN SIKU ───────── */}
+      <section className={styles.mascotSection} aria-label="Kenalan dengan Siku">
+        <div className={styles.mascotGridBg} aria-hidden />
+        <div className={styles.mascotBlob1} aria-hidden />
+        <div className={styles.mascotBlob2} aria-hidden />
+
+        <div className={styles.mascotVisual}>
+          <div className={styles.mascotGlow} aria-hidden />
+          <div className={styles.mascotRings} aria-hidden>
+            <span className={styles.ring1} />
+            <span className={styles.ring2} />
+            <span className={styles.ring3} />
+          </div>
+
+          <div className={styles.mascotImageWrap}>
+            <Image
+              src="/siku-wave.png"
+              alt="Siku — maskot SirkulasiIn yang melambai"
+              fill
+              className={styles.mascotImage}
+              sizes="(max-width: 780px) 260px, (max-width: 1100px) 320px, 420px"
+            />
+          </div>
+
+          <div className={styles.mascotBubble}>
+            <span className={styles.mascotBubbleDot} />
+            Halo, aku <strong>Siku</strong>!
+          </div>
+
+          <span className={`${styles.floatChip} ${styles.floatChipA}`} aria-hidden>
+            <IconLeaf />
+          </span>
+          <span className={`${styles.floatChip} ${styles.floatChipB}`} aria-hidden>
+            <IconRecycle />
+          </span>
+        </div>
+
+        <div className={styles.mascotContent}>
+
+          <h2 className={styles.mascotTitle}>
+            Kenalan dengan{" "}
+            <span className={styles.mascotTitleAccent}>Siku</span>,
+            <br />sahabat sirkularmu.
+          </h2>
+
+          <p className={styles.mascotDesc}>
+            Siku adalah teman setia yang siap memandu kamu memilah sampah,
+            menemukan tutorial daur ulang, dan menjaga jejak hijau setiap hari.
+            Lambang siklusnya mengingatkan: tidak ada yang benar-benar berakhir
+            — semua bisa kembali bermanfaat.
+          </p>
+
+          <div className={styles.mascotTraits}>
+            <div className={styles.traitCard}>
+              <span className={`${styles.traitDot} ${styles.traitDotGreen}`} />
+              <div>
+                <p className={styles.traitTitle}>Cerdas</p>
+                <p className={styles.traitText}>
+                  Didukung AI untuk mengenali ratusan jenis material dalam hitungan detik.
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.traitCard}>
+              <span className={`${styles.traitDot} ${styles.traitDotSage}`} />
+              <div>
+                <p className={styles.traitTitle}>Sirkular</p>
+                <p className={styles.traitText}>
+                  Selalu mencari jalan supaya setiap barang punya kehidupan kedua.
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.traitCard}>
+              <span className={`${styles.traitDot} ${styles.traitDotAmber}`} />
+              <div>
+                <p className={styles.traitTitle}>Ramah</p>
+                <p className={styles.traitText}>
+                  Memandu langkah demi langkah, tanpa menggurui dan selalu antusias.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -442,6 +539,16 @@ export default async function TentangPage() {
       <section className={styles.ctaSection}>
         <div className={styles.ctaGlow} aria-hidden />
         <div className={styles.ctaGlow2} aria-hidden />
+
+        <div className={styles.ctaMascot} aria-hidden>
+          <Image
+            src="/siku-wave.png"
+            alt=""
+            fill
+            sizes="200px"
+            className={styles.ctaMascotImg}
+          />
+        </div>
 
         <h2 className={styles.ctaTitle}>
           Gabung 50.000+ Green Guardian bersama SirkulasiIn
