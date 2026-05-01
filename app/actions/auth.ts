@@ -151,7 +151,7 @@ export async function signupWithEmail(
 
   return {
     success:
-      "Akun berhasil dibuat! Silakan cek email Anda untuk verifikasi.",
+      "Akun berhasil dibuat! Silakan cek login menggunakan email yang telah didaftarkan.",
   };
 }
 
