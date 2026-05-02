@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   title: "SirkulasiIn - Platform Ekonomi Sirkular",
   description:
     "SirkulasiIn adalah platform AI companion untuk gaya hidup sirkular. Bergabung dengan komunitas global yang mengubah limbah menjadi kebijaksanaan.",
+  icons: {
+    icon: "/logoSirku.ico",
+  },
 };
 
 export default function RootLayout({
