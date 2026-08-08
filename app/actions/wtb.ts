@@ -52,7 +52,8 @@ async function postRoomTextMessage(
   userA: string,
   userB: string,
   senderId: string,
-  content: string
+  content: string,
+  metadata: Record<string, unknown> | null = null
 ) {
   const roomId = await getOrCreateRoom(supabase, userA, userB);
   if (!roomId) return;
@@ -62,7 +63,7 @@ async function postRoomTextMessage(
     sender_id: senderId,
     content,
     type: "text",
-    metadata: null,
+    metadata,
   });
 }
 
@@ -506,7 +507,10 @@ export async function respondWtbOffer(
       ? `Tawaran "${offer.item_name}" untuk permintaan ${wtb.title} diterima. Menunggu pembayaran dari pembuat permintaan.`
       : `Tawaran "${offer.item_name}" untuk permintaan ${wtb.title} ditolak.`;
 
-  await postRoomTextMessage(supabase, user.id, offer.seller_id, user.id, content);
+  await postRoomTextMessage(supabase, user.id, offer.seller_id, user.id, content, {
+    kind: "wtb_status",
+    action,
+  });
 
   await sendNotification({
     userId: offer.seller_id,

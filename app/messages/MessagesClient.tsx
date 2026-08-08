@@ -54,9 +54,22 @@ function getPreview(msg: Message | null, myId: string): string {
   if (msg.type === "product_card") return "📦 Menanyakan produk";
   if (msg.type === "barter_card") return "🔄 Tawaran Barter";
   if (msg.type === "wtb_card") return "🎯 Tawaran untuk permintaan WTB";
+  if (isWtbStatus(msg))
+    return isWtbAccepted(msg) ? "✓ Tawaran diterima" : "✕ Tawaran ditolak";
   const prefix = msg.sender_id === myId ? "Anda: " : "";
   const text = msg.content;
   return prefix + (text.length > 45 ? text.slice(0, 45) + "…" : text);
+}
+
+function isWtbStatus(msg: Message): boolean {
+  return (
+    msg.type === "text" &&
+    (msg.metadata as { kind?: string } | null)?.kind === "wtb_status"
+  );
+}
+
+function isWtbAccepted(msg: Message): boolean {
+  return (msg.metadata as { action?: string } | null)?.action === "accepted";
 }
 
 function getDateLabel(ts: string): string {
@@ -162,39 +175,62 @@ function BarterCardBubble({ metadata, isSent }: { metadata: Record<string, unkno
 
 function WtbCardBubble({ metadata, isSent }: { metadata: Record<string, unknown> | null; isSent: boolean }) {
   if (!metadata) return null;
+  const itemImage = metadata.item_image_url as string | undefined;
+  const itemDesc = metadata.item_description as string | undefined;
+  const msg = metadata.message as string | undefined;
+  const wtbTitle = metadata.wtb_title as string;
+  const wtbId = metadata.wtb_id as string;
   return (
-    <div className={styles.barterBubble}>
-      <div className={styles.barterBubbleHeader}>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        <span>Tawaran WTB</span>
-      </div>
-      <p className={styles.barterBubbleItem}>
-        <span className={styles.barterBubbleItemLabel}>Dicari:</span>{" "}
-        {metadata.wtb_title as string}
-      </p>
-      <div className={`${styles.barterBubbleDivider} ${!isSent ? styles.barterBubbleDividerReceived : ""}`} />
-      <p className={styles.barterBubbleItem}>
-        <span className={styles.barterBubbleItemLabel}>Ditawarkan:</span>{" "}
-        {metadata.item_name as string}
-      </p>
-      {!!metadata.item_description && (
-        <p className={styles.barterBubbleDesc}>{String(metadata.item_description)}</p>
+    <div className={styles.wtbBubble}>
+      {!!itemImage && (
+        <div className={styles.wtbBubbleImageWrap}>
+          <Image
+            src={itemImage}
+            alt={metadata.item_name as string}
+            fill
+            sizes="360px"
+            className={styles.wtbBubbleImage}
+            unoptimized
+          />
+        </div>
       )}
-      <p className={styles.barterBubbleItem}>
-        <span className={styles.barterBubbleItemLabel}>Harga:</span>{" "}
-        {formatRupiah(metadata.price)}
-      </p>
-      {!!metadata.message && (
-        <p className={`${styles.barterBubbleMsg} ${!isSent ? styles.barterBubbleMsgReceived : ""}`}>
-          &ldquo;{String(metadata.message)}&rdquo;
+      <div className={styles.wtbBubbleHeader}>
+        <span className={styles.wtbBubbleStamp}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          Dicari
+        </span>
+        <span className={styles.wtbBubbleHeaderTag}>Tawaran WTB</span>
+      </div>
+      <p className={styles.wtbBubbleTitle}>{metadata.item_name as string}</p>
+      {!!itemDesc && <p className={styles.wtbBubbleDesc}>{itemDesc}</p>}
+      <div className={styles.wtbBubblePriceRow}>
+        <span className={styles.wtbBubblePriceLabel}>Harga tawaran</span>
+        <p className={`${styles.wtbBubblePrice} ${!isSent ? styles.wtbBubblePriceReceived : ""}`}>
+          {formatRupiah(metadata.price)}
+        </p>
+      </div>
+      <div className={`${styles.wtbBubbleFor} ${!isSent ? styles.wtbBubbleForReceived : ""}`}>
+        <span className={styles.wtbBubbleForLabel}>Untuk permintaan</span>
+        <p className={styles.wtbBubbleForTitle}>{wtbTitle}</p>
+      </div>
+      {!!msg && (
+        <p className={`${styles.wtbBubbleMsg} ${!isSent ? styles.wtbBubbleMsgReceived : ""}`}>
+          &ldquo;{msg}&rdquo;
         </p>
       )}
-      {!!metadata.wtb_id && (
-        <Link href={`/wtb/${metadata.wtb_id}`} className={styles.bubbleLink} style={{ fontSize: 12, fontWeight: 700, marginTop: 6, display: "inline-block" }}>
-          Lihat permintaan →
+      {!!wtbId && (
+        <Link
+          href={`/wtb/${wtbId}`}
+          className={isSent ? styles.wtbBubbleActionSent : styles.wtbBubbleAction}
+        >
+          Lihat Permintaan
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
         </Link>
       )}
     </div>
@@ -484,6 +520,26 @@ export default function MessagesClient({
         );
       }
       const isSent = msg.sender_id === currentUser.id;
+      if (isWtbStatus(msg)) {
+        const accepted = isWtbAccepted(msg);
+        els.push(
+          <div key={msg.id} className={styles.systemWrap}>
+            <div className={`${styles.systemPill} ${accepted ? styles.systemPillOk : styles.systemPillRejected}`}>
+              {accepted ? (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              )}
+              {msg.content}
+            </div>
+          </div>
+        );
+        continue;
+      }
       els.push(
         <div key={msg.id} className={isSent ? styles.bubbleWrapSent : styles.bubbleWrapReceived}>
           {!isSent && (

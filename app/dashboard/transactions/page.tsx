@@ -1,10 +1,26 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import TransactionButtons from "./ClientButtons";
-import Image from "next/image";
-import { ShoppingBag, Box, Clock, CheckCircle2, AlertCircle, AlertTriangle, Package, ShieldCheck, Wallet, Truck, ExternalLink, ImageIcon } from "lucide-react";
+import styles from "./transactions.module.css";
+import {
+  ShoppingBag,
+  Box,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  Package,
+  ShieldCheck,
+  Wallet,
+  Truck,
+  ExternalLink,
+  ImageIcon,
+  Inbox,
+} from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Transaksi — SirkulasiIn",
@@ -25,6 +41,26 @@ const statusMap: Record<string, string> = {
 function formatOrderChip(id: string) {
   return `#${id.slice(0, 8).toUpperCase()}`;
 }
+
+type OrderRow = {
+  id: string;
+  status: string;
+  total_price: number;
+  created_at: string;
+  payout_status?: string | null;
+  delivery_status?: string | null;
+  shipping_courier?: string | null;
+  shipping_service?: string | null;
+  shipping_order_id?: string | null;
+  escrow_status?: string | null;
+  pickup_status?: string | null;
+  awb?: string | null;
+  public_tracking_url?: string | null;
+  listing_id?: string | null;
+  wtb_offer_id?: string | null;
+  marketplace_listings?: { id: string; title: string; image_url: string } | null;
+  wtb_offers?: { item_name: string; item_image_url: string } | null;
+};
 
 const COURIER_LABELS: Record<string, string> = {
   jne: "JNE",
@@ -93,11 +129,74 @@ function getPayoutDesign(payoutStatus?: string | null) {
   if (payoutStatus === "processing") return { bg: "#fff7ed", border: "#fed7aa", text: "#9a3412" };
   if (payoutStatus === "paid_out") return { bg: "#f0fdf4", border: "#86efac", text: "#14532d" };
   if (payoutStatus === "rejected" || payoutStatus === "failed") return { bg: "#fef2f2", border: "#fecaca", text: "#991b1b" };
-  
+
   return { bg: "#f3f4f6", border: "#e5e7eb", text: "#374151" };
 }
 
-export default async function TransactionsPage() {
+/* ── Tab model ─────────────────────────────────────────────────────────── */
+
+type TabKey = "pembelian" | "penjualan";
+type BucketKey = "all" | "action" | "escrow" | "shipped" | "done" | "cancelled" | "payout";
+
+const TAB_META: Record<TabKey, { label: string; icon: React.ReactNode; emptyTitle: string; emptyHint: string; cta: { label: string; href: string } | null }> = {
+  pembelian: {
+    label: "Pembelian",
+    icon: <ShoppingBag size={16} />,
+    emptyTitle: "Belum ada pembelian",
+    emptyHint: "Temukan barang sirkular yang layak dipakai kembali di Marketplace.",
+    cta: { label: "Jelajahi Marketplace", href: "/marketplace" },
+  },
+  penjualan: {
+    label: "Penjualan",
+    icon: <Box size={16} />,
+    emptyTitle: "Belum ada penjualan",
+    emptyHint: "Daftarkan barang yang masih layak pakai dan mulai jual.",
+    cta: { label: "Buat Listing", href: "/marketplace/create" },
+  },
+};
+
+const BUCKETS: { key: BucketKey; label: string; dot: string; hint: string }[] = [
+  { key: "all", label: "Semua", dot: "#27AE60", hint: "Semua pesanan dalam tab ini." },
+  { key: "action", label: "Perlu Aksi", dot: "#F59E0B", hint: "Pembayaran yang belum selesai atau gagal." },
+  { key: "escrow", label: "Diproses", dot: "#14B8A6", hint: "Dana ditahan escrow, menunggu pengiriman." },
+  { key: "shipped", label: "Dikirim", dot: "#3B82F6", hint: "Pesanan yang sedang dalam pengiriman." },
+  { key: "done", label: "Selesai", dot: "#22C55E", hint: "Pesanan selesai dan dana telah/pending dicairkan." },
+  { key: "cancelled", label: "Gagal & Batal", dot: "#9CA3AF", hint: "Pesanan dibatalkan atau tidak jadi." },
+  { key: "payout", label: "Pencairan Dana", dot: "#0D9488", hint: "Dana penjualan yang sedang menuju ke rekening Anda." },
+];
+
+const STATUS_BUCKET: Record<string, BucketKey> = {
+  pending_payment: "action",
+  payment_failed: "action",
+  payment_expired: "action",
+  paid_escrow: "escrow",
+  shipped: "shipped",
+  completed: "done",
+  paid_out: "done",
+  cancelled: "cancelled",
+};
+
+function filterByBucket(list: OrderRow[], bucket: BucketKey): OrderRow[] {
+  if (bucket === "all") return list;
+  if (bucket === "payout") return list.filter((o) => !!o.payout_status);
+  return list.filter((o) => STATUS_BUCKET[o.status] === bucket);
+}
+
+function countByBucket(list: OrderRow[], bucket: BucketKey): number {
+  return filterByBucket(list, bucket).length;
+}
+
+function bucketLabel(bucket: BucketKey): string {
+  return BUCKETS.find((b) => b.key === bucket)?.label || "Semua";
+}
+
+/* ── Page ──────────────────────────────────────────────────────────────── */
+
+export default async function TransactionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; status?: string }>;
+}) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -107,11 +206,10 @@ export default async function TransactionsPage() {
 
   // Pakai admin client untuk bypass RLS pada join marketplace_listings.
   // Setelah order paid, listing status berubah jadi reserved/sold sehingga
-  // user-context RLS memblokir join dan menyembabkan listing tampak null.
+  // user-context RLS memblokir join dan membuat listing tampak null.
   // Filter buyer_id/seller_id eksplisit menjaga keamanan akses.
   const adminSupabase = createAdminSupabaseClient();
 
-  // Fetch Pembelian
   const { data: purchasesQuery } = await adminSupabase
     .from("orders")
     .select("*, marketplace_listings(id, title, image_url), wtb_offers(item_name, item_image_url)")
@@ -119,7 +217,6 @@ export default async function TransactionsPage() {
     .order("created_at", { ascending: false })
     .limit(100);
 
-  // Fetch Penjualan
   const { data: salesQuery } = await adminSupabase
     .from("orders")
     .select("*, marketplace_listings(id, title, image_url), wtb_offers(item_name, item_image_url)")
@@ -127,8 +224,24 @@ export default async function TransactionsPage() {
     .order("created_at", { ascending: false })
     .limit(100);
 
-  const purchases = purchasesQuery || [];
-  const sales = salesQuery || [];
+  const purchases: OrderRow[] = (purchasesQuery || []) as OrderRow[];
+  const sales: OrderRow[] = (salesQuery || []) as OrderRow[];
+
+  const params = await searchParams;
+  const tab: TabKey = params.tab === "penjualan" ? "penjualan" : "pembelian";
+  const rawBucket = (params.status || "all") as BucketKey;
+  const isValidBucket = BUCKETS.some((b) => b.key === rawBucket);
+  const bucket: BucketKey =
+    tab === "pembelian" && rawBucket === "payout"
+      ? "all"
+      : isValidBucket
+        ? rawBucket
+        : "all";
+
+  const source = tab === "penjualan" ? sales : purchases;
+  const visible = filterByBucket(source, bucket);
+  const totalAmount = visible.reduce((sum, o) => sum + (o.total_price || 0), 0);
+  const totalLabel = bucket === "payout" ? "Total dana diproses" : tab === "penjualan" ? "Total pendapatan" : "Total belanja";
 
   const formatRupiah = (amount: number) =>
     new Intl.NumberFormat("id-ID", {
@@ -143,11 +256,11 @@ export default async function TransactionsPage() {
       month: "short",
       year: "numeric",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     }).replace(" pukul ", ", ");
   };
 
-  const renderTransactionCard = (item: any, isBuyer: boolean) => {
+  const renderTransactionCard = (item: OrderRow, isBuyer: boolean) => {
     const sDesign = getStatusDesign(item.status);
     const pDesign = getPayoutDesign(item.payout_status);
     const dDesign = getDeliveryDesign(item.delivery_status);
@@ -158,27 +271,16 @@ export default async function TransactionsPage() {
     const itemImage = item.marketplace_listings?.image_url || item.wtb_offers?.item_image_url || null;
 
     return (
-      <article
-        key={item.id}
-        style={{
-          padding: "20px 24px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          borderBottom: "1px solid #EFEFEB",
-          background: "#fff",
-          transition: "background 0.2s ease",
-        }}
-      >
+      <article key={item.id} className={styles.row} style={{ padding: "18px 24px", display: "flex", flexDirection: "column", gap: "16px", background: "#fff" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", minWidth: 0, flex: 1 }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "12px", overflow: "hidden", background: "#f5f5f4", border: "1px solid #EFEFEB", display: "flex", alignItems: "center", justifyContent: "center", color: "#A3A39B", flexShrink: 0, position: "relative" }}>
+            <div style={{ width: "60px", height: "60px", borderRadius: "16px", overflow: "hidden", background: "#f7f7f5", border: "1px solid #EFEFEB", display: "flex", alignItems: "center", justifyContent: "center", color: "#A3A39B", flexShrink: 0, position: "relative" }}>
               {itemImage ? (
                 <Image
                   src={itemImage}
                   alt={itemTitle}
                   fill
-                  sizes="56px"
+                  sizes="60px"
                   style={{ objectFit: "cover" }}
                   unoptimized
                 />
@@ -187,53 +289,47 @@ export default async function TransactionsPage() {
               )}
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
-                <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A" }}>
-                  {itemTitle}
-                </h3>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" }}>
+                <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A", lineHeight: 1.3 }}>{itemTitle}</h3>
                 {isWtb && (
-                  <span style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.5px", color: "#9a3412", background: "#fff7ed", border: "1px solid #fed7aa", padding: "2px 8px", borderRadius: "6px", textTransform: "uppercase" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.5px", color: "#9a3412", background: "#fff7ed", border: "1px solid #fed7aa", padding: "2px 8px", borderRadius: "999px", textTransform: "uppercase" }}>
                     WTB
                   </span>
                 )}
-                <span style={{ fontSize: "11px", fontWeight: 700, color: "#737369", background: "#f5f5f4", padding: "2px 8px", borderRadius: "6px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#737369", background: "#f4f4f0", padding: "2px 8px", borderRadius: "999px" }}>
                   {formatOrderChip(item.id)}
                 </span>
               </div>
-              <p style={{ fontSize: "12px", color: "#A3A39B" }}>
-                {formatDate(item.created_at)}
-              </p>
+              <p style={{ fontSize: "12px", color: "#A3A39B" }}>{formatDate(item.created_at)}</p>
             </div>
           </div>
-          
+
           <div style={{ textAlign: "right" }}>
-            <p style={{ fontSize: "16px", fontWeight: 800, color: isBuyer ? "#1E8449" : "#1A1A1A" }}>
+            <p style={{ fontSize: "16px", fontWeight: 800, color: isBuyer ? "#1E8449" : "#1A1A1A", lineHeight: 1.3 }}>
               {isBuyer ? "-" : "+"}{formatRupiah(item.total_price)}
             </p>
           </div>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, background: sDesign.bg, color: sDesign.text, border: `1px solid ${sDesign.border}`, padding: "6px 12px", borderRadius: "99px" }}>
-              {sDesign.icon} {statusMap[item.status] || item.status}
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, background: sDesign.bg, color: sDesign.text, border: `1px solid ${sDesign.border}`, padding: "5px 10px", borderRadius: "999px" }}>
+            {sDesign.icon} {statusMap[item.status] || item.status}
+          </span>
+
+          {item.status === "paid_escrow" && item.escrow_status && !isBuyer && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, background: "#ecfdf3", color: "#166534", border: "1px solid #bbf7d0", padding: "5px 10px", borderRadius: "999px" }}>
+              <ShieldCheck size={14} /> Escrow Aman
             </span>
+          )}
 
-            {item.status === "paid_escrow" && item.escrow_status && !isBuyer && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, background: "#ecfdf3", color: "#166534", border: "1px solid #bbf7d0", padding: "6px 12px", borderRadius: "99px" }}>
-                <ShieldCheck size={14} /> Escrow Aman
-              </span>
-            )}
-
-            {pDesign && !isBuyer && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, background: pDesign.bg, color: pDesign.text, border: `1px solid ${pDesign.border}`, padding: "6px 12px", borderRadius: "99px" }}>
-                <Wallet size={14} /> Payout: {item.payout_status}
-              </span>
-            )}
-          </div>
+          {pDesign && !isBuyer && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 800, background: pDesign.bg, color: pDesign.text, border: `1px solid ${pDesign.border}`, padding: "5px 10px", borderRadius: "999px" }}>
+              <Wallet size={14} /> Payout: {item.payout_status}
+            </span>
+          )}
         </div>
 
-        {/* ── Shipping Info Card (muncul saat order sudah punya resi) ── */}
+        {/* ── Shipping Info Card ── */}
         {hasShipping && (
           <div
             style={{
@@ -241,23 +337,21 @@ export default async function TransactionsPage() {
               flexDirection: "column",
               gap: "10px",
               padding: "14px 16px",
-              borderRadius: "14px",
-              background: "linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)",
-              border: "1px solid #bbf7d0",
+              borderRadius: "16px",
+              background: "#f5fcf8",
+              border: "1px solid #d9f0e2",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-              <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#fff", border: "1px solid #bbf7d0", display: "flex", alignItems: "center", justifyContent: "center", color: "#1E8449", flexShrink: 0 }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#fff", border: "1px solid #d9f0e2", display: "flex", alignItems: "center", justifyContent: "center", color: "#1E8449", flexShrink: 0 }}>
                 <Truck size={16} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: "11px", fontWeight: 700, color: "#737369", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 800, color: "#737369", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                   Informasi Pengiriman
                 </span>
                 {courierLabel && (
-                  <span style={{ fontSize: "13px", fontWeight: 800, color: "#1A1A1A" }}>
-                    {courierLabel}
-                  </span>
+                  <span style={{ fontSize: "13px", fontWeight: 800, color: "#1A1A1A" }}>{courierLabel}</span>
                 )}
               </div>
               {dDesign && (
@@ -293,7 +387,7 @@ export default async function TransactionsPage() {
                     background: "#fff",
                     border: "1px solid #bfdbfe",
                     padding: "8px 14px",
-                    borderRadius: "10px",
+                    borderRadius: "12px",
                     textDecoration: "none",
                   }}
                 >
@@ -319,81 +413,188 @@ export default async function TransactionsPage() {
     );
   };
 
+  const tabMeta = TAB_META[tab];
+  const isTotallyEmpty = source.length === 0;
+
   return (
-    <div style={{ display: "grid", gap: "24px" }}>
-      {/* ── Page Header Action ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", marginBottom: "4px" }}>
-        <div>
-          <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#1A1A1A", marginBottom: "4px" }}>
-            Riwayat Transaksi
-          </h2>
-          <p style={{ color: "#737369", fontSize: "13px" }}>
-            Pantau seluruh aktivitas jual-beli dan pencairan dana Anda.
-          </p>
+    <div style={{ display: "grid", gap: "14px" }}>
+      {/* ── Level 1: Pembelian / Penjualan ── */}
+      <nav aria-label="Jenis transaksi">
+        <div style={{ display: "inline-flex", gap: "6px", padding: "6px", borderRadius: "18px", background: "#fff", border: "1px solid #EFEFEB", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", flexWrap: "wrap" }}>
+          {(["pembelian", "penjualan"] as TabKey[]).map((key) => {
+            const active = tab === key;
+            const meta = TAB_META[key];
+            const count = key === "pembelian" ? purchases.length : sales.length;
+            return (
+              <Link
+                key={key}
+                href={`?tab=${key}&status=${bucket === "payout" ? "all" : bucket}`}
+                aria-current={active ? "page" : undefined}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 18px",
+                  borderRadius: "13px",
+                  textDecoration: "none",
+                  fontSize: "14px",
+                  fontWeight: 800,
+                  color: active ? "#fff" : "#737369",
+                  background: active ? "#27AE60" : "transparent",
+                  boxShadow: active ? "0 4px 12px rgba(39,174,96,0.25)" : "none",
+                  transition: "all 0.18s ease",
+                }}
+              >
+                {meta.icon}
+                {meta.label}
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: "22px",
+                    height: "22px",
+                    padding: "0 7px",
+                    borderRadius: "999px",
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    color: active ? "#fff" : "#A3A39B",
+                    background: active ? "rgba(255,255,255,0.2)" : "#F4F4F0",
+                    transition: "all 0.18s ease",
+                  }}
+                >
+                  {count}
+                </span>
+              </Link>
+            );
+          })}
         </div>
-      </div>
+      </nav>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: "24px", alignItems: "start" }}>
-        
-        {/* ── Pembelian Saya ── */}
-        <section style={{ borderRadius: "24px", border: "1px solid #EFEFEB", background: "#fff", overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-          <div style={{ padding: "18px 24px", borderBottom: "1px solid #EFEFEB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <ShoppingBag size={18} color="#1E8449" />
-              <h2 style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A" }}>Pembelian</h2>
-            </div>
-            <span style={{ fontSize: "12px", fontWeight: 700, color: "#737369", background: "#F4F4F0", padding: "4px 12px", borderRadius: "99px" }}>
-              {purchases.length} transaksi
+      {/* ── Level 2: Status buckets ── */}
+      <nav aria-label="Filter status transaksi">
+        <div className={styles.pillBar}>
+          {BUCKETS.filter((b) => b.key !== "payout" || tab === "penjualan").map((b) => {
+            const active = bucket === b.key;
+            const count = countByBucket(source, b.key);
+            return (
+              <Link
+                key={b.key}
+                href={`?tab=${tab}&status=${b.key}`}
+                aria-current={active ? "true" : undefined}
+                title={b.hint}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "7px",
+                  padding: "8px 14px",
+                  borderRadius: "999px",
+                  textDecoration: "none",
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  color: active ? "#1E8449" : "#52524C",
+                  background: active ? "#eaf6ef" : "#fff",
+                  border: active ? "1px solid #c4e8d5" : "1px solid #EFEFEB",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.16s ease",
+                }}
+              >
+                <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: b.dot, flexShrink: 0, opacity: active ? 1 : 0.55 }} />
+                {b.label}
+                <span style={{ fontSize: "11px", fontWeight: 800, color: active ? "#1E8449" : "#A3A39B" }}>
+                  {count}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* ── Ledger ── */}
+      <section className={styles.ledger}>
+        <div style={{ padding: "16px 24px", borderBottom: "1px solid #EFEFEB", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "34px", height: "34px", borderRadius: "12px", background: "rgba(39,174,96,0.1)", color: "#1E8449", flexShrink: 0 }}>
+              {tabMeta.icon}
             </span>
+            <div>
+              <h2 style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A", lineHeight: 1.2 }}>
+                {bucketLabel(bucket)}
+                {bucket !== "all" && (
+                  <span style={{ marginLeft: "8px", fontSize: "12px", fontWeight: 800, color: "#1E8449", background: "#EAF6EF", padding: "2px 9px", borderRadius: "999px", verticalAlign: "2px" }}>
+                    {visible.length}
+                  </span>
+                )}
+              </h2>
+              <p style={{ fontSize: "12px", color: "#A3A39B", marginTop: "2px" }}>
+                {BUCKETS.find((b) => b.key === bucket)?.hint || BUCKETS[0].hint}
+              </p>
+            </div>
           </div>
-          
-          <div>
-            {purchases.length === 0 ? (
-              <div style={{ padding: "60px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
-                <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a" }}>
-                  <ShoppingBag size={28} />
-                </div>
-                <div>
-                  <p style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A" }}>Belum Ada Pembelian</p>
-                  <p style={{ fontSize: "13px", color: "#A3A39B", marginTop: "4px" }}>Temukan barang sirkular menarik di marketplace.</p>
-                </div>
-              </div>
-            ) : (
-              purchases.map(p => renderTransactionCard(p, true))
+
+          {visible.length > 0 && (
+            <div style={{ textAlign: "right" }}>
+              <p style={{ fontSize: "11px", fontWeight: 800, color: "#A3A39B", textTransform: "uppercase", letterSpacing: "0.6px" }}>
+                {totalLabel}
+              </p>
+              <p style={{ fontSize: "17px", fontWeight: 800, color: "#1A1A1A", lineHeight: 1.3 }}>
+                {formatRupiah(totalAmount)}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {visible.length === 0 ? (
+          <div style={{ padding: "72px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: "22px",
+                background: isTotallyEmpty ? (tab === "pembelian" ? "#effaf3" : "#eef7fb") : "#F4F4F0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: isTotallyEmpty ? (tab === "pembelian" ? "#16a34a" : "#2563eb") : "#A3A39B",
+              }}
+            >
+              {isTotallyEmpty ? tabMeta.icon : <Inbox size={26} />}
+            </div>
+            <div>
+              <p style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A" }}>
+                {isTotallyEmpty ? tabMeta.emptyTitle : `Tidak ada transaksi ${bucketLabel(bucket).toLowerCase()}`}
+              </p>
+              <p style={{ fontSize: "13px", color: "#A3A39B", marginTop: "6px", maxWidth: "360px", marginLeft: "auto", marginRight: "auto", lineHeight: 1.5 }}>
+                {isTotallyEmpty ? tabMeta.emptyHint : BUCKETS.find((b) => b.key === bucket)?.hint}
+              </p>
+            </div>
+            {isTotallyEmpty && tabMeta.cta && (
+              <Link
+                href={tabMeta.cta.href}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "11px 20px",
+                  borderRadius: "14px",
+                  background: "#27AE60",
+                  color: "#fff",
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  textDecoration: "none",
+                  boxShadow: "0 4px 12px rgba(39,174,96,0.22)",
+                  transition: "background 0.18s ease",
+                }}
+              >
+                {tabMeta.cta.label} →
+              </Link>
             )}
           </div>
-        </section>
-
-        {/* ── Penjualan Saya ── */}
-        <section style={{ borderRadius: "24px", border: "1px solid #EFEFEB", background: "#fff", overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-          <div style={{ padding: "18px 24px", borderBottom: "1px solid #EFEFEB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <Box size={18} color="#2563eb" />
-              <h2 style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A" }}>Penjualan</h2>
-            </div>
-            <span style={{ fontSize: "12px", fontWeight: 700, color: "#737369", background: "#F4F4F0", padding: "4px 12px", borderRadius: "99px" }}>
-              {sales.length} pesanan
-            </span>
-          </div>
-          
-          <div>
-            {sales.length === 0 ? (
-              <div style={{ padding: "60px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
-                <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563eb" }}>
-                  <Box size={28} />
-                </div>
-                <div>
-                  <p style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A" }}>Belum Ada Penjualan</p>
-                  <p style={{ fontSize: "13px", color: "#A3A39B", marginTop: "4px" }}>Listing Anda sedang menunggu pembeli yang tepat.</p>
-                </div>
-              </div>
-            ) : (
-              sales.map(s => renderTransactionCard(s, false))
-            )}
-          </div>
-        </section>
-
-      </div>
+        ) : (
+          visible.map((item) => renderTransactionCard(item, tab === "pembelian"))
+        )}
+      </section>
     </div>
   );
 }

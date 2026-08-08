@@ -480,6 +480,227 @@
   border-top-color: var(--color-gray-200);
 }
 
+/* ─── WTB Card Bubble ─── */
+.wtbBubble {
+  min-width: 252px;
+  display: flex;
+  flex-direction: column;
+}
+
+.wtbBubbleImageWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.bubbleReceived .wtbBubbleImageWrap {
+  background: var(--color-gray-200);
+}
+
+.wtbBubbleImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.wtbBubbleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.wtbBubbleStamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transform: rotate(-3deg);
+  border: 1.5px solid #b45309;
+  color: #b45309;
+  background: rgba(255, 247, 237, 0.9);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.wtbBubbleHeaderTag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.bubbleReceived .wtbBubbleHeaderTag {
+  color: var(--color-gray-400);
+}
+
+.wtbBubbleTitle {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.wtbBubbleDesc {
+  font-size: 12.5px;
+  line-height: 1.5;
+  opacity: 0.75;
+  margin: 4px 0 0;
+}
+
+.wtbBubblePriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.wtbBubblePriceLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.bubbleReceived .wtbBubblePriceLabel {
+  color: var(--color-gray-400);
+}
+
+.wtbBubblePrice {
+  font-size: 17px;
+  font-weight: 800;
+  margin: 0;
+  color: #a8f0c8;
+}
+
+.wtbBubblePriceReceived {
+  color: var(--color-primary);
+}
+
+.wtbBubbleFor {
+  border-top: 1px dashed rgba(255, 255, 255, 0.28);
+  padding-top: 10px;
+}
+
+.wtbBubbleForReceived {
+  border-top-color: var(--color-gray-300);
+}
+
+.wtbBubbleForLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.6;
+}
+
+.wtbBubbleForTitle {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 2px 0 0;
+}
+
+.wtbBubbleMsg {
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.5;
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0 10px 10px 0;
+  background: rgba(255, 255, 255, 0.08);
+  word-break: break-word;
+}
+
+.wtbBubbleMsgReceived {
+  border-left-color: #fcd34d;
+  background: var(--color-gray-100);
+}
+
+.wtbBubbleAction,
+.wtbBubbleActionSent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 11px 16px;
+  min-height: 44px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wtbBubbleAction {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(39, 174, 96, 0.28);
+}
+
+.wtbBubbleAction:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(39, 174, 96, 0.38);
+}
+
+.wtbBubbleActionSent {
+  background: #fff;
+  color: var(--color-primary-dark);
+}
+
+.wtbBubbleActionSent:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+}
+
+/* ─── System status pill (accept/reject WTB) ─── */
+.systemWrap {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.systemPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 84%;
+  background: var(--color-gray-100);
+  border: 1px solid var(--color-gray-200);
+  color: var(--color-gray-600);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  padding: 7px 15px;
+  border-radius: var(--radius-full);
+}
+
+.systemPill svg { flex-shrink: 0; }
+
+.systemPillOk {
+  background: #eaf7f0;
+  border-color: #cbeadd;
+  color: var(--color-primary-dark);
+}
+
+.systemPillRejected {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
 /* ─── Input Bar ─── */
 .inputBar {
   display: flex;
