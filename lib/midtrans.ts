@@ -98,9 +98,53 @@ function isPastDue(value?: string | null) {
   return new Date(value).getTime() <= Date.now();
 }
 
-export async function markOrderAsExpired(orderId: string, listingId: string): Promise<ExpireOrderResult> {
+// Rollback sumber order saat pembayaran gagal/kedaluwarsa:
+// listing → republish, offer WTB → buka kembali permintaan + offer pending lagi.
+async function releaseOrderSource(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  order: { listing_id: string | null; wtb_offer_id?: string | null }
+) {
+  if (order.listing_id) {
+    const { error } = await supabase
+      .from("marketplace_listings")
+      .update({ status: "published", reserved_at: null })
+      .eq("id", order.listing_id)
+      .eq("status", "reserved");
+
+    return error ? { ok: false as const, error: error.message } : { ok: true as const };
+  }
+
+  if (order.wtb_offer_id) {
+    const { data: offer, error: offerError } = await supabase
+      .from("wtb_offers")
+      .update({ status: "pending" })
+      .eq("id", order.wtb_offer_id)
+      .eq("status", "accepted")
+      .select("wtb_id")
+      .single();
+
+    if (offerError || !offer) {
+      return { ok: false as const, error: offerError?.message || "Offer WTB tidak ditemukan." };
+    }
+
+    const { error: wtbError } = await supabase
+      .from("wtb_requests")
+      .update({ status: "open", accepted_offer_id: null })
+      .eq("id", offer.wtb_id)
+      .eq("status", "in_checkout");
+
+    return wtbError ? { ok: false as const, error: wtbError.message } : { ok: true as const };
+  }
+
+  return { ok: true as const };
+}
+
+export async function markOrderAsExpired(
+  orderId: string,
+  listingId: string | null,
+  wtbOfferId?: string | null
+): Promise<ExpireOrderResult> {
   const supabase = createAdminSupabaseClient();
-  const expiredAt = new Date().toISOString();
 
   const { error: orderError } = await supabase
     .from("orders")
@@ -117,14 +161,9 @@ export async function markOrderAsExpired(orderId: string, listingId: string): Pr
     return { ok: false, error: orderError.message };
   }
 
-  const { error: listingError } = await supabase
-    .from("marketplace_listings")
-    .update({ status: "published", reserved_at: null, updated_at: expiredAt })
-    .eq("id", listingId)
-    .eq("status", "reserved");
-
-  if (listingError) {
-    return { ok: false, error: listingError.message };
+  const release = await releaseOrderSource(supabase, { listing_id: listingId, wtb_offer_id: wtbOfferId });
+  if (!release.ok) {
+    return { ok: false, error: release.error };
   }
 
   return { ok: true, status: "payment_expired" };
@@ -133,14 +172,15 @@ export async function markOrderAsExpired(orderId: string, listingId: string): Pr
 export async function reconcileExpiredOrder(order: {
   id: string;
   status: string;
-  listing_id: string;
+  listing_id: string | null;
+  wtb_offer_id?: string | null;
   payment_expired_at?: string | null;
 }): Promise<ReconcileExpiredOrderResult> {
   if (order.status !== "pending_payment" || !isPastDue(order.payment_expired_at)) {
     return { ok: true, expired: false };
   }
 
-  const result = await markOrderAsExpired(order.id, order.listing_id);
+  const result = await markOrderAsExpired(order.id, order.listing_id, order.wtb_offer_id);
   if (!result.ok) {
     return result;
   }
@@ -239,7 +279,7 @@ export async function syncOrderWithMidtransStatus(
   const supabase = createAdminSupabaseClient();
   const { data: order, error } = await supabase
     .from("orders")
-    .select("id, status, listing_id, paid_at, escrow_status, payout_status")
+    .select("id, status, listing_id, wtb_offer_id, paid_at, escrow_status, payout_status")
     .eq("payment_reference", payload.order_id)
     .single();
 
@@ -323,14 +363,26 @@ export async function syncOrderWithMidtransStatus(
   }
 
   if (releaseListing) {
-    const { error: listingError } = await supabase
-      .from("marketplace_listings")
-      .update({ status: "published", reserved_at: null })
-      .eq("id", order.listing_id)
-      .eq("status", "reserved");
+    const release = await releaseOrderSource(supabase, order);
+    if (!release.ok) {
+      return { ok: false, error: release.error };
+    }
+  }
 
-    if (listingError) {
-      return { ok: false, error: listingError.message };
+  // Order WTB: pembayaran sukses menutup permintaan (fulfilled)
+  if (isPaidState && order.wtb_offer_id && nextOrderStatus === "paid_escrow") {
+    const { data: offer } = await supabase
+      .from("wtb_offers")
+      .select("wtb_id")
+      .eq("id", order.wtb_offer_id)
+      .single();
+
+    if (offer) {
+      await supabase
+        .from("wtb_requests")
+        .update({ status: "fulfilled" })
+        .eq("id", offer.wtb_id)
+        .eq("status", "in_checkout");
     }
   }
 

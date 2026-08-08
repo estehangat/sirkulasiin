@@ -27,7 +27,7 @@ export default async function PaymentPage({
 
   const { data: order } = await supabase
     .from("orders")
-    .select("*, marketplace_listings(title)")
+    .select("*, marketplace_listings(title), wtb_offers(item_name)")
     .eq("id", id)
     .single();
 
@@ -70,7 +70,7 @@ export default async function PaymentPage({
           </div>
           <h1 className={styles.title}>{titleByStatus[currentOrder.status] || "Status Pembayaran"}</h1>
           <p className={styles.subtitle}>
-            Pesanan Anda untuk <strong>{currentOrder.marketplace_listings?.title || "Produk preloved"}</strong>{" "}
+            Pesanan Anda untuk <strong>{currentOrder.marketplace_listings?.title || currentOrder.wtb_offers?.item_name || "Produk preloved"}</strong>{" "}
             {currentOrder.status === "paid_escrow"
               ? "sudah dibayar dan dana sedang ditahan dalam escrow."
               : currentOrder.status === "payment_expired"

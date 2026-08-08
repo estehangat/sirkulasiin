@@ -11,6 +11,7 @@ import {
   ScanLine,
   ShoppingBag,
   ArrowLeftRight,
+  PackageSearch,
   Gift,
   ReceiptText,
   Wallet,
@@ -56,6 +57,11 @@ const accountNavItems: AccountNavItem[] = [
     label: "Tawaran Barter",
     href: "/dashboard/barter",
     icon: <ArrowLeftRight size={iconSize} />,
+  },
+  {
+    label: "Permintaan WTB",
+    href: "/dashboard/wtb",
+    icon: <PackageSearch size={iconSize} />,
   },
   {
     label: "Rewards",
@@ -111,6 +117,10 @@ function getHeaderMeta(pathname: string) {
     "/dashboard/barter": {
       title: "Tawaran Barter",
       subtitle: "Kelola tawaran barter masuk dan yang Anda kirim.",
+    },
+    "/dashboard/wtb": {
+      title: "Permintaan WTB",
+      subtitle: "Kelola barang yang Anda cari dan tawaran yang Anda kirim.",
     },
     "/dashboard/rewards": {
       title: "Rewards",

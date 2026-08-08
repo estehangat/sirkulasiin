@@ -14,7 +14,7 @@ type Message = {
   room_id: string;
   sender_id: string;
   content: string;
-  type: "text" | "product_card" | "barter_card";
+  type: "text" | "product_card" | "barter_card" | "wtb_card";
   metadata: Record<string, unknown> | null;
   created_at: string;
 };
@@ -53,6 +53,7 @@ function getPreview(msg: Message | null, myId: string): string {
   if (!msg) return "Mulai percakapan...";
   if (msg.type === "product_card") return "📦 Menanyakan produk";
   if (msg.type === "barter_card") return "🔄 Tawaran Barter";
+  if (msg.type === "wtb_card") return "🎯 Tawaran untuk permintaan WTB";
   const prefix = msg.sender_id === myId ? "Anda: " : "";
   const text = msg.content;
   return prefix + (text.length > 45 ? text.slice(0, 45) + "…" : text);
@@ -154,6 +155,47 @@ function BarterCardBubble({ metadata, isSent }: { metadata: Record<string, unkno
         <p className={`${styles.barterBubbleMsg} ${!isSent ? styles.barterBubbleMsgReceived : ""}`}>
           &ldquo;{String(metadata.message)}&rdquo;
         </p>
+      )}
+    </div>
+  );
+}
+
+function WtbCardBubble({ metadata, isSent }: { metadata: Record<string, unknown> | null; isSent: boolean }) {
+  if (!metadata) return null;
+  return (
+    <div className={styles.barterBubble}>
+      <div className={styles.barterBubbleHeader}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <span>Tawaran WTB</span>
+      </div>
+      <p className={styles.barterBubbleItem}>
+        <span className={styles.barterBubbleItemLabel}>Dicari:</span>{" "}
+        {metadata.wtb_title as string}
+      </p>
+      <div className={`${styles.barterBubbleDivider} ${!isSent ? styles.barterBubbleDividerReceived : ""}`} />
+      <p className={styles.barterBubbleItem}>
+        <span className={styles.barterBubbleItemLabel}>Ditawarkan:</span>{" "}
+        {metadata.item_name as string}
+      </p>
+      {!!metadata.item_description && (
+        <p className={styles.barterBubbleDesc}>{String(metadata.item_description)}</p>
+      )}
+      <p className={styles.barterBubbleItem}>
+        <span className={styles.barterBubbleItemLabel}>Harga:</span>{" "}
+        {formatRupiah(metadata.price)}
+      </p>
+      {!!metadata.message && (
+        <p className={`${styles.barterBubbleMsg} ${!isSent ? styles.barterBubbleMsgReceived : ""}`}>
+          &ldquo;{String(metadata.message)}&rdquo;
+        </p>
+      )}
+      {!!metadata.wtb_id && (
+        <Link href={`/wtb/${metadata.wtb_id}`} className={styles.bubbleLink} style={{ fontSize: 12, fontWeight: 700, marginTop: 6, display: "inline-block" }}>
+          Lihat permintaan →
+        </Link>
       )}
     </div>
   );
@@ -451,6 +493,7 @@ export default function MessagesClient({
             {msg.type === "text" && <p className={styles.bubbleText}>{msg.content}</p>}
             {msg.type === "product_card" && <ProductCardBubble metadata={msg.metadata} isSent={isSent} />}
             {msg.type === "barter_card" && <BarterCardBubble metadata={msg.metadata} isSent={isSent} />}
+            {msg.type === "wtb_card" && <WtbCardBubble metadata={msg.metadata} isSent={isSent} />}
             <span className={isSent ? styles.bubbleTimeSent : styles.bubbleTimeReceived}>
               {new Date(msg.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
             </span>

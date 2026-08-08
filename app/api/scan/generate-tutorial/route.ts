@@ -1,16 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-
-/* ═══════════════ CONFIG ═══════════════ */
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const TEXT_MODEL = "llama-3.3-70b-versatile";
-
-const HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell";
-const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_IMAGE_MODEL}`;
+import {
+  generateContent,
+  extractText,
+  extractImage,
+  extractJsonFromText,
+  decodeBase64,
+  AI_API_KEY,
+  AI_TEXT_MODEL,
+  AI_IMAGE_MODEL,
+} from "@/lib/ai";
 
 const TUTORIAL_SYSTEM_PROMPT = `You are a creative DIY tutorial writer for SirkulasiIn, a circular economy platform.
 Given an item name, material, and upcycle idea, generate a complete upcycling tutorial.
 Respond ONLY with valid JSON (no markdown fences). ALL text in Bahasa Indonesia.
+
+CRITICAL OUTPUT RULES:
+- Output MUST be a single valid JSON object and NOTHING else.
+- DO NOT write any prose, greeting, explanation, or prefix (e.g. "Tentu", "Berikut", "Silakan").
+- DO NOT wrap the JSON in markdown code fences.
+- The first character of your response MUST be "{". Start with the opening brace immediately.
 
 OUTPUT FORMAT:
 {
@@ -56,14 +65,15 @@ function getSupabase() {
 }
 
 /* ═══════════════ Upload raw bytes ═══════════════ */
-async function uploadBytes(bytes: Uint8Array, prefix: string): Promise<string | null> {
+async function uploadBytes(bytes: Uint8Array, prefix: string, ext: string = "png"): Promise<string | null> {
   try {
     const supabase = getSupabase();
-    const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+    const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const contentType = ext === "jpg" ? "image/jpeg" : `image/${ext}`;
 
     const { error } = await supabase.storage
       .from("scan-images")
-      .upload(filename, bytes, { contentType: "image/png", upsert: false });
+      .upload(filename, bytes, { contentType, upsert: false });
 
     if (error) {
       console.error("Storage upload error:", error);
@@ -78,40 +88,29 @@ async function uploadBytes(bytes: Uint8Array, prefix: string): Promise<string | 
   }
 }
 
-/* ═══════════════ Generate image via HuggingFace ═══════════════ */
-async function generateImage(itemName: string, material: string, upcycleIdea: string): Promise<string | null> {
-  const hfKey = process.env.HUGGINGFACE_API_KEY;
-  if (!hfKey || hfKey === "hf_YOUR_TOKEN_HERE") return null;
+/* ═══════════════ Generate image via native endpoint ═══════════════ */
+async function generateImage(itemName: string, material: string, upcycleIdea: string, sessionId: string): Promise<string | null> {
+  if (!AI_API_KEY || AI_API_KEY === "sk-YOUR_TOKEN_HERE") return null;
 
   try {
-    const prompt = `A beautiful, realistic product photo of a ${upcycleIdea} made from recycled ${material} (originally a ${itemName}). ` +
-      `Clean white studio background, professional product photography, soft lighting, high quality, detailed craftsmanship, eco-friendly upcycled design.`;
+    const prompt = "Draw a beautiful, realistic product photo of a " + upcycleIdea + " made from recycled " + material + " (originally a " + itemName + "). Clean white studio background, professional product photography, soft lighting, high quality, detailed craftsmanship, eco-friendly upcycled design. Respond with the image only.";
 
-    const response = await fetch(HF_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${hfKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: prompt,
-        parameters: { num_inference_steps: 4 },
-      }),
+    const resp = await generateContent({
+      model: AI_IMAGE_MODEL,
+      sessionId,
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
-    if (!response.ok) {
-      const errText = await response.text().catch(() => "");
-      console.error(`[HF] Image gen failed: ${response.status}`, errText.slice(0, 300));
-      return null;
-    }
+    const img = extractImage(resp);
+    if (!img) return null;
 
-    const imageBuffer = await response.arrayBuffer();
-    const imageBytes = new Uint8Array(imageBuffer);
+    const imageBytes = decodeBase64(img.base64);
     if (imageBytes.length < 1000) return null;
 
-    return await uploadBytes(imageBytes, "upcycle");
+    const ext = img.mimeType.split("/")[1].replace("jpeg", "jpg");
+    return await uploadBytes(imageBytes, "upcycle", ext);
   } catch (err) {
-    console.error("[HF] Exception during image gen:", err);
+    console.error("[AI] Exception during image gen:", err);
     return null;
   }
 }
@@ -119,8 +118,7 @@ async function generateImage(itemName: string, material: string, upcycleIdea: st
 /* ═══════════════ POST Handler ═══════════════ */
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
+    if (!AI_API_KEY) {
       return NextResponse.json({ error: "API key not configured." }, { status: 500 });
     }
 
@@ -130,6 +128,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getSupabase();
+    const sessionId = "tut_" + scanId + "_" + Date.now();
 
     // Check if tutorial already exists for this scan
     const { data: existing } = await supabase
@@ -147,7 +146,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (scanCheck && !scanCheck.upcycle_image_url) {
-        const newImg = await generateImage(scanCheck.item_name, scanCheck.material, scanCheck.upcycle_idea);
+        const newImg = await generateImage(scanCheck.item_name, scanCheck.material, scanCheck.upcycle_idea, sessionId);
         if (newImg) {
           await Promise.all([
             supabase.from("scan_history").update({ upcycle_image_url: newImg }).eq("id", scanId),
@@ -173,50 +172,34 @@ export async function POST(req: NextRequest) {
     const material = scan.material || "material daur ulang";
     const upcycleIdea = scan.upcycle_idea || "Kreasi Upcycle";
 
-    // Generate tutorial steps via Groq
-    const userPrompt = `Buatkan tutorial upcycling lengkap untuk:
-- Item: ${itemName}
-- Material: ${material}
-- Ide Upcycle: ${upcycleIdea}
+    // Generate tutorial steps via AI (turn 1 of this session)
+    const userPrompt = "Buatkan tutorial upcycling lengkap untuk:\n- Item: " + itemName + "\n- Material: " + material + "\n- Ide Upcycle: " + upcycleIdea + "\n\nWAJIB ikuti format JSON di system instruction. Setiap step HARUS memiliki field: stepNumber, label, title, iconName, mainDesc, detailDesc, dos (array 2 string), donts (array 2 string). Field expertInsight dan techniqueRef opsional. JANGAN gunakan field description. Gunakan mainDesc dan detailDesc saja.";
 
-WAJIB ikuti format JSON yang ada di system prompt. Setiap step HARUS memiliki field: stepNumber, label, title, iconName, mainDesc, detailDesc, dos (array 2 string), donts (array 2 string). Field expertInsight dan techniqueRef opsional.
-JANGAN gunakan field "description". Gunakan "mainDesc" dan "detailDesc" saja.`;
-
-    const groqRes = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: TEXT_MODEL,
-        messages: [
-          { role: "system", content: TUTORIAL_SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.5,
-        max_completion_tokens: 4096,
-        response_format: { type: "json_object" },
-      }),
+    const aiResp = await generateContent({
+      model: AI_TEXT_MODEL,
+      sessionId,
+      systemInstruction: TUTORIAL_SYSTEM_PROMPT,
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      temperature: 0.5,
+      maxOutputTokens: 4096,
     });
 
-    if (!groqRes.ok) {
+    if (!aiResp) {
       return NextResponse.json({ error: "Failed to generate tutorial." }, { status: 502 });
     }
 
-    const data = await groqRes.json();
-    const text = data.choices?.[0]?.message?.content || "{}";
-    let jsonStr = text;
-    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenceMatch) jsonStr = fenceMatch[1].trim();
-
-    const tutorial = JSON.parse(jsonStr);
+    const text = extractText(aiResp);
+    const tutorial = extractJsonFromText<Record<string, unknown>>(text);
+    if (!tutorial) {
+      console.error("[Tutorial] Failed to parse AI response. Raw:", text.slice(0, 500));
+      return NextResponse.json({ error: "Failed to parse tutorial response." }, { status: 502 });
+    }
 
     // Normalize steps: ensure AI output uses mainDesc/detailDesc, not description
     const rawSteps = Array.isArray(tutorial.steps) ? tutorial.steps : [];
     const normalizedSteps = rawSteps.map((s: Record<string, unknown>, i: number) => ({
       stepNumber: s.stepNumber || i + 1,
-      label: s.label || `Langkah ${(s.stepNumber as number) || i + 1}`,
+      label: s.label || ("Langkah " + ((s.stepNumber as number) || i + 1)),
       title: s.title || "",
       iconName: s.iconName || "Recycle",
       mainDesc: s.mainDesc || s.description || "",
@@ -227,10 +210,10 @@ JANGAN gunakan field "description". Gunakan "mainDesc" dan "detailDesc" saja.`;
       techniqueRef: s.techniqueRef ?? null,
     }));
 
-    // Generate upcycle image if not already present
+    // Generate upcycle image (turn 2, same session) if not already present
     let finalImageUrl = scan.upcycle_image_url || null;
     if (!finalImageUrl) {
-      finalImageUrl = await generateImage(itemName, material, upcycleIdea);
+      finalImageUrl = await generateImage(itemName, material, upcycleIdea, sessionId);
 
       // Also update scan_history with the generated image
       if (finalImageUrl) {

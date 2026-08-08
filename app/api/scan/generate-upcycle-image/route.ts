@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import {
+  generateContent,
+  extractImage,
+  decodeBase64,
+  AI_API_KEY,
+  AI_IMAGE_MODEL,
+} from "@/lib/ai";
 
 // Refresh: Triggering Next.js route registration
-/* ═══════════════ CONFIG ═══════════════ */
-const HF_IMAGE_MODEL = "runwayml/stable-diffusion-v1-5";
-const HF_API_URL = `https://api-inference.huggingface.co/models/${HF_IMAGE_MODEL}`;
-
+/* ═══════════════ Supabase ═══════════════ */
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,14 +17,15 @@ function getSupabase() {
   );
 }
 
-async function uploadBytes(bytes: Uint8Array, prefix: string): Promise<string | null> {
+async function uploadBytes(bytes: Uint8Array, prefix: string, ext: string = "png"): Promise<string | null> {
   try {
     const supabase = getSupabase();
-    const filename = `upcycle_${prefix}_${Date.now()}.png`;
+    const filename = "upcycle_" + prefix + "_" + Date.now() + "." + ext;
+    const contentType = ext === "jpg" ? "image/jpeg" : "image/" + ext;
     console.log("Uploading to storage:", filename);
     const { error } = await supabase.storage
       .from("scan-images")
-      .upload(filename, bytes, { contentType: "image/png", upsert: false });
+      .upload(filename, bytes, { contentType, upsert: false });
     if (error) {
       console.error("Storage Error:", error);
       return null;
@@ -56,56 +61,54 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ url: scan.upcycle_image_url });
     }
 
-    const hfKey = process.env.HUGGINGFACE_API_KEY;
-    if (!hfKey || hfKey.includes("YOUR_TOKEN")) {
-      console.error("Hugging Face API Key is missing or invalid!");
-      return NextResponse.json({ error: "HF Key missing" }, { status: 500 });
+    if (!AI_API_KEY || AI_API_KEY.includes("YOUR_TOKEN")) {
+      console.error("AI API Key is missing or invalid!");
+      return NextResponse.json({ error: "AI API Key missing" }, { status: 500 });
     }
 
-    const prompt = `A beautiful, realistic product photo of a ${scan.upcycle_idea} made from recycled ${scan.material} (originally a ${scan.item_name}). Clean white studio background, professional product photography, high quality, 8k.`;
-    console.log("Calling HF API for model:", HF_IMAGE_MODEL);
-    console.log("Prompt:", prompt);
+    const sessionId = "upcycle_" + scanId + "_" + Date.now();
+    const prompt = "Draw a beautiful, realistic product photo of a " + scan.upcycle_idea + " made from recycled " + scan.material + " (originally a " + scan.item_name + "). Clean white studio background, professional product photography, soft lighting, high quality, detailed craftsmanship, eco-friendly upcycled design. Respond with the image only.";
+    console.log("Calling AI native endpoint for model:", AI_IMAGE_MODEL);
 
-    const response = await fetch(HF_API_URL, {
-      method: "POST",
-      headers: { 
-        Authorization: `Bearer ${hfKey}`, 
-        "Content-Type": "application/json",
-        "x-use-cache": "false" 
-      },
-      body: JSON.stringify({ inputs: prompt }),
+    const resp = await generateContent({
+      model: AI_IMAGE_MODEL,
+      sessionId,
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error(`HF API Error (${response.status}):`, errText);
-      return NextResponse.json({ error: "HF API failed", detail: errText }, { status: response.status });
+    if (!resp) {
+      console.error("AI API returned no response.");
+      return NextResponse.json({ error: "AI API failed" }, { status: 502 });
     }
 
-    const imageBuffer = await response.arrayBuffer();
-    const imageBytes = new Uint8Array(imageBuffer);
-    
+    const img = extractImage(resp);
+    if (!img) {
+      console.error("No image data URI in AI response.");
+      return NextResponse.json({ error: "Invalid image response" }, { status: 502 });
+    }
+
+    const imageBytes = decodeBase64(img.base64);
     if (imageBytes.length < 1000) {
       console.error("Image received is too small or invalid.");
       return NextResponse.json({ error: "Invalid image received" }, { status: 502 });
     }
 
     console.log("Image received successfully, size:", imageBytes.length);
-    const publicUrl = await uploadBytes(imageBytes, scanId.slice(0, 8));
+    const ext = img.mimeType.split("/")[1].replace("jpeg", "jpg");
+    const publicUrl = await uploadBytes(imageBytes, scanId.slice(0, 8), ext);
 
     if (publicUrl) {
       console.log("Success! New URL:", publicUrl);
-      // Update scan_history
       await supabase.from("scan_history").update({ upcycle_image_url: publicUrl }).eq("id", scanId);
-      // Update tutorial if exists
       await supabase.from("recycle_tutorials").update({ final_image_url: publicUrl }).eq("scan_id", scanId);
     } else {
       console.error("Failed to upload to Supabase storage.");
     }
 
     return NextResponse.json({ url: publicUrl });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Internal Server Error:", err);
-    return NextResponse.json({ error: "Internal error", detail: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal error";
+    return NextResponse.json({ error: "Internal error", detail: message }, { status: 500 });
   }
 }

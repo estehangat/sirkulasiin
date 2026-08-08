@@ -50,6 +50,7 @@ type SellerOrder = {
   delivery_status: string | null;
   total_price: number;
   marketplace_listings: { title: string; weight_grams: number | null } | null;
+  wtb_offers: { item_name: string; weight_grams: number | null } | null;
   seller: {
     full_name: string | null;
     phone: string | null;
@@ -85,7 +86,8 @@ async function loadOrderForSeller(orderId: string): Promise<LoadOrderResult> {
        shipping_destination_area_id, shipping_destination_postal,
        awb, shipping_provider, shipping_order_id, shipping_tracking_id,
        pickup_status, delivery_status, total_price,
-       marketplace_listings ( title, weight_grams )`
+       marketplace_listings ( title, weight_grams ),
+       wtb_offers ( item_name, weight_grams )`
     )
     .eq("id", orderId)
     .maybeSingle();
@@ -163,8 +165,10 @@ export async function createShippingOrderAction(
   const listing = order.marketplace_listings;
   const seller = order.seller;
 
+  // Order WTB tidak punya listing — pakai snapshot dari offer
+  const itemName = listing?.title || order.wtb_offers?.item_name || "Produk SirkulasiIn";
   const itemPrice = Math.max(0, (order.total_price || 0) - (order.shipping_cost || 0));
-  const itemWeight = Math.max(listing?.weight_grams || 500, 100);
+  const itemWeight = Math.max(listing?.weight_grams || order.wtb_offers?.weight_grams || 500, 100);
   const requestedCourier = order.shipping_courier!.toLowerCase();
   const requestedService = order.shipping_service!.toLowerCase();
 
@@ -180,7 +184,7 @@ export async function createShippingOrderAction(
         originAreaId,
         destinationAreaId,
         couriers: requestedCourier,
-        items: [{ name: listing?.title || "Item", value: itemPrice, quantity: 1, weight: itemWeight }],
+        items: [{ name: itemName, value: itemPrice, quantity: 1, weight: itemWeight }],
       });
 
       // Cari service exact match dulu, kalau tidak ada ambil yang pertama untuk courier ini
@@ -223,7 +227,7 @@ export async function createShippingOrderAction(
       orderNote: `SirkulasiIn order #${order.id.slice(0, 8)}`,
       items: [
         {
-          name: listing?.title || "Produk SirkulasiIn",
+          name: itemName,
           value: itemPrice,
           quantity: 1,
           weight: itemWeight,

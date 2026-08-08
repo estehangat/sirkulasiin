@@ -5,6 +5,7 @@ import Navbar from "../components/navbar";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import MarketplaceFilters from "./MarketplaceFilters";
 import FavoriteButton from "./FavoriteButton";
+import WtbBoard from "./WtbBoard";
 import styles from "./marketplace.module.css";
 
 const PER_PAGE = 20;
@@ -45,6 +46,8 @@ export default async function MarketplacePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
+  const tab = typeof sp.tab === "string" ? sp.tab : "jual";
+  const isWtbTab = tab === "dicari";
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
   const category = typeof sp.category === "string" ? sp.category : "";
   const priceRange = typeof sp.price === "string" ? sp.price : "";
@@ -53,6 +56,60 @@ export default async function MarketplacePage({
   const page = Math.max(1, Number(sp.page) || 1);
 
   const supabase = await createServerSupabaseClient();
+
+  // Tab "Dicari" (WTB) punya sumber data sendiri — render papan permintaan
+  if (isWtbTab) {
+    return (
+      <main className={styles.pageShell}>
+        <Navbar activeNav="marketplace" />
+
+        <section className={styles.heroSection}>
+          <div className={styles.heroContent}>
+            <div className={styles.heroTextContent}>
+              <h1 className={styles.heroTitle}>
+                Barang yang kamu cari,{" "}
+                <span className={styles.heroAccent}>biar kami yang carikan.</span>
+              </h1>
+              <p className={styles.heroDescription}>
+                Posting barang yang kamu butuhkan, dan biarkan penjual datang
+                menawarkannya kepadamu. Satu permintaan, banyak penawaran.
+              </p>
+            </div>
+            <div>
+              <Link href="/wtb/create" className={styles.listItemBtn}>
+                <svg className={styles.listItemIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                  <path d="M11 8v6M8 11h6" />
+                </svg>
+                Buat Permintaan
+              </Link>
+            </div>
+          </div>
+
+          <div className={styles.modeTabRow} role="tablist" aria-label="Mode marketplace">
+            <Link href="/marketplace" className={styles.modeTab} role="tab" aria-selected={false}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                <path d="M3 6h18" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              Dijual Warga
+            </Link>
+            <Link href="/marketplace?tab=dicari" className={`${styles.modeTab} ${styles.modeTabActiveWtb}`} role="tab" aria-selected={true}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              Sedang Dicari
+            </Link>
+          </div>
+
+          <WtbBoard sp={sp} />
+        </section>
+      </main>
+    );
+  }
 
   // ─── Check auth for favorites filter ───
   const { data: { user } } = await supabase.auth.getUser();
@@ -173,6 +230,24 @@ export default async function MarketplacePage({
               Mulai Scan Barangmu
             </Link>
           </div>
+        </div>
+
+        <div className={styles.modeTabRow} role="tablist" aria-label="Mode marketplace">
+          <Link href="/marketplace" className={`${styles.modeTab} ${styles.modeTabActive}`} role="tab" aria-selected={true}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+              <path d="M3 6h18" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+            Dijual Warga
+          </Link>
+          <Link href="/marketplace?tab=dicari" className={styles.modeTab} role="tab" aria-selected={false}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            Sedang Dicari
+          </Link>
         </div>
 
         {/* Filters (Client Component) */}

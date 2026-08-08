@@ -695,7 +695,7 @@ export default function SettingsClientPage({ alertParam }: { alertParam?: string
           <span style={{ fontSize: "18px", lineHeight: 1 }}>⚠️</span>
           <span>
             Anda perlu mengisi <strong>Provinsi</strong> dan <strong>Kota/Kabupaten</strong> terlebih dahulu
-            sebelum bisa membuat listing di Marketplace.
+            sebelum bisa membuat listing atau menawarkan barang di Marketplace.
           </span>
         </div>
       )}

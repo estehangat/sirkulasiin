@@ -114,7 +114,7 @@ export default async function TransactionsPage() {
   // Fetch Pembelian
   const { data: purchasesQuery } = await adminSupabase
     .from("orders")
-    .select("*, marketplace_listings(id, title, image_url)")
+    .select("*, marketplace_listings(id, title, image_url), wtb_offers(item_name, item_image_url)")
     .eq("buyer_id", user.id)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -122,7 +122,7 @@ export default async function TransactionsPage() {
   // Fetch Penjualan
   const { data: salesQuery } = await adminSupabase
     .from("orders")
-    .select("*, marketplace_listings(id, title, image_url)")
+    .select("*, marketplace_listings(id, title, image_url), wtb_offers(item_name, item_image_url)")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -153,6 +153,9 @@ export default async function TransactionsPage() {
     const dDesign = getDeliveryDesign(item.delivery_status);
     const courierLabel = formatCourierLabel(item.shipping_courier, item.shipping_service);
     const hasShipping = !!item.shipping_order_id;
+    const isWtb = !item.listing_id && !!item.wtb_offer_id;
+    const itemTitle = item.marketplace_listings?.title || item.wtb_offers?.item_name || "Listing telah dihapus";
+    const itemImage = item.marketplace_listings?.image_url || item.wtb_offers?.item_image_url || null;
 
     return (
       <article
@@ -170,10 +173,10 @@ export default async function TransactionsPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", minWidth: 0, flex: 1 }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "12px", overflow: "hidden", background: "#f5f5f4", border: "1px solid #EFEFEB", display: "flex", alignItems: "center", justifyContent: "center", color: "#A3A39B", flexShrink: 0, position: "relative" }}>
-              {item.marketplace_listings?.image_url ? (
+              {itemImage ? (
                 <Image
-                  src={item.marketplace_listings.image_url}
-                  alt={item.marketplace_listings?.title || "Produk"}
+                  src={itemImage}
+                  alt={itemTitle}
                   fill
                   sizes="56px"
                   style={{ objectFit: "cover" }}
@@ -186,8 +189,13 @@ export default async function TransactionsPage() {
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
                 <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#1A1A1A" }}>
-                  {item.marketplace_listings?.title || "Listing telah dihapus"}
+                  {itemTitle}
                 </h3>
+                {isWtb && (
+                  <span style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.5px", color: "#9a3412", background: "#fff7ed", border: "1px solid #fed7aa", padding: "2px 8px", borderRadius: "6px", textTransform: "uppercase" }}>
+                    WTB
+                  </span>
+                )}
                 <span style={{ fontSize: "11px", fontWeight: 700, color: "#737369", background: "#f5f5f4", padding: "2px 8px", borderRadius: "6px" }}>
                   {formatOrderChip(item.id)}
                 </span>

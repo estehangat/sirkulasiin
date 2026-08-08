@@ -1,18 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { sendNotification } from "@/lib/notifications";
+import {
+  generateContent,
+  extractText,
+  extractImage,
+  extractJsonFromText,
+  AI_API_KEY,
+  AI_VISION_MODEL,
+  AI_TEXT_MODEL,
+  AI_IMAGE_MODEL,
+  decodeBase64,
+  type GooglePart,
+} from "@/lib/ai";
 
 /* ═══════════════ CONFIG ═══════════════ */
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
-const TEXT_MODEL = "llama-3.3-70b-versatile";
 
-const HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell";
-const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${HF_IMAGE_MODEL}`;
+type ScanResult = {
+  itemName?: string;
+  material?: string;
+  grade?: string;
+  weight?: string;
+  condition?: string;
+  recommendation?: string;
+  reason?: string;
+  marketSentiment?: string;
+  materialPurity?: string;
+  circularPotential?: number;
+  carbonOffset?: number;
+  carbonSaved?: string;
+  carbonSavedValue?: number;
+  potentialReward?: string;
+  estimatedPrice?: string;
+  recycleOptions?: string[];
+  upcycleIdea?: string;
+  upcycleIdeaId?: string;
+  upcycleDescription?: string;
+  heroHeadline?: string;
+  heroDescription?: string;
+};
 
 const SYSTEM_PROMPT = `You are a professional circular economy expert and waste-analysis AI for SirkulasiIn.
 Analyze the item and respond ONLY with valid JSON (no markdown fences).
 ALL text values must be in Bahasa Indonesia.
+
+CRITICAL OUTPUT RULES:
+- Output MUST be a single valid JSON object and NOTHING else.
+- DO NOT write any prose, greeting, explanation, or prefix (e.g. "Tentu", "Berikut", "Silakan").
+- DO NOT wrap the JSON in markdown code fences.
+- The first character of your response MUST be "{". Start with the opening brace immediately.
 
 DECISION LOGIC & MANDATORY FIELDS:
 1. "sell": Recommend if functional/valuable.
@@ -129,15 +165,17 @@ async function uploadImage(
 async function uploadBytes(
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   bytes: Uint8Array,
-  prefix: string
+  prefix: string,
+  ext: string = "png"
 ): Promise<string | null> {
   try {
-    const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+    const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const contentType = ext === "jpg" ? "image/jpeg" : `image/${ext}`;
 
     const { error } = await supabase.storage
       .from("scan-images")
       .upload(filename, bytes, {
-        contentType: "image/png",
+        contentType,
         upsert: false,
       });
 
@@ -157,70 +195,54 @@ async function uploadBytes(
   }
 }
 
-/* ═══════════════ Generate upcycle image via Hugging Face ═══════════════ */
+/* ═══════════════ Generate upcycle image via native endpoint (same session) ═══════════════ */
 async function generateUpcycleImage(
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   itemName: string,
   material: string,
-  upcycleIdea: string
+  upcycleIdea: string,
+  sessionId: string
 ): Promise<string | null> {
-  const hfKey = process.env.HUGGINGFACE_API_KEY;
-  if (!hfKey || hfKey === "hf_YOUR_TOKEN_HERE") {
-    console.warn("Hugging Face API key not configured, skipping image gen.");
+  if (!AI_API_KEY || AI_API_KEY === "sk-YOUR_TOKEN_HERE") {
+    console.warn("AI API key not configured, skipping image gen.");
     return null;
   }
 
   try {
-    const prompt = `A beautiful, realistic product photo of a ${upcycleIdea} made from recycled ${material} (originally a ${itemName}). ` +
-      `Clean white studio background, professional product photography, soft lighting, high quality, detailed craftsmanship, eco-friendly upcycled design.`;
+    const prompt = `Draw a beautiful, realistic product photo of a ${upcycleIdea} made from recycled ${material} (originally a ${itemName}). Clean white studio background, professional product photography, soft lighting, high quality, detailed craftsmanship, eco-friendly upcycled design. Respond with the image only.`;
 
-    console.log("[HF] Generating upcycle image:", prompt.slice(0, 100) + "...");
+    console.log("[AI] Generating upcycle image:", prompt.slice(0, 100) + "...");
 
-    const response = await fetch(HF_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${hfKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: prompt,
-        parameters: {
-          num_inference_steps: 4,
-        },
-      }),
+    const resp = await generateContent({
+      model: AI_IMAGE_MODEL,
+      sessionId,
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
-    if (!response.ok) {
-      const errText = await response.text().catch(() => "");
-      console.error(`[HF] Image gen failed: ${response.status}`, errText.slice(0, 300));
+    const img = extractImage(resp);
+    if (!img) {
+      console.error("[AI] No image data URI in response.");
       return null;
     }
 
-    // Response is raw image bytes (PNG/JPEG)
-    const imageBuffer = await response.arrayBuffer();
-    const imageBytes = new Uint8Array(imageBuffer);
-
-    if (imageBytes.length < 1000) {
-      console.error("[HF] Image too small, likely an error response.");
+    const bytes = decodeBase64(img.base64);
+    if (bytes.length < 1000) {
+      console.error("[AI] Image too small, likely an error response.");
       return null;
     }
 
-    // Upload to Supabase
-    const publicUrl = await uploadBytes(supabase, imageBytes, "upcycle");
-    console.log("[HF] Upcycle image uploaded:", publicUrl);
+    const ext = img.mimeType.split("/")[1].replace("jpeg", "jpg");
+    const publicUrl = await uploadBytes(supabase, bytes, "upcycle", ext);
+    console.log("[AI] Upcycle image uploaded:", publicUrl);
     return publicUrl;
   } catch (err) {
-    console.error("[HF] Image generation error:", err);
+    console.error("[AI] Image generation error:", err);
     return null;
   }
 }
 
-/* ═══════════════ Generate tutorial steps via Groq ═══════════════ */
-async function generateTutorialSteps(
-  itemName: string,
-  material: string,
-  upcycleIdea: string
-): Promise<{
+/* ═══════════════ Generate tutorial steps via AI ═══════════════ */
+type TutorialSteps = {
   title: string;
   description: string;
   difficulty: string;
@@ -229,40 +251,34 @@ async function generateTutorialSteps(
   tools: string[];
   materials: string[];
   steps: Array<{ stepNumber: number; title: string; description: string }>;
-} | null> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return null;
+};
+
+async function generateTutorialSteps(
+  itemName: string,
+  material: string,
+  upcycleIdea: string,
+  sessionId: string
+): Promise<TutorialSteps | null> {
+  if (!AI_API_KEY) return null;
 
   try {
-    const prompt = `${TUTORIAL_SYSTEM_PROMPT}\n\nItem: ${itemName}\nMaterial: ${material}\nIde Upcycle: ${upcycleIdea}`;
+    const userPrompt = "Buatkan tutorial upcycling lengkap untuk:\n- Item: " + itemName + "\n- Material: " + material + "\n- Ide Upcycle: " + upcycleIdea + "\n\nWAJIB ikuti format JSON di system instruction. Buat 4-6 langkah.";
 
-    const res = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: TEXT_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.5,
-        max_completion_tokens: 2048,
-        response_format: { type: "json_object" },
-      }),
+    const resp = await generateContent({
+      model: AI_TEXT_MODEL,
+      sessionId,
+      systemInstruction: TUTORIAL_SYSTEM_PROMPT,
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      temperature: 0.5,
+      maxOutputTokens: 4096,
     });
 
-    if (!res.ok) {
-      console.error("[Tutorial] Groq error:", res.status);
+    const text = extractText(resp);
+    const parsed = extractJsonFromText<TutorialSteps>(text);
+    if (!parsed) {
+      console.error("[Tutorial] Failed to parse AI response. Raw:", text.slice(0, 500));
       return null;
     }
-
-    const data = await res.json();
-    const text = data.choices?.[0]?.message?.content || "{}";
-    let jsonStr = text;
-    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenceMatch) jsonStr = fenceMatch[1].trim();
-
-    const parsed = JSON.parse(jsonStr);
     console.log("[Tutorial] Generated steps:", parsed.title);
     return parsed;
   } catch (err) {
@@ -277,10 +293,10 @@ export async function POST(req: NextRequest) {
     const serverSupabase = await createServerSupabaseClient();
     const { data: { user } } = await serverSupabase.auth.getUser();
 
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = AI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Kunci API Groq belum dikonfigurasi." },
+        { error: "Kunci API AI belum dikonfigurasi." },
         { status: 500 }
       );
     }
@@ -298,64 +314,59 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    /* ── 1. Call Groq AI ── */
+    /* ── 1. Call AI (turn 1 of 1 scan session) ── */
     const hasImage = !!imageBase64;
-    const model = hasImage ? VISION_MODEL : TEXT_MODEL;
+    const model = hasImage ? AI_VISION_MODEL : AI_TEXT_MODEL;
+    const sessionId = "scan_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
 
-    const userContent: Array<
-      | { type: "text"; text: string }
-      | { type: "image_url"; image_url: { url: string } }
-    > = [];
-
+    const parts: GooglePart[] = [];
     let textPrompt = SYSTEM_PROMPT;
     if (description) {
-      textPrompt += `\n\nDeskripsi pengguna: ${description}`;
+      textPrompt += "\n\nDeskripsi pengguna: " + description;
     }
-    userContent.push({ type: "text", text: textPrompt });
+    parts.push({ text: textPrompt });
 
-    if (imageBase64) {
-      let imageUrl = imageBase64;
-      if (!imageBase64.startsWith("data:")) {
-        imageUrl = `data:image/jpeg;base64,${imageBase64}`;
+    if (hasImage) {
+      let rawB64 = imageBase64!;
+      let mimeType = "image/jpeg";
+      if (imageBase64!.startsWith("data:")) {
+        const m = imageBase64!.match(/data:(image\/[a-z]+);base64,(.*)/);
+        if (m) {
+          mimeType = m[1];
+          rawB64 = m[2];
+        } else {
+          rawB64 = imageBase64!.split(",")[1] || imageBase64!;
+        }
       }
-      userContent.push({
-        type: "image_url",
-        image_url: { url: imageUrl },
-      });
+      parts.push({ inlineData: { mimeType, data: rawB64 } });
     }
 
-    const groqResponse = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: userContent }],
-        temperature: 0.3,
-        max_completion_tokens: 2048,
-        response_format: { type: "json_object" },
-      }),
+    const aiResp = await generateContent({
+      model,
+      sessionId,
+      contents: [{ role: "user", parts }],
+      temperature: 0.3,
+      maxOutputTokens: 2048,
     });
 
-    if (!groqResponse.ok) {
-      const errData = await groqResponse.json().catch(() => null);
-      const errMsg =
-        errData?.error?.message || `Groq API error: ${groqResponse.status}`;
-      console.error("Groq API error:", errData);
-      return NextResponse.json({ error: errMsg }, { status: 502 });
+    if (!aiResp) {
+      return NextResponse.json(
+        { error: "AI tidak merespons. Coba lagi." },
+        { status: 502 }
+      );
     }
 
-    const data = await groqResponse.json();
-    const text = data.choices?.[0]?.message?.content || "{}";
+    const text = extractText(aiResp);
 
-    // Parse JSON (strip markdown fences if present)
-    let jsonStr = text;
-    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenceMatch) jsonStr = fenceMatch[1].trim();
-
-    const result = JSON.parse(jsonStr);
+    // Parse JSON (handle markdown fences, prose prefix, dll.)
+    const result = extractJsonFromText<ScanResult>(text);
+    if (!result) {
+      console.error("Failed to parse AI response as JSON. Raw:", text.slice(0, 500));
+      return NextResponse.json(
+        { error: "Format respons AI tidak valid. Coba lagi." },
+        { status: 502 }
+      );
+    }
 
     /* ── 2. Upload scan image to Supabase Storage ── */
     let scanImageUrl: string | null = null;
@@ -363,24 +374,26 @@ export async function POST(req: NextRequest) {
       scanImageUrl = await uploadImage(serverSupabase, imageBase64);
     }
 
-    /* ── 3. Generate upcycle thumbnail if idea exists (always generate as per user request) ── */
+    /* ── 3. Generate upcycle thumbnail if idea exists (turn 2, same session) ── */
     let upcycleImageUrl: string | null = null;
     if (result.upcycleIdea) {
       upcycleImageUrl = await generateUpcycleImage(
         serverSupabase,
         result.itemName || "item",
         result.material || "recycled material",
-        result.upcycleIdea
+        result.upcycleIdea,
+        sessionId
       );
     }
 
-    /* ── 3b. Generate tutorial steps if idea exists (always generate as per user request) ── */
+    /* ── 3b. Generate tutorial steps (turn 3, same session) ── */
     let tutorialData: Awaited<ReturnType<typeof generateTutorialSteps>> = null;
     if (result.upcycleIdea) {
       tutorialData = await generateTutorialSteps(
         result.itemName || "item",
         result.material || "material",
-        result.upcycleIdeaId || result.upcycleIdea
+        result.upcycleIdeaId || result.upcycleIdea,
+        sessionId
       );
     }
 

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const TEXT_MODEL = "llama-3.3-70b-versatile";
+import {
+  generateContent,
+  extractText,
+  extractJsonFromText,
+  AI_API_KEY,
+  AI_TEXT_MODEL,
+} from "@/lib/ai";
 
 function getSupabase() {
   return createClient(
@@ -86,8 +90,7 @@ Example: {"icons": ["Scissors", "Paintbrush", "Wrench", "CheckCircle"]}`;
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
+    if (!AI_API_KEY) {
       return NextResponse.json({ error: "API key not configured." }, { status: 500 });
     }
 
@@ -116,39 +119,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ steps });
     }
 
-    const stepSummaries = steps.map((s) => `${s.stepNumber}. ${s.title}: ${s.mainDesc || s.description || ""}`).join("\n");
+    const stepSummaries = steps.map((s) => s.stepNumber + ". " + s.title + ": " + (s.mainDesc || s.description || "")).join("\n");
+    const sessionId = "icons_" + tutorialId + "_" + Date.now();
 
-    const groqRes = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: TEXT_MODEL,
-        messages: [
-          { role: "system", content: ICON_PROMPT },
-          { role: "user", content: `Pick ${steps.length} icons for:\n${stepSummaries}` },
-        ],
-        temperature: 0.2,
-        max_completion_tokens: 512,
-        response_format: { type: "json_object" },
-      }),
+    const aiResp = await generateContent({
+      model: AI_TEXT_MODEL,
+      sessionId,
+      systemInstruction: ICON_PROMPT,
+      contents: [{ role: "user", parts: [{ text: "Pick " + steps.length + " icons for:\n" + stepSummaries }] }],
+      temperature: 0.2,
+      maxOutputTokens: 512,
     });
 
-    if (!groqRes.ok) {
-      console.error("Groq icons error:", groqRes.status);
+    if (!aiResp) {
+      console.error("AI icons error: no response");
       return NextResponse.json({ error: "Failed to generate icons." }, { status: 502 });
     }
 
-    const data = await groqRes.json();
-    const text = data.choices?.[0]?.message?.content || "{}";
+    const text = extractText(aiResp);
     console.log("[generate-icons] AI response:", text);
 
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
+    const parsed = extractJsonFromText<Record<string, unknown>>(text);
+    if (!parsed) {
       return NextResponse.json({ error: "Invalid JSON from AI." }, { status: 502 });
     }
 
@@ -163,7 +155,7 @@ export async function POST(req: NextRequest) {
 
     // Validate each name against the whitelist
     const validatedNames = rawNames.map(validateIconName);
-    console.log(`[generate-icons] Validated:`, validatedNames);
+    console.log("[generate-icons] Validated:", validatedNames);
 
     // Merge into steps
     const enrichedSteps = steps.map((step, i) => ({

@@ -200,7 +200,7 @@ export async function refreshPaymentStatus(orderId: string) {
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, buyer_id, seller_id, listing_id, status, payment_reference, payment_expired_at")
+    .select("id, buyer_id, seller_id, listing_id, wtb_offer_id, status, payment_reference, payment_expired_at")
     .eq("id", orderId)
     .single();
 
@@ -223,7 +223,7 @@ export async function refreshPaymentStatus(orderId: string) {
     return {
       success: true,
       status: "payment_expired",
-      message: "Sesi pembayaran telah kedaluwarsa. Listing sudah dikembalikan ke marketplace.",
+      message: "Sesi pembayaran telah kedaluwarsa. Barang sudah tersedia kembali.",
       shouldRefresh: true,
     };
   }
@@ -248,7 +248,7 @@ export async function refreshPaymentStatus(orderId: string) {
       message: isPaid
         ? "Pembayaran berhasil diverifikasi. Dana sudah masuk ke escrow."
         : isExpired
-          ? "Pembayaran kedaluwarsa dan listing sudah dikembalikan ke marketplace."
+          ? "Pembayaran kedaluwarsa dan barang sudah tersedia kembali."
           : "Pembayaran masih berstatus pending di Midtrans. Selesaikan pembayaran di halaman Midtrans lalu cek lagi.",
     };
   } catch (error) {
@@ -258,7 +258,7 @@ export async function refreshPaymentStatus(orderId: string) {
       const expiredLocally = new Date(order.payment_expired_at).getTime() <= Date.now();
 
       if (expiredLocally) {
-        const expireResult = await markOrderAsExpired(order.id, order.listing_id);
+        const expireResult = await markOrderAsExpired(order.id, order.listing_id, order.wtb_offer_id);
         if (expireResult.ok) {
           revalidatePath(`/marketplace/order/${orderId}/payment`);
           revalidatePath("/dashboard/transactions");
@@ -266,7 +266,7 @@ export async function refreshPaymentStatus(orderId: string) {
             success: true,
             status: "payment_expired",
             shouldRefresh: true,
-            message: "Sesi pembayaran telah kedaluwarsa. Listing sudah dikembalikan ke marketplace.",
+            message: "Sesi pembayaran telah kedaluwarsa. Barang sudah tersedia kembali.",
           };
         }
       }
@@ -338,14 +338,16 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
       return { success: false, error: "Gagal mengupdate status" };
     }
 
-    const { error: listingError } = await adminSupabase
-      .from("marketplace_listings")
-      .update({ status: "sold", sold_via: "payment" })
-      .eq("id", order.listing_id);
+    if (order.listing_id) {
+      const { error: listingError } = await adminSupabase
+        .from("marketplace_listings")
+        .update({ status: "sold", sold_via: "payment" })
+        .eq("id", order.listing_id);
 
-    if (listingError) {
-      console.error("Update listing status error:", listingError);
-      return { success: false, error: "Gagal menyelesaikan transaksi" };
+      if (listingError) {
+        console.error("Update listing status error:", listingError);
+        return { success: false, error: "Gagal menyelesaikan transaksi" };
+      }
     }
   } else {
     return { success: false, error: "Status tidak didukung." };
